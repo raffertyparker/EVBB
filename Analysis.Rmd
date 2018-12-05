@@ -1,0 +1,18 @@
+---
+title: "EVBB Analysis"
+author: "Rafferty Parker"
+date: "5 December 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overall outcome for project:
+
+When/where is the greatest amount of charging occurring?
+  
+Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
+
+
