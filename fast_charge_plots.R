@@ -1,9 +1,22 @@
 # This plots daily occurrences of fast charging
 
+#This seperates out the fast-charges so we can see when/where they occur
+
+EVBB_fastcharge <- EVBB_processed[EVBB_processed$charge_power_kw >= 5, ]
+
+EVBB_fastcharge$location <- factor(EVBB_fastcharge$location)
+
+pie(table(EVBB_fastcharge$location), main = "Location of fast charging")
+
+# The pie chart demonstrates that there are often times during
+# which fastcharge is occurring while the car is supposedly at home.
+
+
+
 quarterHour <- seq(from = 0, by = 15*60/(24*60*60), to = 1) # sequence that keeps track of every 15 minutes
 
 fastChargeTimes <- data.frame(day="", time=0, charge_power=0, ave_power =0)
-#quarterHourData$day <- as.character(day)
+# quarterHourData$day <- as.character(day)
 
 days <- levels(EVBB_fastcharge$day_of_week)
 n <- length(levels(EVBB_fastcharge$day_of_week))

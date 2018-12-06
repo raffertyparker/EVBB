@@ -15,4 +15,7 @@ When/where is the greatest amount of charging occurring?
   
 Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
 
+## To do
 
+Plot all charging with fast and slow charges differentiated
+Plot fast charges with weekend and weekday differentiated
