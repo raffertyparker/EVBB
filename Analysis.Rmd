@@ -18,4 +18,4 @@ Develop tools for analyzing the data so that data can be fed in and plots automa
 ## To do
 
 Plot all charging with fast and slow charges differentiated
-Plot fast charges with weekend and weekday differentiated
+Plot fast charges with weekend and weekday differentiated 

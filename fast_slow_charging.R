@@ -1,6 +1,6 @@
 # This plots EV charging, differentiating between fast and slow charges
 
-evbb <- read.csv("~/EVBB/data/EVBB_processed.csv", stringsAsFactors = F) 
+evbb <- read.csv("~/EVBB/data/EVBB_processed1.csv", stringsAsFactors = F) 
 evbb$time <- chron(times=evbb$time) # converting from character to times
 evbb$time_as_numeric <- as.numeric(evbb$time) # converting from times to numeric
 evbb$day_of_week <- factor(evbb$day_of_week, levels = c("Monday", "Tuesday", "Wednesday", 
