@@ -1,0 +1,135 @@
+---
+title: "EVBB Analysis"
+author: "Rafferty Parker (University of Otago)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    self_contained: no
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+subtitle: subtitle goes here
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(readr)
+library(knitr)
+library(lubridate)
+library(hms)
+
+iFile <- "data/EVBB_processed.csv" # set this here
+```
+
+# Introduction
+
+When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?
+  
+Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
+
+# Brief literature review
+What do we already know (or suspect) about when they will be charged. Include:
+
+ * academic literature
+ * consultant reports
+ * etc
+
+This is an example of a bibtex reference to a paper: [@stephenson_smart_2017]
+
+This is an example of a reference to an R package: [@dplyr]
+
+# Research questions
+
+Break down the main questions & refer back to the literature
+
+# Methods
+## Data
+Describe it:
+
+ * where did you get it?
+ * how many vehicles, where are they and what kinds?
+ * anything we need to know about the data?
+ * what did you have to do to it (cleaning etc)
+ * descriptive analysis, e.g.:
+   * Plot all charging with fast and slow charges differentiated
+   * Plot fast charges with weekend and weekday differentiated 
+   * Histograms of power (kW)
+
+Load the data - note the feedback readr gives you on the assumed format of the columns. You might _not_ want to remove the original dateTime :-)
+
+```{r load data}
+df <- readr::read_csv(iFile)
+```
+
+This is a cross-references to Table \@ref(tab:tab1).
+
+```{r tab1}
+
+t <- summary(df)
+
+knitr::kable(t, caption = "Data summary") # <- makes a pretty table
+```
+
+
+This is a cross-reference to Figure \@ref(fig:plot1).
+
+```{r plot1, fig.cap="Density plot of charging power by car"}
+p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
+  geom_density() # <- make the plot in an object first
+
+p + labs(x = "Power (kW)") + facet_grid(id ~ .) # <- draw the plot and add more features
+```
+
+
+## Analysis
+
+Analysis was conducted using R (`r R.version.string`) and the following packages:
+
+ * ggplot2 [@ggplot2]
+ * dplyr [@dplyr]
+
+Reports were developed using knitr [@knitr] within bookdown [@bookdown].
+
+# Charging Analysis
+
+## Research question 1
+
+When does charging happen?
+
+```{r codeHalfHours}
+
+df$halfHour <- hms::trunc_hms(df$time, 30*60) # <- code to half hours
+
+```
+
+This is a cross-reference to Figure \@ref(fig:plot2). Time is coded to half hours. 
+
+```{r plot2, fig.cap="Boxplot of charging timing by car"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id) # <- draw the plot and add more features
+```
+
+## Research question 2
+
+# Conclusions
+
+# References
+
