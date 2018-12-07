@@ -76,6 +76,21 @@ Load the data - note the feedback readr gives you on the assumed format of the c
 ```{r load data}
 df <- readr::read_csv(iFile)
 ```
+```{r create factors for the variables for which it will be useful}
+df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
+                                                "Friday", "Saturday", "Sunday")) 
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+
+df$weekday <- factor((evbb$day_of_week %in% weekdays1), 
+                   levels = c(FALSE, TRUE), labels = c('Weekend', 'Weekday')) 
+
+df$charging_rate <- factor((evbb$charge_power_kw >= 7),
+                    levels = c(FALSE, TRUE), labels = c('Slow', 'Fast'))
+
+```
 
 This is a cross-references to Table \@ref(tab:tab1).
 
@@ -128,6 +143,8 @@ p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id) # <
 ```
 
 ## Research question 2
+
+How will this affect the NZ electricity grid?
 
 # Conclusions
 

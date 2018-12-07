@@ -8,7 +8,7 @@ EVBB_tmp <- read.csv("~/EVBB/data/EVBB_processed.csv", stringsAsFactors = F)
 
 EVBB_tmp$time <- chron(times=EVBB_tmp$time) # converting from character to times
 EVBB_tmp$time_as_numeric <- as.numeric(EVBB_tmp$time) # converting from times to numeric
-EVBB_tmp$day_of_week <- factor(EVBB_tmp$day_of_week, 
+EVBB_tmp$day_of_week <- factor(EVBB_tmp$day_of_week, ordered = TRUE,
                                      levels = c("Monday", "Tuesday", "Wednesday", 
                                                 "Thursday", "Friday", "Saturday", 
                                                   "Sunday")) # setting day of the week as ordered factor

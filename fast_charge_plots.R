@@ -1,6 +1,7 @@
 # This plots daily occurrences of fast charging
 # currently not good for seperating out by day
 # THIS NEEDS WORK eg divide total charge by number of cars
+library(ggplot2)
 
 EVBB_tmp <- read.csv("~/EVBB/data/EVBB_processed1.csv")
 EVBB_fastcharge <- EVBB_tmp[EVBB_tmp$charge_power_kw >= 7, ]
@@ -30,14 +31,14 @@ for (i in 1:n){
       tmp1[1, 7] <- 0
     }
     tmp2 <- sum(tmp1$charge_power_kw) # total charge in each 15 minute segment
-    tmp3 <- tmp2/nrow(tmp1) # average charge in each 15 minute segment
+    tmp3 <- tmp2/(nrow(tmp1)*nlevels(EVBB_fastcharge$id)) # average charge in each 15 minute segment
     tmp4 <- data.frame(day=days[i], time=quarterHour[j], charge_power=tmp2, ave_power=tmp3)
     fastChargeTimes <- rbind(fastChargeTimes, tmp4)
   }
 }
 
-fastChargeTimes = fastChargeTimes[-1,]  # remove the empty forst row created by the previous loop
-fastChargeTimes$time <- fastChargeTimes$time * 24 # change the time back into 24 hour
+fastChargeTimes = fastChargeTimes[-1,]      # remove the empty forst row created by the previous loop
+fastChargeTimes$time <- fastChargeTimes$time * 24     # change the time back into 24 hour
 
 
 fastChargeTimes$day <- factor(fastChargeTimes$day, 
@@ -45,11 +46,7 @@ fastChargeTimes$day <- factor(fastChargeTimes$day,
                                           "Thursday", "Friday", "Saturday", 
                                           "Sunday")) # setting day of the week as ordered factor
 fastCharge <- with(fastChargeTimes, fastChargeTimes[order(day, time),])
-
-
-#for (i in 1:n){
-#  plot(y = fastChargeTimes$ave_power[fastChargeTimes$day == days[i]], x = fastChargeTimes$time[fastChargeTimes$day == days[i]], main = days[i], type = 'l', xlab = "Time", ylab = "Average fast-charge power")
-#} 
+fastCharge[is.na(fastCharge)] <- 0    # Set NA = 0
 
 ggplot(data = fastCharge, aes(x = time, y = ave_power)) + facet_wrap(~day) + 
   geom_area(alpha=0.1) + 
@@ -60,8 +57,11 @@ ggsave("plots/fast_charging_times.png")
 
 
 
-# Plot - separarte panel per car, fill will charging power
+# Plot - separate panel per car, fill will charging power
 
+#for (i in 1:n){
+#  plot(y = fastChargeTimes$ave_power[fastChargeTimes$day == days[i]], x = fastChargeTimes$time[fastChargeTimes$day == days[i]], main = days[i], type = 'l', xlab = "Time", ylab = "Average fast-charge power")
+#} 
 
 
 
