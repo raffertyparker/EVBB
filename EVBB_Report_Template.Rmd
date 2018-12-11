@@ -39,6 +39,8 @@ iFile <- "data/EVBB_processed.csv" # set this here
 
 # Introduction
 
+New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. It has been suggested [cite] that the increase in electric vehicles may increase these daily peaks significantly.
+
 When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?
   
 Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
@@ -62,6 +64,10 @@ Break down the main questions & refer back to the literature
 ## Data
 Describe it:
 
+The data used has been graciously provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, provided by Exact IOT Limited's "Black Box", a small electronic  device that connects to the internal computer and sends detailed data about the EV’s "battery health, consumption, speed, etc.".
+
+The data has been anonymised through the ....
+
  * where did you get it?
  * how many vehicles, where are they and what kinds?
  * anything we need to know about the data?
@@ -76,21 +82,6 @@ Load the data - note the feedback readr gives you on the assumed format of the c
 ```{r load data}
 df <- readr::read_csv(iFile)
 ```
-```{r create factors for the variables for which it will be useful}
-df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
-                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
-                                                "Friday", "Saturday", "Sunday")) 
-df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
-                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
-                                                        "Nov", "Dec"))
-
-df$weekday <- factor((evbb$day_of_week %in% weekdays1), 
-                   levels = c(FALSE, TRUE), labels = c('Weekend', 'Weekday')) 
-
-df$charging_rate <- factor((evbb$charge_power_kw >= 7),
-                    levels = c(FALSE, TRUE), labels = c('Slow', 'Fast'))
-
-```
 
 This is a cross-references to Table \@ref(tab:tab1).
 
@@ -102,7 +93,27 @@ knitr::kable(t, caption = "Data summary") # <- makes a pretty table
 ```
 
 
-This is a cross-reference to Figure \@ref(fig:plot1).
+```{r create factors for the variables for which it will be useful}
+df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
+                                                "Friday", "Saturday", "Sunday")) 
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(FALSE, TRUE), labels = c('Weekend', 'Weekday')) 
+
+df$charging_rate <- factor((df$charge_power_kw >= 7),
+                    levels = c(TRUE, FALSE), labels = c('Fast', 'Slow'),
+                    ordered = TRUE)
+
+```
+
+
+
+Figure \@ref(fig:plot1) implies that most charging is "slow".
 
 ```{r plot1, fig.cap="Density plot of charging power by car"}
 p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
@@ -149,4 +160,5 @@ How will this affect the NZ electricity grid?
 # Conclusions
 
 # References
+
 

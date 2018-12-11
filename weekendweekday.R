@@ -8,6 +8,7 @@ p <- ggplot2::ggplot(df, aes(x = time, y = charge_power_kw, group = halfHour)) +
 p + labs(y = "Power (kW)", x = "Time of day") + facet_grid(~weekday)  +
   stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour="green") 
 
+
 # Density plot of charge times according to weekday/charging rate
 # Probably not useful or interesting but looks kinda cool
 ggplot(df, aes(x = halfHour, fill = charging_rate)) +
@@ -17,7 +18,8 @@ ggplot(df, aes(x = halfHour, fill = charging_rate)) +
   labs(y = "Power (kW)", x = "Time of day")
 
 
-
+# As previous but bar plot instead of density plot
+# Looks shoddy but more informative
 ggplot(df, aes(x = halfHour, y = charge_power_kw, fill = charging_rate)) +
   geom_bar(stat = "summary", fun.y = mean) +
   theme_bw() +
@@ -27,14 +29,12 @@ ggplot(df, aes(x = halfHour, y = charge_power_kw, fill = charging_rate)) +
 
 ## The plot below displays error message 
 # "Error: geom_density requires the following missing aesthetics: y"
-# despite y being clearly defined
-
+# despite y being clearly defined. Ask Ben about this.
 ggplot(df, aes(x = time, y = charge_power_kw, colour = charging_rate)) +
   geom_density() +
   facet_wrap(~weekday) +
   labs(y = "Power (kW)", x = "Time of day", fill = "Charging rate")
 
-#################
 
 # The abomination below pillages Daniel's code and makes it shit
 ggplot(df, aes(x = time, y = charge_power_kw, group = id)) +
@@ -55,16 +55,20 @@ ggplot(df, aes(x = time, y = charge_power_kw, group = id)) +
     strip.background = element_blank(),
     strip.text.x = element_blank()
   )
-############
+
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  geom_boxplot()
 
 
+# 
 df$halfHour <- factor(as.character(df$halfHour), ordered = TRUE)
 
 list_of_times <- levels(df$halfHour)
 
 # NOTE it is important this plot uses facet_wrap(~weekday), otherwise the values given are twice as large as they should be
 # This actually isn't great, like the other plots in this script it doesn't take into consideration the zeros, and
-# Block above gives the same plot with less steps
+# Block above gives the same plot with less steps.
+# Note the same plot was constructed above in a far more succinct manner.
 require(plyr)
 hhmeans <- ddply(df,c("halfHour","charging_rate", "weekday"), summarise, 
                  mean = mean(charge_power_kw))
@@ -76,5 +80,3 @@ ggplot(hhmeans[order(hhmeans$charging_rate), ], aes(x = halfHour, y = mean, fill
   labs(y = "Power (kW)", x = "Time of day", fill = "Charging Rate")
   
 
-ggplot(hhmeans, aes(Species, Sepal.Length)) +
-  geom_bar(stat = "summary", fun.y = mean)
