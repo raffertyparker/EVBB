@@ -1,0 +1,223 @@
+---
+title: "EVBB Analysis"
+author: "Rafferty Parker (University of Otago)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    self_contained: no
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+subtitle: subtitle goes here
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(readr)
+library(knitr)
+library(lubridate)
+library(hms)
+library(plyr)
+
+# colour blind palettes for charts
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+# with grey
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# with black
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+iFile <- "data/EVBB_processed.csv" # set this here
+```
+
+# Introduction
+
+New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. It has been suggested [cite] that the increase in electric vehicles may increase these daily peaks significantly.
+
+When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?
+  
+Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
+
+# Brief literature review
+What do we already know (or suspect) about when they will be charged. Include:
+
+ * academic literature
+ * consultant reports
+ * etc
+
+This is an example of a bibtex reference to a paper: [@stephenson_smart_2017]
+
+This is an example of a reference to an R package: [@dplyr]
+
+# Research questions
+
+Break down the main questions & refer back to the literature
+
+# Methods
+## Data
+Describe it:
+
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the internal computer and sends detailed data about the EV’s "battery health, consumption, speed, etc.".
+
+The data has been anonymised through the hashing of license plate numbers and dates. 
+
+Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kw, and would likely occur at designated and purpose-built fast charging stations.
+
+Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.
+
+
+ * where did you get it?
+ * how many vehicles, where are they and what kinds?
+ * anything we need to know about the data?
+ * what did you have to do to it (cleaning etc)
+ * descriptive analysis, e.g.:
+   * Plot all charging with fast and slow charges differentiated
+   * Plot fast charges with weekend and weekday differentiated 
+   * Histograms of power (kW)
+
+Load the data - note the feedback readr gives you on the assumed format of the columns. You might _not_ want to remove the original dateTime :-)
+
+```{r load data}
+df <- readr::read_csv(iFile)
+```
+
+This is a cross-references to Table \@ref(tab:tab1).
+
+```{r tab1}
+
+t <- summary(df)
+
+knitr::kable(t, caption = "Data summary") # <- makes a pretty table
+```
+
+
+```{r create factors for the variables for which it will be useful}
+df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
+                                                "Friday", "Saturday", "Sunday")) 
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(FALSE, TRUE), labels = c('Weekend', 'Weekday')) 
+
+df$charging_rate <- factor((df$charge_power_kw >= 7),
+                    levels = c(TRUE, FALSE), labels = c('Fast', 'Slow'),
+                    ordered = TRUE)
+
+```
+
+```{r rename car ids to something more user-friendly}
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+
+df$id <- factor(df$id,
+  labels = levSeqChar)
+
+df$id <- as.character(df$id)
+
+df$id <- paste("Vehicle", df$id, sep = " ")
+
+
+# It *might* be useful to do a similar thing with dayid, however it appears there is a seperate dayid per car per day (not same for different cars on same day)
+# This would be unnecessary if I get a proper datetime stamp
+
+```
+
+Figure \@ref(fig:plot1) implies that most charging is "slow".
+
+```{r plot1, fig.cap="Density plot of charging power by car"}
+p <- ggplot2::ggplot(df, aes(x = charge_power_kw, colour = id)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position="bottom") +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_density() # <- make the plot in an object first
+
+p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
+    annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="yellow") +
+  annotate("rect", xmin = 7, xmax = 50, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="blue") +
+  annotate("text",label="Slow", x=3.5, y=1.25, angle=0) +
+  annotate("text",label="Fast", x=(50-7)/2 + 7, y=1.25, angle=0)
+
+# Not sure the annotations are really necessary but will leave them for now
+# Also probably don't need two different colours for each car
+```
+
+
+
+## Analysis
+
+Analysis was conducted using R (`r R.version.string`) and the following packages:
+
+ * ggplot2 [@ggplot2]
+ * dplyr [@dplyr]
+
+Reports were developed using knitr [@knitr] within bookdown [@bookdown].
+
+# Charging Analysis
+
+## Research question 1
+
+When does charging happen?
+
+```{r codeHalfHours}
+
+df$halfHour <- hms::trunc_hms(df$time, 30*60) # <- code to half hours
+
+```
+
+This is a cross-reference to Figure \@ref(fig:plot2). Time is coded to half hours. 
+
+```{r plot2, fig.cap="Boxplot of charging timing by car"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position="bottom") +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id)
+```
+
+
+ 
+```{r plot3, fig.cap = "Weekend and weekday charging patterns"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position="bottom") +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) 
+```
+
+
+
+## Research question 2
+
+How might this affect the NZ electricity grid?
+
+# Conclusions
+
+# References
+
+

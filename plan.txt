@@ -1,0 +1,6 @@
+PLAN
+
+Create daily profiles of the average demand (per car). One for weekdays and one for weekends. These may be multiplied by number of cars to get total demand (if all cars were charged at once).
+
+Complete literature review.
+
