@@ -30,7 +30,7 @@ ggplot(df, aes(x = halfHour, y = charge_power_kw, fill = charging_rate)) +
 ## The plot below displays error message 
 # "Error: geom_density requires the following missing aesthetics: y"
 # despite y being clearly defined. Ask Ben about this.
-ggplot(df, aes(x = time, y = charge_power_kw, colour = charging_rate)) +
+ggplot(df, aes(x = charge_power_kw, fill = charging_rate)) +
   geom_density() +
   facet_wrap(~weekday) +
   labs(y = "Power (kW)", x = "Time of day", fill = "Charging rate")
