@@ -47,13 +47,24 @@ iFile <- "data/EVBB_processed.csv" # set this here
 
 # Introduction
 
-New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. It has been suggested [cite] that the increase in electric vehicles may increase these daily peaks significantly.
+New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the increase in electric vehicles may increase these daily peaks significantly [@stephenson_smart_2017].
+
+
 
 When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?
   
 Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
 
 # Brief literature review
+
+While some work has been done in quantifying the extent of this problem [@concept2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
+
+
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021.
+
+In contrast, this report uses actual data collected from EV 
+
+
 What do we already know (or suspect) about when they will be charged. Include:
 
  * academic literature
