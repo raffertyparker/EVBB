@@ -22,7 +22,7 @@ output:
     toc: yes
     toc_depth: 2
 subtitle: subtitle goes here
-bibliography: refs.bib
+#bibliography: refs.bib  # Won't knit with the bibliography for some reason
 ---
 
 ```{r setup, include=FALSE}
@@ -57,7 +57,7 @@ Develop tools for analyzing the data so that data can be fed in and plots automa
 
 # Brief literature review
 
-While some work has been done in quantifying the extent of this problem [@concept2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
+While some work has been done in quantifying the extent of this problem[@concept_2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
 
 
 The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021.
@@ -87,7 +87,7 @@ The data used has been provided by "Flip the Fleet", a community organisation th
 
 The data has been anonymised through the hashing of license plate numbers and dates. 
 
-Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kw, and would likely occur at designated and purpose-built fast charging stations.
+Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.
 
@@ -135,6 +135,12 @@ df$charging_rate <- factor((df$charge_power_kw >= 7),
 
 ```
 
+``````{r codeHalfHours}
+
+df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M") # <- code to half hours, removing seconds
+
+```
+
 ```{r rename car ids to something more user-friendly}
 df$id <- factor(df$id, ordered = TRUE)
 levSeq <- seq(1:length(levels(df$id)))
@@ -156,7 +162,7 @@ df$id <- paste("Vehicle", df$id, sep = " ")
 Figure \@ref(fig:plot1) implies that most charging is "slow".
 
 ```{r plot1, fig.cap="Density plot of charging power by car"}
-p <- ggplot2::ggplot(df, aes(x = charge_power_kw, colour = id)) +
+p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position="bottom") +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
@@ -191,11 +197,6 @@ Reports were developed using knitr [@knitr] within bookdown [@bookdown].
 
 When does charging happen?
 
-```{r codeHalfHours}
-
-df$halfHour <- hms::trunc_hms(df$time, 30*60) # <- code to half hours
-
-```
 
 This is a cross-reference to Figure \@ref(fig:plot2). Time is coded to half hours. 
 
@@ -216,11 +217,13 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position="bottom") +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
-  geom_boxplot() # <- make the plot in an object first
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red") +
+  coord_cartesian(xlim = c(0,24),ylim=c(0,15))
 
 p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) 
-```
 
+```
 
 
 ## Research question 2

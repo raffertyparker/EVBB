@@ -6,16 +6,16 @@ p <- ggplot2::ggplot(df, aes(x = time, y = charge_power_kw, group = halfHour)) +
   density(alpha = 0.5) # <- make the plot in an object first
 
 p + labs(y = "Power (kW)", x = "Time of day") + facet_grid(~weekday)  +
-  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour="green") 
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour="red") 
 
 
 # Density plot of charge times according to weekday/charging rate
 # Probably not useful or interesting but looks kinda cool
-ggplot(df, aes(x = halfHour, fill = charging_rate)) +
+ggplot(df, aes(x = charge_power_kw, fill = charging_rate)) +
   theme_bw() +
   facet_wrap(~weekday) +
   geom_density(alpha = 0.5) +
-  labs(y = "Power (kW)", x = "Time of day")
+  labs(y = "Power (kW)", x = "Time of day", fill = "Charging rate")
 
 
 # As previous but bar plot instead of density plot

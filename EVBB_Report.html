@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Rafferty Parker (University of Otago)" />
+
+
+<title>EVBB Analysis</title>
+
+<script src="EVBB_Report_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="EVBB_Report_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="EVBB_Report_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="EVBB_Report_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="EVBB_Report_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="EVBB_Report_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="EVBB_Report_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="EVBB_Report_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="EVBB_Report_files/navigation-1.1/tabsets.js"></script>
+<script src="EVBB_Report_files/navigation-1.1/codefolding.js"></script>
+<link href="EVBB_Report_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="EVBB_Report_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">EVBB Analysis</h1>
+<h3 class="subtitle"><em>subtitle goes here</em></h3>
+<h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
+<h4 class="date"><em>Last run at: 2018-12-14 13:48:59</em></h4>
+
+</div>
+
+
+<div id="introduction" class="section level1">
+<h1><span class="header-section-number">1</span> Introduction</h1>
+<p>New Zealand’s total electricity demand varies throughout the day, with two distinct “peaks”; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the increase in electric vehicles may increase these daily peaks significantly <span class="citation">[@stephenson_smart_2017]</span>.</p>
+<p>When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?</p>
+<p>Develop tools for analyzing the data so that data can be fed in and plots automatically constructed</p>
+</div>
+<div id="brief-literature-review" class="section level1">
+<h1><span class="header-section-number">2</span> Brief literature review</h1>
+<p>While some work has been done in quantifying the extent of this problem<span class="citation">[@concept_2018]</span>, these have been conducted based on estimations of charging patterns based on current driver behaviour.</p>
+<p>The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021.</p>
+<p>In contrast, this report uses actual data collected from EV</p>
+<p>What do we already know (or suspect) about when they will be charged. Include:</p>
+<ul>
+<li>academic literature</li>
+<li>consultant reports</li>
+<li>etc</li>
+</ul>
+<p>This is an example of a bibtex reference to a paper: <span class="citation">[@stephenson_smart_2017]</span></p>
+<p>This is an example of a reference to an R package: <span class="citation">[@dplyr]</span></p>
+</div>
+<div id="research-questions" class="section level1">
+<h1><span class="header-section-number">3</span> Research questions</h1>
+<p>Break down the main questions &amp; refer back to the literature</p>
+</div>
+<div id="methods" class="section level1">
+<h1><span class="header-section-number">4</span> Methods</h1>
+<div id="data" class="section level2">
+<h2><span class="header-section-number">4.1</span> Data</h2>
+<p>Describe it:</p>
+<p>The data used has been provided by “Flip the Fleet”, a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited’s “Black Box”, a small electronic device that connects to the internal computer and sends detailed data about the EV’s “battery health, consumption, speed, etc.”.</p>
+<p>The data has been anonymised through the hashing of license plate numbers and dates.</p>
+<p>Charging data has been broadly seperated into two seperate catagories, “slow” and “fast”. Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kw, and would likely occur at designated and purpose-built fast charging stations.</p>
+<p>Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.</p>
+<ul>
+<li>where did you get it?</li>
+<li>how many vehicles, where are they and what kinds?</li>
+<li>anything we need to know about the data?</li>
+<li>what did you have to do to it (cleaning etc)</li>
+<li>descriptive analysis, e.g.:</li>
+<li>Plot all charging with fast and slow charges differentiated</li>
+<li>Plot fast charges with weekend and weekday differentiated</li>
+<li>Histograms of power (kW)</li>
+</ul>
+<p>Load the data - note the feedback readr gives you on the assumed format of the columns. You might <em>not</em> want to remove the original dateTime :-)</p>
+<pre class="r"><code>df &lt;- readr::read_csv(iFile)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   id = col_character(),
+##   dayid = col_character(),
+##   month = col_character(),
+##   day_of_week = col_character(),
+##   time = col_time(format = &quot;&quot;),
+##   fractime = col_double(),
+##   charge_power_kw = col_double(),
+##   location = col_character()
+## )</code></pre>
+<p>This is a cross-references to Table <a href="#tab:tab1">4.1</a>.</p>
+<pre class="r"><code>t &lt;- summary(df)
+
+knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table</code></pre>
+<table>
+<caption><span id="tab:tab1">Table 4.1: </span>Data summary</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">id</th>
+<th align="center">dayid</th>
+<th align="center">month</th>
+<th align="left">day_of_week</th>
+<th align="center">time</th>
+<th align="center">fractime</th>
+<th align="left">charge_power_kw</th>
+<th align="center">location</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td align="center">Length:40993</td>
+<td align="center">Length:40993</td>
+<td align="center">Length:40993</td>
+<td align="left">Length:40993</td>
+<td align="center">Length:40993</td>
+<td align="center">Min. : 0.000</td>
+<td align="left">Min. : 0.000</td>
+<td align="center">Length:40993</td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">Class :character</td>
+<td align="center">Class :character</td>
+<td align="center">Class :character</td>
+<td align="left">Class :character</td>
+<td align="center">Class1:hms</td>
+<td align="center">1st Qu.: 5.194</td>
+<td align="left">1st Qu.: 2.213</td>
+<td align="center">Class :character</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">Mode :character</td>
+<td align="center">Mode :character</td>
+<td align="center">Mode :character</td>
+<td align="left">Mode :character</td>
+<td align="center">Class2:difftime</td>
+<td align="center">Median :12.258</td>
+<td align="left">Median : 2.844</td>
+<td align="center">Mode :character</td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="left">NA</td>
+<td align="center">Mode :numeric</td>
+<td align="center">Mean :11.884</td>
+<td align="left">Mean : 2.729</td>
+<td align="center">NA</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="left">NA</td>
+<td align="center">NA</td>
+<td align="center">3rd Qu.:18.318</td>
+<td align="left">3rd Qu.: 3.004</td>
+<td align="center">NA</td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="left">NA</td>
+<td align="center">NA</td>
+<td align="center">Max. :24.000</td>
+<td align="left">Max. :49.354</td>
+<td align="center">NA</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>df$day_of_week &lt;- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;,&quot;Thursday&quot;,
+                                                &quot;Friday&quot;, &quot;Saturday&quot;, &quot;Sunday&quot;)) 
+df$month &lt;- factor(df$month, ordered = TRUE, levels = c(&quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;,
+                                                        &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, &quot;Oct&quot;,
+                                                        &quot;Nov&quot;, &quot;Dec&quot;))
+
+weekdays1 &lt;- c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;)
+df$weekday &lt;- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(FALSE, TRUE), labels = c(&#39;Weekend&#39;, &#39;Weekday&#39;)) 
+
+df$charging_rate &lt;- factor((df$charge_power_kw &gt;= 7),
+                    levels = c(TRUE, FALSE), labels = c(&#39;Fast&#39;, &#39;Slow&#39;),
+                    ordered = TRUE)</code></pre>
+<pre class="r"><code>df$halfHour &lt;- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), &quot;%H:%M&quot;) # &lt;- code to half hours, removing seconds</code></pre>
+<pre class="r"><code>df$id &lt;- factor(df$id, ordered = TRUE)
+levSeq &lt;- seq(1:length(levels(df$id)))
+levSeqChar &lt;- as.character(levSeq)
+
+df$id &lt;- factor(df$id,
+  labels = levSeqChar)
+
+df$id &lt;- as.character(df$id)
+
+df$id &lt;- paste(&quot;Vehicle&quot;, df$id, sep = &quot; &quot;)
+
+
+# It *might* be useful to do a similar thing with dayid, however it appears there is a seperate dayid per car per day (not same for different cars on same day)
+# This would be unnecessary if I get a proper datetime stamp</code></pre>
+<p>Figure <a href="#fig:plot1">4.1</a> implies that most charging is “slow”.</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position=&quot;bottom&quot;) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_density() # &lt;- make the plot in an object first
+
+p + labs(x = &quot;Power (kW)&quot;) + facet_grid(id ~ .) +
+    annotate(&quot;rect&quot;, xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,
+           alpha = .1, fill=&quot;yellow&quot;) +
+  annotate(&quot;rect&quot;, xmin = 7, xmax = 50, ymin = 0, ymax = 1.5,
+           alpha = .1, fill=&quot;blue&quot;) +
+  annotate(&quot;text&quot;,label=&quot;Slow&quot;, x=3.5, y=1.25, angle=0) +
+  annotate(&quot;text&quot;,label=&quot;Fast&quot;, x=(50-7)/2 + 7, y=1.25, angle=0)</code></pre>
+<div class="figure"><span id="fig:plot1"></span>
+<img src="EVBB_Report_files/figure-html/plot1-1.png" alt="Density plot of charging power by car" width="672" />
+<p class="caption">
+Figure 4.1: Density plot of charging power by car
+</p>
+</div>
+<pre class="r"><code># Not sure the annotations are really necessary but will leave them for now
+# Also probably don&#39;t need two different colours for each car</code></pre>
+</div>
+<div id="analysis" class="section level2">
+<h2><span class="header-section-number">4.2</span> Analysis</h2>
+<p>Analysis was conducted using R (R version 3.4.4 (2018-03-15)) and the following packages:</p>
+<ul>
+<li>ggplot2 <span class="citation">[@ggplot2]</span></li>
+<li>dplyr <span class="citation">[@dplyr]</span></li>
+</ul>
+<p>Reports were developed using knitr <span class="citation">[@knitr]</span> within bookdown <span class="citation">[@bookdown]</span>.</p>
+</div>
+</div>
+<div id="charging-analysis" class="section level1">
+<h1><span class="header-section-number">5</span> Charging Analysis</h1>
+<div id="research-question-1" class="section level2">
+<h2><span class="header-section-number">5.1</span> Research question 1</h2>
+<p>When does charging happen?</p>
+<p>This is a cross-reference to Figure <a href="#fig:plot2">5.1</a>. Time is coded to half hours.</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position=&quot;bottom&quot;) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # &lt;- make the plot in an object first
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + facet_grid(day_of_week ~ id)</code></pre>
+<div class="figure"><span id="fig:plot2"></span>
+<img src="EVBB_Report_files/figure-html/plot2-1.png" alt="Boxplot of charging timing by car" width="672" />
+<p class="caption">
+Figure 5.1: Boxplot of charging timing by car
+</p>
+</div>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position=&quot;bottom&quot;) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom=&quot;line&quot;, colour = &quot;red&quot;) +
+  coord_cartesian(xlim = c(0,24),ylim=c(0,15))
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + facet_grid(~weekday) </code></pre>
+<div class="figure"><span id="fig:plot3"></span>
+<img src="EVBB_Report_files/figure-html/plot3-1.png" alt="Weekend and weekday charging patterns" width="672" />
+<p class="caption">
+Figure 5.2: Weekend and weekday charging patterns
+</p>
+</div>
+</div>
+<div id="research-question-2" class="section level2">
+<h2><span class="header-section-number">5.2</span> Research question 2</h2>
+<p>How might this affect the NZ electricity grid?</p>
+</div>
+</div>
+<div id="conclusions" class="section level1">
+<h1><span class="header-section-number">6</span> Conclusions</h1>
+</div>
+<div id="references" class="section level1">
+<h1><span class="header-section-number">7</span> References</h1>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
