@@ -1,0 +1,138 @@
+---
+title: "Data processing and plots"
+author: "Rafferty Parker"
+date: "17 December 2018"
+output: pdf_document
+---
+# Data processing:
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(readr)
+library(knitr)
+library(lubridate)
+library(hms)
+library(plyr)
+
+# colour blind palettes for charts
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+# with grey
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# with black
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+iFile <- "data/EVBB_processed.csv" # set this here
+```
+
+
+```{r load data, include=FALSE}
+df <- readr::read_csv(iFile)
+```
+
+
+```{r create factors for the variables for which it will be useful}
+df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
+                                                "Friday", "Saturday", "Sunday")) 
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+# Month and day of week specified as ordered factors
+
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(FALSE, TRUE), labels = c('Weekend', 'Weekday')) 
+# Weekend/weekday established as factors
+
+df$charging_rate <- factor((df$charge_power_kw >= 7),
+                    levels = c(TRUE, FALSE), labels = c('Fast', 'Slow'),
+                    ordered = TRUE)
+# Fast/slow charging rate established as factors
+
+df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M") 
+# Time binned in half hour intervals, seconds removed
+```
+
+
+```{r rename car ids to something more user-friendly}
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+df$id <- factor(df$id,
+  labels = levSeqChar)
+df$id <- as.character(df$id)
+df$id <- paste("Vehicle", df$id, sep = " ")
+# Hashed vehicle id's renamed to "Vehicle X" in a scalable fashion
+```
+
+
+
+# Plots
+
+```{r plot1, fig.cap="Density plot of charging power by car"}
+p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position="bottom") +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_density() # <- make the plot in an object first
+
+p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
+    annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="yellow") +
+  annotate("rect", xmin = 7, xmax = 50, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="blue") +
+  annotate("text",label="Slow", x=3.5, y=1.25, angle=0) +
+  annotate("text",label="Fast", x=(50-7)/2 + 7, y=1.25, angle=0)
+```
+This implies that most charging is "slow". Hardly groundbreaking but worthwhile to establish. It might pay to adjust how ggplot constructs this (reduce bin size?) to display more subtleties regarding fastcharges. Also not happy with how my annotations are, thinking of displaying them to one side as a legend. With large vehicle numbers it would pay to amalgamte these as one plot, however it's good to see if some vehicles do a lot of fast charging. 
+
+```{r plot2, fig.cap="Boxplot of charging timing by car"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id)
+```
+This shows charging behaviour for each day and each car. Not easy to get much from this with only a few months worth of data, however over time it would become more informative. 
+
+```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ charging_rate)
+```
+Same as above, but with different plot shown for fast/slow charging rate as opposed to different vehicles. Probably more useful than the previous one but still suffers a little from crampedness and insufficient data. 
+
+```{r plot4, fig.cap = "Weekend and weekday charging patterns"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red", show.legend = TRUE) +
+  coord_cartesian(xlim = c(0,24),ylim=c(0,15))
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
+```
+This shows weekend and weekday charging patterns. Have included fastcharge in the data but cropped the plot for clarity. Red is mean line, it needs a legend but show.legend isn't working for me. 
+
+# Other plots
+The following plots can be made by running blocks in the scripts "weekendweekday.R", "fast_charge_plots.R" and "fast_slow_charging.R". These may require "initial_processing.R" to be run before hand, and were written in base R, so need updating to work with dyplr, hms etc, as well as other aesthetic/visual improvements (on the to do list). 
+
+![Fast/slow charging by day](~/EVBB/plots/fast_slow_charging_by_day.png)
+
+![Fast/slow charging by weekend/weekday](~/EVBB/plots/fast_slow_charging_weekend_weekday.png)
+
+
+![Fast-charging times](~/EVBB/plots/fast_charging_times.png)
+
+
+This shows only the fast-charging events. Could be improved. From script fast_charge_plots.R, written in base R, needs updating to work nicely with dplyr etc.
+
+
+
