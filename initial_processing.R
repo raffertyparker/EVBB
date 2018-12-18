@@ -4,7 +4,9 @@
 library(chron)
 
 # change filepath to read processed version of data
-EVBB_tmp <- read.csv("~/EVBB/data/EVBB_processed.csv", stringsAsFactors = F)
+#EVBB_tmp <- read.csv("~/EVBB/data/EVBB_processed.csv", stringsAsFactors = F) # not working - i think read.cvs has been overwritten by readr package?
+
+EVBB_tmp <- readr::read_csv("~/EVBB/data/EVBB_processed.csv")
 
 EVBB_tmp$time <- chron(times=EVBB_tmp$time) # converting from character to times
 EVBB_tmp$time_as_numeric <- as.numeric(EVBB_tmp$time) # converting from times to numeric

@@ -1,6 +1,7 @@
 # This plots daily occurrences of fast charging
 # currently not good for seperating out by day
 # THIS NEEDS WORK eg divide total charge by number of cars
+
 library(ggplot2)
 
 EVBB_tmp <- read.csv("~/EVBB/data/EVBB_processed1.csv")
@@ -50,10 +51,9 @@ fastCharge[is.na(fastCharge)] <- 0    # Set NA = 0
 
 ggplot(data = fastCharge, aes(x = time, y = ave_power)) + facet_wrap(~day) + 
   geom_area(alpha=0.1) + 
-  xlab("Time of day (hours)") + 
-  ylab("Charging power (kW)")
+  labs(x = "Time of day (hours)", y = "Charging power (kW)")
 
-ggsave("plots/fast_charging_times.png")
+ggsave("~/EVBB/plots/fast_charging_times.png")
 
 
 

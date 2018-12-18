@@ -20,14 +20,12 @@ evbb$charging_rate <- factor((evbb$charge_power_kw >= 7),
 
 ggplot(data = evbb, aes(x = time, y = charge_power_kw, colour = charging_rate)) + facet_wrap(~day_of_week) + 
   geom_area(alpha=0.1) + 
-  xlab("Time of day (hours)") + 
-  ylab("Charging power (kW)")
+  labs(x = "Time of day (hours)", y = "Charging power (kW)", colour = "Charging rate")
 
 ggsave("plots/fast_slow_charging_by_day.png")
 
 ggplot(data = evbb, aes(x = time, y = charge_power_kw, colour = charging_rate)) + facet_wrap(~weekday) + 
   geom_area(alpha=0.1) + 
-  xlab("Time of day (hours)") + 
-  ylab("charging power (kW)")
+  labs(x = "Time of day (hours)", y = "Charging power (kW)", colour = "Charging rate")
 
 ggsave("plots/fast_slow_charging_weekend_weekday.png")

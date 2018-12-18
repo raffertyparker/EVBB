@@ -22,21 +22,18 @@ ggplot(df, aes(x = charge_power_kw, fill = charging_rate)) +
 # Looks shoddy but more informative
 ggplot(df, aes(x = halfHour, y = charge_power_kw, fill = charging_rate)) +
   geom_bar(stat = "summary", fun.y = mean) +
-  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
   facet_wrap(~weekday) +
   labs(y = "Power (kW)", x = "Time of day", fill = "Charging rate")
 
 
-## The plot below displays error message 
-# "Error: geom_density requires the following missing aesthetics: y"
-# despite y being clearly defined. Ask Ben about this.
 ggplot(df, aes(x = charge_power_kw, fill = charging_rate)) +
   geom_density() +
   facet_wrap(~weekday) +
   labs(y = "Power (kW)", x = "Time of day", fill = "Charging rate")
 
 
-# The abomination below pillages Daniel's code and makes it shit
+# The abomination below pillages some of Daniel's code and turns it into useless garbage
 ggplot(df, aes(x = time, y = charge_power_kw, group = id)) +
   geom_line(alpha=0.1, position = "identity") +
   scale_x_continuous(breaks = seq(0,24,by=4)) +
