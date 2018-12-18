@@ -178,6 +178,7 @@ p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
 
 # Not sure the annotations are really necessary but will leave them for now
 # Also probably don't need two different colours for each car
+# Need to alter settings so that fast charges are visible
 ```
 
 
@@ -219,6 +220,8 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw
   geom_boxplot() # <- make the plot in an object first
 
 p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ charging_rate)
+
+# let the rhs panel have a free y axis to see the patterns - as they are scaled down by the magnitude of the fast charging. 
 ```
  
 ```{r plot4, fig.cap = "Weekend and weekday charging patterns"}
@@ -230,6 +233,8 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw
   coord_cartesian(xlim = c(0,24),ylim=c(0,15))
 
 p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
+
+# might need to split by location as this would tell us a) about slow charge by default and b) about home vs non-home LV network impacts
 
 ```
 
