@@ -34,6 +34,7 @@ library(knitr)
 library(lubridate)
 library(hms)
 library(plyr)
+library(dplyr)
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -241,7 +242,8 @@ ggsave("~/EVBB/plots/daily_fast_charging.png")
 
 ```{r plot3b, fig.cap="Boxplot of daily slow charging"}
 
-p <- ggplot2::ggplot(df %>% filter(charging_rate == "Slow"), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+p <- ggplot2::ggplot(df %>% filter(charging_rate == "Slow"), 
+                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
@@ -310,7 +312,7 @@ p + labs(x = "Charging power (kW)", y = "Frequency of occurrence") + facet_wrap(
 ```{r frequency of slow charging}
 p <- ggplot(df %>% filter(charging_rate == "Slow") , aes(x = halfHour, y = charging_rate)) + 
   theme(axis.text.x = element_text(angle = 90)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity")
  
 p + labs(x = "Time of day (hours)", y = "Frequency of slow charging events") + 
   facet_wrap(~weekday) 
