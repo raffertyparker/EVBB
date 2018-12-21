@@ -59,11 +59,11 @@ Develop tools for analyzing the data so that data can be fed in and plots automa
 # Brief literature review
 
 While some work has been done in quantifying the extent of this problem[@concept_2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
+In contrast, this report uses actual data collected from EV...
 
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. 
+High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. Concurrent charging would have to potential to negatively impact the operation of the grid through increasing peak loads. [Azadfar2015]
 
-The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021.
-
-In contrast, this report uses actual data collected from EV 
 
 
 What do we already know (or suspect) about when they will be charged. Include:
@@ -248,9 +248,11 @@ p <- ggplot2::ggplot(df %>% filter(charging_rate == "Slow"),
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() +
-  facet_grid(~day_of_week)
+  facet_grid(~day_of_week) 
 
-p + labs(x = "Time of Day", y = "Power (kW)")
+p + labs(x = "Time of Day", y = "Power (kW)") + coord_flip()
+
+# Not sure the coord_flip is beneficial
 
 ggsave("~/EVBB/plots/daily_slow_charging.png")
 ```
