@@ -83,11 +83,15 @@ p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
 
 # charging density plot by vehicle
 
-p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
+p
+
+# Density plot of half-hour values (see when data is being collected)
+
 
 
 
