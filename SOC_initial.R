@@ -105,4 +105,8 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge
 
 p + labs(x = "Time of Day", y = "State of charge (%)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
 
- 
+# Need to get average SOC when charging begins. To do this, we will select all data whereby the 
+# charging rate is non-zero, but the previous charge rate is zero
+
+chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97) # This filters out times where a new signal is sent after the car is fully charged, charging is turned off or on, etc)

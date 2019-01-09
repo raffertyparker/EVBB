@@ -50,12 +50,8 @@ iFile <- "data/EVBB_processed.csv" # set this here
 
 New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the increase in electric vehicles may increase these daily peaks significantly [@stephenson_smart_2017].
 
-
-
-When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?
+Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
   
-Develop tools for analyzing the data so that data can be fed in and plots automatically constructed
-
 # Brief literature review
 
 While some work has been done in quantifying the extent of this problem[@concept_2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
@@ -64,7 +60,14 @@ In contrast, this report uses actual data collected from EV...
 The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. 
 High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. Concurrent charging would have to potential to negatively impact the operation of the grid through increasing peak loads. [Azadfar2015]
 
+A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" is perhaps the most comprehensive report into the effect of EVs on New Zealand's electricity grid currently. The findings in this report were based on models of usage patterns of internal combustion engine (ICE) vehicles. The report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of this report are as follows.
 
+Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
+* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
+* If all were charged in a "smart" fashion, there would be no increase in peak demand
+
+
+If all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018].
 
 What do we already know (or suspect) about when they will be charged. Include:
 
