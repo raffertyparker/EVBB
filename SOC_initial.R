@@ -39,9 +39,7 @@ weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
 df$weekday <- factor((df$day_of_week %in% weekdays1), 
                      levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE) 
 
-df$charging_rate <- factor((df$charge_power_kw >= 7),
-                           levels = c(TRUE, FALSE), labels = c('Fast', 'Slow'),
-                           ordered = TRUE)
+df$charging_rate <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('None', 'Slow', 'Fast'))
 
 
 df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M") # <- code to half hours, removing seconds
