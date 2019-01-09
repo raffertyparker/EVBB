@@ -1,5 +1,5 @@
 ---
-title: "EVBB Analysis"
+title: "Analysis of electric vehicle usage patterns in New Zealand"
 author: "Rafferty Parker (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
@@ -21,8 +21,8 @@ output:
     number_sections: yes
     toc: yes
     toc_depth: 2
-subtitle: subtitle goes here
-#bibliography: refs.bib  # Won't knit with the bibliography for some reason
+subtitle: 
+#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
 ---
 
 ```{r setup, include=FALSE}
@@ -43,37 +43,31 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-iFile <- "data/EVBB_processed.csv" # set this here
+iFile <- "data/EVBB_processed_founders.csv" # set this here
 ```
 
 # Introduction
 
-New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the increase in electric vehicles may increase these daily peaks significantly [@stephenson_smart_2017].
+New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the predicted increase in electric vehicles (EVs) may increase these daily peaks significantly, increasing the cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
 
 Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
   
-# Brief literature review
+# Background
 
-While some work has been done in quantifying the extent of this problem[@concept_2018], these have been conducted based on estimations of charging patterns based on current driver behaviour. 
-In contrast, this report uses actual data collected from EV...
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. Concurrent charging, especially in the early evening when many motorists return home would have to potential to negatively impact the operation of the grid through drastically increasing peak loads. [Azadfar2015]
 
-The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. 
-High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. Concurrent charging would have to potential to negatively impact the operation of the grid through increasing peak loads. [Azadfar2015]
 
-A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" is perhaps the most comprehensive report into the effect of EVs on New Zealand's electricity grid currently. The findings in this report were based on models of usage patterns of internal combustion engine (ICE) vehicles. The report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of this report are as follows.
+The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of this report are as follows.
 
 Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
 * If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
 * If all were charged in a "smart" fashion, there would be no increase in peak demand
 
 
-If all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018].
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
 
-What do we already know (or suspect) about when they will be charged. Include:
 
- * academic literature
- * consultant reports
- * etc
+
 
 This is an example of a bibtex reference to a paper: [@stephenson_smart_2017]
 
@@ -81,13 +75,27 @@ This is an example of a reference to an R package: [@dplyr]
 
 # Research questions
 
-Break down the main questions & refer back to the literature
+Need to find:
+* The median average energy supplied by domestic charging events
+Compare with UK findings og  was 7.5 kWh. If NZ findings are higher, it may be due to UK having more plug-in hybrids. 
+* The mean average energy supplied 
+Compare with UK findings of 9.1 kWh.
+* Charging duration time each day of week
+* Time of day that charging begins by day of week
+* Plot time of day charging begins and time of day charging ends (weekend/weekday?)
+* Plot average energy supplied by hour of start time (fast/slow charging)
+* plot average duration of plug-in by hour of start time (fast/slow charging)
+* Average energy use per vehicle per month
+* Average number of charging events per vehicle per day for each day of week
+* Average number of events per vehicle per week
+* Median/mean amount of energy supplied per day of week (may not be easy to exactly determine)
+
 
 # Methods
 ## Data
 Describe it:
 
-The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the internal computer and sends detailed data about the EV’s "battery health, consumption, speed, etc.".
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
 The data has been anonymised through the hashing of license plate numbers and dates. 
 
@@ -161,6 +169,22 @@ df$id <- paste("Vehicle", df$id, sep = " ")
 # This would be unnecessary if I get a proper datetime stamp
 
 ```
+
+
+```{r removal of silly percentage values}
+df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
+df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
+```
+The following dataframe "chargeBegins" is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc.
+Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking.
+This should be useful for establishing average state of charge when arriving home. 
+
+```{r establishment of chargeBegins dataframe}
+chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
+                       & lag(charge_power_kw, 2) == 0)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+```
+
 
 Figure \@ref(fig:plot1) implies that most charging is "slow".
 
@@ -339,6 +363,36 @@ ggsave("~/EVBB/plots/frequency_of_fast_charging.png")
 #  stat_summary(aes(group = weekday), fun.y=mean, geom="line") +
 ```
 
+# State of charge patterns
+
+When analysing the potential for smart charging it is useful to understand daily patterns of the vehicle's "state of charge", in particular the percentage of energy left in the battery once the vehicle returns home. This is of particular significance when considering vehicle to grid (V2G) energy transfer. If there is a very high frequency whereby the driver only uses a particular percentage of the battery capacity in a day, there may be the ability to return electricity to the grid (or household) during grid congestion events or other occasions of very high electricity price, provided enough energy always remained in the battery for a typical day of travel.
+
+Figure \@ref(plot:charging density plot by vehicle) shows a box plot of state of charge during the day. (Note that the zero values may be false - there seem to be no values that approach zero)
+```{r charging density plot by vehicle}
+
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+p + labs(x = "Time of day", y = "State of charge (%)")
+```
+# Density plot of half-hour values (see when data is being collected)
+
+
+
+```{r State of charge by weekend/weekday}
+
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red")
+
+p + labs(x = "Time of Day", y = "State of charge (%)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
+```
+
+Need to get average SOC when charging begins. To do this, we will select all data whereby the charging rate is non-zero, but the previous charge rate is zero
 
 
 ## Research question 2

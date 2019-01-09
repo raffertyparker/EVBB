@@ -61,7 +61,10 @@ df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
 df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 
 
-# This filters out times where a new signal is sent after the car is fully charged, charging is turned off or on, etc.
+# chargeBegins gathers all the instances where charging becomes non-zero after previously being zero
+# hopefully capturing the moment the car is initially plugged in.
+# data is also excluded where charging has stopped due to the car being fully charged and then
+# starts again briefly, charging is turned off or on, etc.
 # extra lag of 2 was provided due to some instances where there was only one minute where charging occurred
 # presumably due to regenerative breaking
 
@@ -96,7 +99,7 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
-p
+p + labs(x = "Time of day", y = "State of charge (%)")
 
 # Density plot of half-hour values (see when data is being collected)
 
