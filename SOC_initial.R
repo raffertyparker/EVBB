@@ -58,11 +58,21 @@ df$id <- as.character(df$id)
 
 df$id <- paste("Vehicle", df$id, sep = " ")
 
+# This removes silly percent values
 df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
 df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 
 
+# This filters out times where a new signal is sent after the car is fully charged, charging is turned off or on, etc.
+# extra lag of 2 was provided due to some instances where there was only one minute where charging occurred
+# presumably due to regenerative breaking
+
+chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
+                       & lag(charge_power_kw, 2) == 0)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
 #######################
+
 p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position="bottom") +
@@ -107,6 +117,3 @@ p + labs(x = "Time of Day", y = "State of charge (%)") + facet_grid(~weekday) + 
 
 # Need to get average SOC when charging begins. To do this, we will select all data whereby the 
 # charging rate is non-zero, but the previous charge rate is zero
-
-chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0)
-chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97) # This filters out times where a new signal is sent after the car is fully charged, charging is turned off or on, etc)
