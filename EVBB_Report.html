@@ -12,7 +12,7 @@
 <meta name="author" content="Rafferty Parker (University of Otago)" />
 
 
-<title>EVBB Analysis</title>
+<title>Analysis of electric vehicle usage patterns in New Zealand</title>
 
 <script src="EVBB_Report_files/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -101,6 +101,9 @@ img {
 button.code-folding-btn:focus {
   outline: none;
 }
+summary {
+  display: list-item;
+}
 </style>
 
 
@@ -108,9 +111,70 @@ button.code-folding-btn:focus {
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
 });
 </script>
 
@@ -123,7 +187,6 @@ $(document).ready(function () {
   window.initializeCodeFolding("hide" === "show");
 });
 </script>
-
 
 
 
@@ -236,25 +299,25 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">EVBB Analysis</h1>
-<h3 class="subtitle"><em>subtitle goes here</em></h3>
+<h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2018-12-17 10:46:15</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-10 11:38:41</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p>New Zealand’s total electricity demand varies throughout the day, with two distinct “peaks”; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the increase in electric vehicles may increase these daily peaks significantly <span class="citation">[@stephenson_smart_2017]</span>.</p>
-<p>When/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?</p>
-<p>Develop tools for analyzing the data so that data can be fed in and plots automatically constructed</p>
+<p>New Zealand’s total electricity demand varies throughout the day, with two distinct “peaks”; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the predicted increase in electric vehicles (EVs) may increase these daily peaks significantly <span class="citation">[@stephenson_smart_2017]</span>.</p>
+<p>Our results showed that… [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]</p>
 </div>
-<div id="brief-literature-review" class="section level1">
-<h1><span class="header-section-number">2</span> Brief literature review</h1>
-<p>While some work has been done in quantifying the extent of this problem<span class="citation">[@concept_2018]</span>, these have been conducted based on estimations of charging patterns based on current driver behaviour.</p>
-<p>The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021.</p>
-<p>In contrast, this report uses actual data collected from EV</p>
+<div id="background" class="section level1">
+<h1><span class="header-section-number">2</span> Background</h1>
+<p>The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. Concurrent charging would have to potential to negatively impact the operation of the grid through increasing peak loads. [Azadfar2015]</p>
+<p>A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled “Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand” is perhaps the most comprehensive report into the effect of EVs on New Zealand’s electricity grid currently. The findings in this report were based on models of usage patterns of internal combustion engine (ICE) vehicles. The report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as “passive” charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as “smart”. The key findings of this report are as follows.</p>
+<p>Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household): * If all were charged in a passive fashion, New Zealand’s peak electricity demand would increase by appproximately 3,000MW * If all were charged in a “smart” fashion, there would be no increase in peak demand</p>
+<p>If all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018].</p>
+<p>This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using estimations of charging patterns based on current driver behaviour.</p>
 <p>What do we already know (or suspect) about when they will be charged. Include:</p>
 <ul>
 <li>academic literature</li>
@@ -273,7 +336,7 @@ div.tocify {
 <div id="data" class="section level2">
 <h2><span class="header-section-number">4.1</span> Data</h2>
 <p>Describe it:</p>
-<p>The data used has been provided by “Flip the Fleet”, a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited’s “Black Box”, a small electronic device that connects to the internal computer and sends detailed data about the EV’s “battery health, consumption, speed, etc.”.</p>
+<p>The data used has been provided by “Flip the Fleet”, a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited’s “Black Box”, a small electronic device that connects to the vehicle’s internal computer and sends detailed data about the battery health, consumption, speed, etc.</p>
 <p>The data has been anonymised through the hashing of license plate numbers and dates.</p>
 <p>Charging data has been broadly seperated into two seperate catagories, “slow” and “fast”. Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.</p>
 <p>Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.</p>
@@ -298,7 +361,9 @@ div.tocify {
 ##   time = col_time(format = &quot;&quot;),
 ##   fractime = col_double(),
 ##   charge_power_kw = col_double(),
-##   location = col_character()
+##   state_of_charge_percent = col_double(),
+##   odometer_km = col_double(),
+##   location = col_logical()
 ## )</code></pre>
 <p>This is a cross-references to Table <a href="#tab:tab1">4.1</a>.</p>
 <pre class="r"><code>t &lt;- summary(df)
@@ -316,20 +381,24 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <th align="center">time</th>
 <th align="center">fractime</th>
 <th align="left">charge_power_kw</th>
-<th align="center">location</th>
+<th align="left">state_of_charge_percent</th>
+<th align="center">odometer_km</th>
+<th align="left">location</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td></td>
-<td align="center">Length:40993</td>
-<td align="center">Length:40993</td>
-<td align="center">Length:40993</td>
-<td align="left">Length:40993</td>
-<td align="center">Length:40993</td>
+<td align="center">Length:73836</td>
+<td align="center">Length:73836</td>
+<td align="center">Length:73836</td>
+<td align="left">Length:73836</td>
+<td align="center">Length:73836</td>
 <td align="center">Min. : 0.000</td>
 <td align="left">Min. : 0.000</td>
-<td align="center">Length:40993</td>
+<td align="left">Min. : 0.00</td>
+<td align="center">Min. : 0</td>
+<td align="left">Mode:logical</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -338,9 +407,11 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <td align="center">Class :character</td>
 <td align="left">Class :character</td>
 <td align="center">Class1:hms</td>
-<td align="center">1st Qu.: 5.194</td>
-<td align="left">1st Qu.: 2.213</td>
-<td align="center">Class :character</td>
+<td align="center">1st Qu.: 6.027</td>
+<td align="left">1st Qu.: 0.000</td>
+<td align="left">1st Qu.: 55.54</td>
+<td align="center">1st Qu.:1385</td>
+<td align="left">NA’s:73836</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -349,9 +420,11 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <td align="center">Mode :character</td>
 <td align="left">Mode :character</td>
 <td align="center">Class2:difftime</td>
-<td align="center">Median :12.258</td>
-<td align="left">Median : 2.844</td>
-<td align="center">Mode :character</td>
+<td align="center">Median :13.528</td>
+<td align="left">Median : 2.772</td>
+<td align="left">Median : 69.83</td>
+<td align="center">Median :2716</td>
+<td align="left">NA</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -360,9 +433,11 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <td align="center">NA</td>
 <td align="left">NA</td>
 <td align="center">Mode :numeric</td>
-<td align="center">Mean :11.884</td>
-<td align="left">Mean : 2.729</td>
-<td align="center">NA</td>
+<td align="center">Mean :12.676</td>
+<td align="left">Mean : 2.149</td>
+<td align="left">Mean : 68.54</td>
+<td align="center">Mean :3116</td>
+<td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td></td>
@@ -371,9 +446,11 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <td align="center">NA</td>
 <td align="left">NA</td>
 <td align="center">NA</td>
-<td align="center">3rd Qu.:18.318</td>
-<td align="left">3rd Qu.: 3.004</td>
-<td align="center">NA</td>
+<td align="center">3rd Qu.:18.178</td>
+<td align="left">3rd Qu.: 3.025</td>
+<td align="left">3rd Qu.: 83.19</td>
+<td align="center">3rd Qu.:4435</td>
+<td align="left">NA</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -382,9 +459,24 @@ knitr::kable(t, caption = &quot;Data summary&quot;) # &lt;- makes a pretty table
 <td align="center">NA</td>
 <td align="left">NA</td>
 <td align="center">NA</td>
-<td align="center">Max. :24.000</td>
+<td align="center">Max. :23.999</td>
 <td align="left">Max. :49.354</td>
+<td align="left">Max. :1677.72</td>
+<td align="center">Max. :8254</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td></td>
 <td align="center">NA</td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="left">NA</td>
+<td align="center">NA</td>
+<td align="center">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="center">NA’s :53206</td>
+<td align="left">NA</td>
 </tr>
 </tbody>
 </table>
@@ -397,11 +489,9 @@ df$month &lt;- factor(df$month, ordered = TRUE, levels = c(&quot;Jan&quot;, &quo
 
 weekdays1 &lt;- c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;)
 df$weekday &lt;- factor((df$day_of_week %in% weekdays1), 
-                   levels = c(FALSE, TRUE), labels = c(&#39;Weekend&#39;, &#39;Weekday&#39;)) 
+                   levels = c(TRUE, FALSE), labels = c(&#39;Weekday&#39;, &#39;Weekend&#39;), ordered = TRUE) 
 
-df$charging_rate &lt;- factor((df$charge_power_kw &gt;= 7),
-                    levels = c(TRUE, FALSE), labels = c(&#39;Fast&#39;, &#39;Slow&#39;),
-                    ordered = TRUE)</code></pre>
+df$charging_rate &lt;- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c(&#39;None&#39;, &#39;Slow&#39;, &#39;Fast&#39;))</code></pre>
 <pre class="r"><code>df$halfHour &lt;- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), &quot;%H:%M&quot;) # &lt;- code to half hours, removing seconds</code></pre>
 <pre class="r"><code>df$id &lt;- factor(df$id, ordered = TRUE)
 levSeq &lt;- seq(1:length(levels(df$id)))
@@ -417,6 +507,12 @@ df$id &lt;- paste(&quot;Vehicle&quot;, df$id, sep = &quot; &quot;)
 
 # It *might* be useful to do a similar thing with dayid, however it appears there is a seperate dayid per car per day (not same for different cars on same day)
 # This would be unnecessary if I get a proper datetime stamp</code></pre>
+<pre class="r"><code>df$state_of_charge_percent[df$state_of_charge_percent &gt; 100] &lt;- NA
+df$state_of_charge_percent[df$state_of_charge_percent &lt; 0] &lt;- NA</code></pre>
+<p>The following dataframe “chargeBegins” is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc. Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking. This should be useful for establishing average state of charge when arriving home.</p>
+<pre class="r"><code>chargeBegins &lt;- filter(df, charge_power_kw &gt; 0 &amp; lag(charge_power_kw) == 0 
+                       &amp; lag(charge_power_kw, 2) == 0)
+chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)</code></pre>
 <p>Figure <a href="#fig:plot1">4.1</a> implies that most charging is “slow”.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
@@ -438,7 +534,8 @@ Figure 4.1: Density plot of charging power by car
 </p>
 </div>
 <pre class="r"><code># Not sure the annotations are really necessary but will leave them for now
-# Also probably don&#39;t need two different colours for each car</code></pre>
+# Also probably don&#39;t need two different colours for each car
+# Need to alter settings so that fast charges are visible</code></pre>
 </div>
 <div id="analysis" class="section level2">
 <h2><span class="header-section-number">4.2</span> Analysis</h2>
@@ -458,7 +555,7 @@ Figure 4.1: Density plot of charging power by car
 <p>This is a cross-reference to Figure <a href="#fig:plot2">5.1</a>. Time is coded to half hours.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
   guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
-  theme(legend.position=&quot;bottom&quot;) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() # &lt;- make the plot in an object first
 
@@ -471,30 +568,164 @@ Figure 5.1: Boxplot of charging timing by car
 </div>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
   guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
-  theme(legend.position=&quot;bottom&quot;) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # &lt;- make the plot in an object first
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + facet_grid(day_of_week ~ charging_rate)</code></pre>
+<div class="figure"><span id="fig:plot3"></span>
+<img src="EVBB_Report_files/figure-html/plot3-1.png" alt="Boxplot of charging timing by charge rate" width="672" />
+<p class="caption">
+Figure 5.2: Boxplot of charging timing by charge rate
+</p>
+</div>
+<pre class="r"><code># let the rhs panel have a free y axis to see the patterns - as they are scaled down by the magnitude of the fast charging. </code></pre>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df %&gt;% filter(charging_rate == &quot;Fast&quot;), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~day_of_week)
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;)</code></pre>
+<div class="figure"><span id="fig:plot3a"></span>
+<img src="EVBB_Report_files/figure-html/plot3a-1.png" alt="Boxplot of daily fast charging" width="672" />
+<p class="caption">
+Figure 5.3: Boxplot of daily fast charging
+</p>
+</div>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/daily_fast_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code># poor scaling </code></pre>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df %&gt;% filter(charging_rate == &quot;Slow&quot;), 
+                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~day_of_week) 
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + coord_flip()</code></pre>
+<div class="figure"><span id="fig:plot3b"></span>
+<img src="EVBB_Report_files/figure-html/plot3b-1.png" alt="Boxplot of daily slow charging" width="672" />
+<p class="caption">
+Figure 5.4: Boxplot of daily slow charging
+</p>
+</div>
+<pre class="r"><code># Not sure the coord_flip is beneficial
+
+ggsave(&quot;~/EVBB/plots/daily_slow_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df %&gt;% filter(charging_rate == &quot;Slow&quot;), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~weekday)
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;)</code></pre>
+<div class="figure"><span id="fig:plot3c"></span>
+<img src="EVBB_Report_files/figure-html/plot3c-1.png" alt="Boxplot of weekday/weekend slow charging" width="672" />
+<p class="caption">
+Figure 5.5: Boxplot of weekday/weekend slow charging
+</p>
+</div>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/weekday_weekend_slow_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df %&gt;% filter(charging_rate == &quot;Fast&quot;), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~weekday)
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;)</code></pre>
+<div class="figure"><span id="fig:plot3d"></span>
+<img src="EVBB_Report_files/figure-html/plot3d-1.png" alt="Boxplot of weekday/weekend fast charging" width="672" />
+<p class="caption">
+Figure 5.6: Boxplot of weekday/weekend fast charging
+</p>
+</div>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/weekday_weekend_fast_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code># Not obvious that no overnight charging occurring</code></pre>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() +
   stat_summary(aes(group = weekday), fun.y=mean, geom=&quot;line&quot;, colour = &quot;red&quot;) +
   coord_cartesian(xlim = c(0,24),ylim=c(0,15))
 
-p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + facet_grid(~weekday) </code></pre>
-<div class="figure"><span id="fig:plot3"></span>
-<img src="EVBB_Report_files/figure-html/plot3-1.png" alt="Weekend and weekday charging patterns" width="672" />
+p + labs(x = &quot;Time of Day&quot;, y = &quot;Power (kW)&quot;) + facet_grid(~weekday) +  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) </code></pre>
+<div class="figure"><span id="fig:plot4"></span>
+<img src="EVBB_Report_files/figure-html/plot4-1.png" alt="Weekend and weekday charging patterns" width="672" />
 <p class="caption">
-Figure 5.2: Weekend and weekday charging patterns
+Figure 5.7: Weekend and weekday charging patterns
 </p>
 </div>
+<pre class="r"><code># might need to split by location as this would tell us a) about slow charge by default and b) about home vs non-home LV network impacts</code></pre>
+<pre class="r"><code>p &lt;- ggplot(df %&gt;% filter(charging_rate == &quot;Fast&quot;), aes(x = charge_power_kw)) + 
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_histogram()
+ 
+p + labs(x = &quot;Charging power (kW)&quot;, y = &quot;Frequency of occurrence&quot;) + facet_wrap(~weekday) </code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="EVBB_Report_files/figure-html/fastcharge%20only-1.png" width="672" /></p>
+<pre class="r"><code>p &lt;- ggplot(df %&gt;% filter(charging_rate == &quot;Slow&quot;) , aes(x = halfHour, y = charging_rate)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_bar(stat = &quot;identity&quot;)
+ 
+p + labs(x = &quot;Time of day (hours)&quot;, y = &quot;Frequency of slow charging events&quot;) + 
+  facet_wrap(~weekday) </code></pre>
+<p><img src="EVBB_Report_files/figure-html/frequency%20of%20slow%20charging-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/frequency_of_slow_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code>p &lt;- ggplot(df %&gt;% filter(charging_rate == &quot;Fast&quot;) , aes(x = halfHour, y = charging_rate)) + 
+  facet_wrap(~weekday) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_bar(stat = &quot;identity&quot;)
+
+p + labs(x = &quot;Time of day (hours)&quot;, y = &quot;Frequency of fast charging events&quot;)</code></pre>
+<p><img src="EVBB_Report_files/figure-html/frequency%20of%20fast%20charging-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/frequency_of_fast_charging.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre class="r"><code>#  stat_summary(aes(group = weekday), fun.y=mean, geom=&quot;line&quot;) +</code></pre>
 </div>
+</div>
+<div id="state-of-charge-patterns" class="section level1">
+<h1><span class="header-section-number">6</span> State of charge patterns</h1>
+<p>When analysing the potential for smart charging it is useful to understand daily patterns of the vehicle’s “state of charge”, in particular the percentage of energy left in the battery once the vehicle returns home. This is of particular significance when considering vehicle to grid (V2G) energy transfer. If there is a very high frequency whereby the driver only uses a particular percentage of the battery capacity in a day, there may be the ability to return electricity to the grid (or household) during grid congestion events or other occasions of very high electricity price, provided enough energy always remained in the battery for a typical day of travel.</p>
+<p>Figure @ref(plot:charging density plot by vehicle) shows a box plot of state of charge during the day. (Note that the zero values may be false - there seem to be no values that approach zero)</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # &lt;- make the plot in an object first
+p + labs(x = &quot;Time of day&quot;, y = &quot;State of charge (%)&quot;)</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="EVBB_Report_files/figure-html/charging%20density%20plot%20by%20vehicle-1.png" width="672" /> # Density plot of half-hour values (see when data is being collected)</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom=&quot;line&quot;, colour = &quot;red&quot;)
+
+p + labs(x = &quot;Time of Day&quot;, y = &quot;State of charge (%)&quot;) + facet_grid(~weekday) +  theme(legend.position = &quot;bottom&quot;, axis.text.x = element_text(angle = 90)) </code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_summary).</code></pre>
+<p><img src="EVBB_Report_files/figure-html/State%20of%20charge%20by%20weekend/weekday-1.png" width="672" /></p>
+<p>Need to get average SOC when charging begins. To do this, we will select all data whereby the charging rate is non-zero, but the previous charge rate is zero</p>
 <div id="research-question-2" class="section level2">
-<h2><span class="header-section-number">5.2</span> Research question 2</h2>
+<h2><span class="header-section-number">6.1</span> Research question 2</h2>
 <p>How might this affect the NZ electricity grid?</p>
 </div>
 </div>
 <div id="conclusions" class="section level1">
-<h1><span class="header-section-number">6</span> Conclusions</h1>
+<h1><span class="header-section-number">7</span> Conclusions</h1>
 </div>
 <div id="references" class="section level1">
-<h1><span class="header-section-number">7</span> References</h1>
+<h1><span class="header-section-number">8</span> References</h1>
 </div>
 
 
