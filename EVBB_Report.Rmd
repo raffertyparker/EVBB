@@ -147,8 +147,10 @@ df$charging_rate <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('N
 ```
 
 ```{r half hours}
+# code to half (or quarter) hours, removing seconds from formatting
 
-df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M") # <- code to half hours, removing seconds
+#df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M")
+df$quarterHour <- format(as.POSIXct(hms::trunc_hms(df$time, 15*60)), "%H:%M")
 
 ```
 
@@ -192,6 +194,16 @@ chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1)
 #chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
 
 # Not sure why there are so many more instances of charge beginning than charge ending
+```
+
+```{r create no charge, startcharge, mid charge, and end charge factors for df}
+# perhaps best way to do this:
+# create factor where all zero charge values are NC, all non-zero are MC
+# then create factors for BC and EC using filter method from previous block
+# to overwrite beginning and end MC values
+
+#df$charge_factors <- filter()
+
 ```
 
 ```{r establish average energy use}
