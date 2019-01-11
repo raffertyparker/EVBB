@@ -54,10 +54,10 @@ Our results showed that... [when/where is the greatest amount of charging occurr
   
 # Background
 
-The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. Concurrent charging, especially in the early evening when many motorists return home would have to potential to negatively impact the operation of the grid through drastically increasing peak loads. [Azadfar2015]
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. Concurrent charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [Azadfar2015].
 
 
-The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of this report are as follows.
+The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the report are as follows.
 
 Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
 * If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
@@ -87,7 +87,7 @@ Compare with UK findings of 9.1 kWh.
 * plot average duration of plug-in by hour of start time (fast/slow charging)
 * Average energy use per vehicle per month
 * Average number of charging events per vehicle per day for each day of week
-* Average number of events per vehicle per week
+* Average number of events per vehicle per w eek
 * Median/mean amount of energy supplied per day of week (may not be easy to exactly determine)
 
 
@@ -175,14 +175,41 @@ df$id <- paste("Vehicle", df$id, sep = " ")
 df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
 df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 ```
+
 The following dataframe "chargeBegins" is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc.
 Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking.
 This should be useful for establishing average state of charge when arriving home. 
+Similarly, "chargeEnds" hopefully captures the time at which the vehicle becomes fully charged.
+Note that the discrepency between the number of "charge begins" events and "charge ends" events indicated that there may be a better way of defining these.
 
-```{r establishment of chargeBegins dataframe}
+```{r establishment of chargeBegins and chargeEnds dataframes}
 chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
                        & lag(charge_power_kw, 2) == 0)
 chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1) 
+                    #    & lag(charge_power_kw, 2) > 0)
+#chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+
+# Not sure why there are so many more instances of charge beginning than charge ending
+```
+
+```{r establish average energy use}
+#  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average
+
+
+
+```
+
+```{r bar plots of charging start times}
+startCount <- table(chargeBegins$day_of_week)
+barplot(startCount, main="Charging start times")
+
+endCount <- table(chargeEnds$day_of_week)
+barplot(endCount, main = "Charging end times")
+
+# NOTE I am very skeptical of these, I think the previous block (that constructs chargeBegins/Ends) needs improving upon
+# Also the "count" on the y axis is pretty meaningless, perhaps it would be good to (for example) divide by number of vehicles and then perhaps number of months, then change the title to " Monthly average charging start times". Alternatively just remove the numbers.
 ```
 
 
