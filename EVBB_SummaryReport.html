@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Rafferty Parker and Ben Anderson (University of Otago)" />
+
+
+<title>Analysis of electric vehicle usage patterns in New Zealand</title>
+
+<script src="EVBB_SummaryReport_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="EVBB_SummaryReport_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="EVBB_SummaryReport_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="EVBB_SummaryReport_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="EVBB_SummaryReport_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="EVBB_SummaryReport_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="EVBB_SummaryReport_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="EVBB_SummaryReport_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="EVBB_SummaryReport_files/navigation-1.1/tabsets.js"></script>
+<script src="EVBB_SummaryReport_files/navigation-1.1/codefolding.js"></script>
+<link href="EVBB_SummaryReport_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="EVBB_SummaryReport_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
+<h3 class="subtitle"><em>Summary Statistical Report</em></h3>
+<h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-14 15:20:30</em></h4>
+
+</div>
+
+
+<div id="note" class="section level1">
+<h1><span class="header-section-number">1</span> Note</h1>
+<p>Based on and inspired by the <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf">UK DoT statistical report 2018</a>.</p>
+</div>
+<div id="key-findings" class="section level1">
+<h1><span class="header-section-number">2</span> Key Findings:</h1>
+<ul>
+<li><em>Power supplied</em>: The median power supplied during domestic (‘at home’) standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = )</li>
+<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours.</li>
+<li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day, day of the week and apparent location (home vs not home)</li>
+</ul>
+</div>
+<div id="definitions" class="section level1">
+<h1><span class="header-section-number">3</span> Definitions:</h1>
+<p>The data consisted of X data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
+<p>The home location was defined as the location the vehicle was found most frequently between 00:00 and 06:00 (?). ‘Not at home’ was all other locations.</p>
+<p>Fast charging was determined as being a charging observation where the power demand was greater than 7 kW. <em>justification needed</em></p>
+<p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed.</p>
+<p>For a discussion of data limitations see Section <a href="#dataIssues">8</a>.</p>
+</div>
+<div id="daily-demand" class="section level1">
+<h1><span class="header-section-number">4</span> Daily demand</h1>
+<p>Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by at home vs not at home)</p>
+<p>Fig: Power demand distributions (Histogram, faceted by at home vs not at home)</p>
+<p>The median power demand was X kW (mean = ? kW) in ‘home’ charging events and Y kw (mean = ? kW) for ‘not at home’ events.</p>
+<p>X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. <em>expand to suit histogram</em></p>
+<p>Observations where power demand was greater than Y kW are likely to be …</p>
+<blockquote>
+<p>Discuss any other patterns</p>
+</blockquote>
+</div>
+<div id="duration" class="section level1">
+<h1><span class="header-section-number">5</span> Charging duration</h1>
+<p>Fig: Histogram of charging event durations (faceted by at home vs not at home)</p>
+<p>The histogram shows two kinds of charging events - those of short duration and much longer ones which tend to be overnight and occur at home.</p>
+<blockquote>
+<p>Discuss any other patterns</p>
+</blockquote>
+<blockquote>
+<p>NB: are the durations being truncated at midnight as we do not have consecutive dateTimes?</p>
+</blockquote>
+</div>
+<div id="time-of-charging" class="section level1">
+<h1><span class="header-section-number">6</span> Time of charging</h1>
+<p>Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home</p>
+<p>Fig: profile of median charging demand by time of day and day of the week faceted by at home vs not at home</p>
+<p>Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show … whilst weekends show. Saturdays and Sundays vary with…</p>
+<p>Fig: profile of start and end of charging events by time of day and day of the week faceted by at home vs not at home</p>
+<p>At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends.</p>
+<p>Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.</p>
+<blockquote>
+<p>Discuss any other patterns</p>
+</blockquote>
+</div>
+<div id="state-of-charge" class="section level1">
+<h1><span class="header-section-number">7</span> State of charge</h1>
+<p>The duration of charging events (see Section <a href="#duration">5</a>) suggests that EVs may be ‘plugged in’ at home (and elsewhere) for considerable durations.</p>
+<p>Fig: Distribution of state of charge when evening charge event starts ‘at home’ (histogram (or joy plot) by day of week)</p>
+<p>The figure shows that x % of vehicles may be arriving home with Y% charge and would therefore be able to transfer energy to the home as a form of demand response.</p>
+<p>Fig: Mean state of battery charge at the first ‘at home’ charging observation by hour and day of the week</p>
+<blockquote>
+<p>should show the timing of ‘coming home’ battery state?</p>
+</blockquote>
+<p>Fig: Distribution of duration of charge events starting ‘at home’ in the evening (by day of the week)</p>
+<p>The figure shows that vehicles may then be available for further demand reposne and/or re-charging for up to XX hours from this point.</p>
+<blockquote>
+<p>Discuss any other patterns</p>
+</blockquote>
+</div>
+<div id="dataIssues" class="section level1">
+<h1><span class="header-section-number">8</span> Data limitations</h1>
+<p>The GPS data used to determine location is not available for x% of observations possibly due to in-garage parking or other physical signal inhibition. Location cannot be deduced in these cases and has instead been imputed as the ‘last’ GPS location recorded. These errors may affect the location/‘at home’ coding.</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
