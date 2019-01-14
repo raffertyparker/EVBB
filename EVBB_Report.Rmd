@@ -149,7 +149,7 @@ df$charging_rate <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('N
 ```{r half hours}
 # code to half (or quarter) hours, removing seconds from formatting
 
-#df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M")
+df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M")
 df$quarterHour <- format(as.POSIXct(hms::trunc_hms(df$time, 15*60)), "%H:%M")
 
 ```
@@ -195,6 +195,19 @@ chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1)
 
 # Not sure why there are so many more instances of charge beginning than charge ending
 ```
+
+
+```{r counting days in data}
+dayCount <- table(df$day_of_week)
+png(filename="~/EVBB/plots/day_count.png")
+barplot(dayCount)
+dev.off()
+
+```
+
+![Count of data by day](~/EVBB/plots/day_count.png) 
+The above figure demonstrates that that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.
+
 
 ```{r create no charge, startcharge, mid charge, and end charge factors for df}
 # perhaps best way to do this:

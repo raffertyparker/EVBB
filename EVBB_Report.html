@@ -301,35 +301,28 @@ div.tocify {
 
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-10 11:38:41</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-14 14:58:29</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p>New Zealand’s total electricity demand varies throughout the day, with two distinct “peaks”; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the predicted increase in electric vehicles (EVs) may increase these daily peaks significantly <span class="citation">[@stephenson_smart_2017]</span>.</p>
+<p>New Zealand’s total electricity demand varies throughout the day, with two distinct “peaks”; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the predicted increase in electric vehicles (EVs) may increase these daily peaks significantly, increasing the cost of electricity due to the requirement of expensive upgrades to the electricity grid<span class="citation">[@stephenson_smart_2017]</span>.</p>
 <p>Our results showed that… [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]</p>
 </div>
 <div id="background" class="section level1">
 <h1><span class="header-section-number">2</span> Background</h1>
-<p>The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. Concurrent charging would have to potential to negatively impact the operation of the grid through increasing peak loads. [Azadfar2015]</p>
-<p>A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled “Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand” is perhaps the most comprehensive report into the effect of EVs on New Zealand’s electricity grid currently. The findings in this report were based on models of usage patterns of internal combustion engine (ICE) vehicles. The report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as “passive” charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as “smart”. The key findings of this report are as follows.</p>
+<p>The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled “Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand” predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. Concurrent charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [Azadfar2015].</p>
+<p>The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as “passive” charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as “smart”. The key findings of the report are as follows.</p>
 <p>Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household): * If all were charged in a passive fashion, New Zealand’s peak electricity demand would increase by appproximately 3,000MW * If all were charged in a “smart” fashion, there would be no increase in peak demand</p>
-<p>If all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018].</p>
-<p>This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using estimations of charging patterns based on current driver behaviour.</p>
-<p>What do we already know (or suspect) about when they will be charged. Include:</p>
-<ul>
-<li>academic literature</li>
-<li>consultant reports</li>
-<li>etc</li>
-</ul>
+<p>This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles.</p>
 <p>This is an example of a bibtex reference to a paper: <span class="citation">[@stephenson_smart_2017]</span></p>
 <p>This is an example of a reference to an R package: <span class="citation">[@dplyr]</span></p>
 </div>
 <div id="research-questions" class="section level1">
 <h1><span class="header-section-number">3</span> Research questions</h1>
-<p>Break down the main questions &amp; refer back to the literature</p>
+<p>Need to find: * The median average energy supplied by domestic charging events Compare with UK findings og was 7.5 kWh. If NZ findings are higher, it may be due to UK having more plug-in hybrids. * The mean average energy supplied Compare with UK findings of 9.1 kWh. * Charging duration time each day of week * Time of day that charging begins by day of week * Plot time of day charging begins and time of day charging ends (weekend/weekday?) * Plot average energy supplied by hour of start time (fast/slow charging) * plot average duration of plug-in by hour of start time (fast/slow charging) * Average energy use per vehicle per month * Average number of charging events per vehicle per day for each day of week * Average number of events per vehicle per w eek * Median/mean amount of energy supplied per day of week (may not be easy to exactly determine)</p>
 </div>
 <div id="methods" class="section level1">
 <h1><span class="header-section-number">4</span> Methods</h1>
@@ -492,7 +485,10 @@ df$weekday &lt;- factor((df$day_of_week %in% weekdays1),
                    levels = c(TRUE, FALSE), labels = c(&#39;Weekday&#39;, &#39;Weekend&#39;), ordered = TRUE) 
 
 df$charging_rate &lt;- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c(&#39;None&#39;, &#39;Slow&#39;, &#39;Fast&#39;))</code></pre>
-<pre class="r"><code>df$halfHour &lt;- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), &quot;%H:%M&quot;) # &lt;- code to half hours, removing seconds</code></pre>
+<pre class="r"><code># code to half (or quarter) hours, removing seconds from formatting
+
+df$halfHour &lt;- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), &quot;%H:%M&quot;)
+df$quarterHour &lt;- format(as.POSIXct(hms::trunc_hms(df$time, 15*60)), &quot;%H:%M&quot;)</code></pre>
 <pre class="r"><code>df$id &lt;- factor(df$id, ordered = TRUE)
 levSeq &lt;- seq(1:length(levels(df$id)))
 levSeqChar &lt;- as.character(levSeq)
@@ -509,10 +505,38 @@ df$id &lt;- paste(&quot;Vehicle&quot;, df$id, sep = &quot; &quot;)
 # This would be unnecessary if I get a proper datetime stamp</code></pre>
 <pre class="r"><code>df$state_of_charge_percent[df$state_of_charge_percent &gt; 100] &lt;- NA
 df$state_of_charge_percent[df$state_of_charge_percent &lt; 0] &lt;- NA</code></pre>
-<p>The following dataframe “chargeBegins” is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc. Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking. This should be useful for establishing average state of charge when arriving home.</p>
+<p>The following dataframe “chargeBegins” is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc. Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking. This should be useful for establishing average state of charge when arriving home. Similarly, “chargeEnds” hopefully captures the time at which the vehicle becomes fully charged. Note that the discrepency between the number of “charge begins” events and “charge ends” events indicated that there may be a better way of defining these.</p>
 <pre class="r"><code>chargeBegins &lt;- filter(df, charge_power_kw &gt; 0 &amp; lag(charge_power_kw) == 0 
                        &amp; lag(charge_power_kw, 2) == 0)
-chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)</code></pre>
+chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)
+
+chargeEnds &lt;- filter(df, charge_power_kw &lt; 0.1 &amp; lag(charge_power_kw) &gt; 1) 
+                    #    &amp; lag(charge_power_kw, 2) &gt; 0)
+#chargeEnds &lt;- filter(chargeEnds, state_of_charge_percent &lt; 97)
+
+# Not sure why there are so many more instances of charge beginning than charge ending</code></pre>
+<pre class="r"><code>dayCount &lt;- table(df$day_of_week)
+png(filename=&quot;~/EVBB/plots/day_count.png&quot;)
+barplot(dayCount)
+dev.off()</code></pre>
+<pre><code>## png 
+##   2</code></pre>
+<p>Figure <img src="plots/day_count.png" alt="Count of data by day" /> is created to check that there are the same number of data points for each day. It can be seen that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.</p>
+<pre class="r"><code># perhaps best way to do this:
+# create factor where all zero charge values are NC, all non-zero are MC
+# then create factors for BC and EC using filter method from previous block
+# to overwrite beginning and end MC values
+
+#df$charge_factors &lt;- filter()</code></pre>
+<pre class="r"><code>#  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average</code></pre>
+<pre class="r"><code>startCount &lt;- table(chargeBegins$day_of_week)
+barplot(startCount, main=&quot;Charging start times&quot;)</code></pre>
+<p><img src="EVBB_Report_files/figure-html/bar%20plots%20of%20charging%20start%20times-1.png" width="672" /></p>
+<pre class="r"><code>endCount &lt;- table(chargeEnds$day_of_week)
+barplot(endCount, main = &quot;Charging end times&quot;)</code></pre>
+<p><img src="EVBB_Report_files/figure-html/bar%20plots%20of%20charging%20start%20times-2.png" width="672" /></p>
+<pre class="r"><code># NOTE I am very skeptical of these, I think the previous block (that constructs chargeBegins/Ends) needs improving upon
+# Also the &quot;count&quot; on the y axis is pretty meaningless, perhaps it would be good to (for example) divide by number of vehicles and then perhaps number of months, then change the title to &quot; Monthly average charging start times&quot;. Alternatively just remove the numbers.</code></pre>
 <p>Figure <a href="#fig:plot1">4.1</a> implies that most charging is “slow”.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
