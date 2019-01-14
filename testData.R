@@ -11,9 +11,12 @@ dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Project
 # use the same method to load from Dropbox - just change dPath, readr will still work provided it can access the file.
 
 # The data file:
-dFile <- paste0(dPath, "2019_12_10/EVBB_processed1.csv")
+dFolder <- "2019_12_10" # the purpose of this becomes clear later when we save plots
+dFile <- "EVBB_processed1"
 
-df <- readr::read_csv(dFile)
+loadMe <- paste0(dPath, dFolder, dFile, ".csv")
+
+df <- readr::read_csv(loadMe)
 
 # quick look
 head(df)
@@ -57,10 +60,11 @@ ggplot(summaryDT, aes(x = day_of_week, y = hour, fill = nObs)) +
   scale_fill_gradient(low = "green", high = "red") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   facet_grid(id ~ month)
+ggsave(paste0("plots/", dFolder, "_", dFile, "_nObsByDoW_month.png"))
 
 ggplot(summaryDT, aes(x = day_of_week, y = hour, fill = meanPower)) +
   geom_tile() +
   scale_fill_gradient(low = "green", high = "red") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   facet_grid(id ~ month)
-
+ggsave(paste0("plots/", dFolder, "_", dFile, "_meanPowerByDoW_month.png"))
