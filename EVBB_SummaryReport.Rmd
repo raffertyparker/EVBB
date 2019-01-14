@@ -1,0 +1,125 @@
+---
+title: "Analysis of electric vehicle usage patterns in New Zealand"
+subtitle: "Summary Statistical Report"
+author: "Rafferty Parker and Ben Anderson (University of Otago)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    self_contained: no
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+# colour blind palettes for charts
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+# with grey
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# with black
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+iFile <- "data/EVBB_processed_founders.csv" # set this here
+```
+
+# Note
+
+Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
+
+# Key Findings:
+
+ * _Power supplied_: The median power supplied during domestic ('at home') standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = ) 
+  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours.
+  * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day, day of the week and apparent location (home vs not home)
+  
+# Definitions:
+The data consisted of X data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
+
+The home location was defined as the location the vehicle was found most frequently between 00:00 and 06:00 (?). 'Not at home' was all other locations.
+
+Fast charging was determined as being a charging observation where the power demand was greater than 7 kW. _justification needed_
+
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
+
+For a discussion of data limitations see Section  \@ref(dataIssues).
+
+# Daily demand
+
+Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by at home vs not at home)
+
+Fig: Power demand distributions (Histogram, faceted by at home vs not at home)
+
+The median power demand was X kW (mean = ? kW) in 'home' charging events and 
+Y kw (mean = ? kW) for 'not at home' events.
+
+X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. _expand to suit histogram_
+
+Observations where power demand was greater than Y kW are likely to be ...
+
+> Discuss any other patterns
+
+# Charging duration {#duration}
+
+Fig: Histogram of charging event durations (faceted by at home vs not at home)
+
+The histogram shows two kinds of charging events - those of short duration and  much longer ones which tend to be overnight and occur at home.
+
+> Discuss any other patterns
+
+> NB: are the durations being truncated at midnight as we do not have consecutive dateTimes?
+
+# Time of charging
+
+Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home
+
+Fig: profile of median charging demand by time of day and day of the week faceted by at home vs not at home
+
+Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with...
+
+Fig: profile of start and end of charging events by time of day and day of the week faceted by at home vs not at home
+
+At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
+
+Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
+
+> Discuss any other patterns
+
+# State of charge
+
+The duration of charging events (see Section \@ref(duration)) suggests that EVs may be 'plugged in' at home (and elsewhere) for considerable durations.
+
+Fig: Distribution of state of charge when evening charge event starts 'at home' (histogram (or joy plot) by day of week)
+
+The figure shows that x % of vehicles may be arriving home with Y% charge and would therefore be able to transfer energy to the home as a form of demand response. 
+
+Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week
+
+> should show the timing of 'coming home' battery state?
+
+Fig: Distribution of duration of charge events starting 'at home' in the evening (by day of the week)
+
+The figure shows that vehicles may then be available for further demand reposne and/or re-charging for up to XX hours from this point.
+
+> Discuss any other patterns
+
+# Data limitations {#dataIssues}
+  
+The GPS data used to determine location is not available for x% of observations possibly due to in-garage parking or other physical signal inhibition. Location cannot be deduced in these cases and has instead been imputed as the 'last' GPS location recorded. These errors may affect the location/'at home' coding.
+
