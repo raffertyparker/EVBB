@@ -36,7 +36,11 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-iFile <- "data/EVBB_processed_founders.csv" # set this here
+dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+
+dFile <- paste0(dPath, "EVBB_processed_founders.csv")
+
+df <- readr::read_csv(dFile)
 ```
 
 # Note
@@ -56,7 +60,7 @@ The home location was defined as the location the vehicle was found most frequen
 
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (above 7kW) and "Slow" (below 7kW). 
 
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Can't do without date column due to charging occurring through the night_
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Difficult to do accurately without date column due to charging occurring through the night_
 
 For a discussion of data limitations see Section  \@ref(dataIssues).
 
@@ -111,14 +115,14 @@ The duration of charging events (see Section \@ref(duration)) suggests that EVs 
 Fig: Distribution of state of charge when evening charge event starts 'at home' (histogram (or joy plot) by day of week)
 ![SOC when charging begins](~/EVBB/plots/SOC_when_charging_begins.png)
 
-The figure shows that x % of vehicles may be arriving home with Y% charge and would therefore be able to transfer energy to the home as a form of demand response. 
+The figure shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
 
 
-Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week
+Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week _No "at home" data with SOC_
 
 > should show the timing of 'coming home' battery state?
 
-Fig: Distribution of duration of charge events starting 'at home' in the evening (by day of the week)
+Fig: Distribution of duration of charge events starting 'at home' in the evening (by day of the week) _Duration difficult to accurately determine without date due to charging occurring through the night_
 
 The figure shows that vehicles may then be available for further demand reposne and/or re-charging for up to XX hours from this point.
 

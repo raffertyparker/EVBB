@@ -44,11 +44,11 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
-dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/"
+dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 
-df <- readr::read_csv(dFile)
+
 
 ```
 
@@ -122,7 +122,7 @@ Grid peaks are more pronounced during weekdays. Because of this, the data was al
 Load the data - note the feedback readr gives you on the assumed format of the columns. You might _not_ want to remove the original dateTime :-)
 
 ```{r load data}
-df <- readr::read_csv(iFile)
+df <- readr::read_csv(dFile)
 ```
 
 This is a cross-references to Table \@ref(tab:tab1).
