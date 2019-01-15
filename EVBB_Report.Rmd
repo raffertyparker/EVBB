@@ -185,13 +185,12 @@ Similarly, "chargeEnds" hopefully captures the time at which the vehicle becomes
 Note that the discrepency between the number of "charge begins" events and "charge ends" events indicated that there may be a better way of defining these.
 
 ```{r establishment of chargeBegins and chargeEnds dataframes}
-chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
-                       & lag(charge_power_kw, 2) == 0)
+chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
+                         lag(charge_power_kw, 2) < 0.1)
 chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
 
-chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1) 
-                    #    & lag(charge_power_kw, 2) > 0)
-#chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
 
 # Not sure why there are so many more instances of charge beginning than charge ending
 ```
@@ -208,20 +207,61 @@ dev.off()
 ![Count of data by day](~/EVBB/plots/day_count.png) 
 The above figure demonstrates that that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.
 
+```{r mean and median kW demand}
+#Mean and median kW demand per day by day of the week (Bar charts, one for fast charging one for slow)
+ 
+```
 
 ```{r create no charge, startcharge, mid charge, and end charge factors for df}
+# This entire block is garbage, will probably need deleting
+
 # perhaps best way to do this:
 # create factor where all zero charge values are NC, all non-zero are MC
 # then create factors for BC and EC using filter method from previous block
 # to overwrite beginning and end MC values
 
-#df$charge_factors <- filter()
+#df$charge_factor <- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c('NC', 'MC'))
+
+
+#chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
+#                       & lag(charge_power_kw, 2) == 0)
+#chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+#chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1) 
+
+
+
+#if (df$charge_power_kw > 0.1 & lag(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "BC"
+#} else if (df$charge_power_kw > 0.1 & lead(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "EC"}
+
+
+
+#if (df$charge_power_kw < 0.1){
+#  df$charge_factor <- "NC"
+#} else if (df$charge_power_kw > 0.1 & lag(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "BC"
+#} else if (df$charge_power_kw > 0.1 & lead(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "EC"
+# else
+#  df$charge_factor <- "MC"
+
+
+#df$charge_factors <- filter(df)
 
 ```
 
 ```{r establish average energy use}
 #  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average
 
+
+
+```
+
+```{r value of state of charge at beginning of charge}
+p <- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom_histogram(bins = 10)
+p + labs(x = "State of charge when charging begins (%)")
 
 
 ```
@@ -428,6 +468,7 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 p + labs(x = "Time of day", y = "State of charge (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
 ```
 # Density plot of half-hour values (see when data is being collected)
 

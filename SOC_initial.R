@@ -83,7 +83,7 @@ p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position="bottom") +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
-  geom_density() # <- make the plot in an object first
+  geom_density()
 
 p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
   annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,

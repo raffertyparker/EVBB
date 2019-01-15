@@ -302,7 +302,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Summary Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-14 15:28:58</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-15 15:02:36</em></h4>
 
 </div>
 
@@ -314,8 +314,8 @@ div.tocify {
 <div id="key-findings" class="section level1">
 <h1><span class="header-section-number">2</span> Key Findings:</h1>
 <ul>
-<li><em>Power supplied</em>: The median power supplied during domestic (‘at home’) standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = )</li>
-<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours.</li>
+<li><em>Power supplied</em>: The median power supplied during domestic (‘at home’) standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = ) <em>Can’t do without date column</em></li>
+<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. <em>Can’t do without date column</em></li>
 <li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day, day of the week and apparent location (home vs not home)</li>
 </ul>
 </div>
@@ -323,25 +323,25 @@ div.tocify {
 <h1><span class="header-section-number">3</span> Definitions:</h1>
 <p>The data consisted of X data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
 <p>The home location was defined as the location the vehicle was found most frequently between 00:00 and 06:00 (?). ‘Not at home’ was all other locations.</p>
-<p>Fast charging was determined as being a charging observation where the power demand was greater than 7 kW. <em>justification needed</em></p>
-<p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed.</p>
+<p>The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations<span class="citation">[@concept2018]</span>. Each charging event was therefore seperated into “Fast” (above 7kW) and “Slow” (below 7kW).</p>
+<p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed. <em>Can’t do without date column due to charging occurring through the night</em></p>
 <p>For a discussion of data limitations see Section <a href="#dataIssues">8</a>.</p>
 </div>
 <div id="daily-demand" class="section level1">
 <h1><span class="header-section-number">4</span> Daily demand</h1>
-<p>Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by at home vs not at home)</p>
+<p>Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by slow vs fast). <em>Can’t do without date column</em></p>
 <p>Fig: Power demand distributions (Histogram, faceted by at home vs not at home)</p>
-<p>The median power demand was X kW (mean = ? kW) in ‘home’ charging events and Y kw (mean = ? kW) for ‘not at home’ events.</p>
-<p>X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. <em>expand to suit histogram</em></p>
-<p>Observations where power demand was greater than Y kW are likely to be …</p>
+<p>The median power demand was X kW (mean = ? kW) in ‘home’ charging events and Y kw (mean = ? kW) for ‘not at home’ events. <em>Can’t do without date column</em></p>
+<p>X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. <em>expand to suit histogram</em> <em>Can’t do without GPS data</em></p>
+<p>Observations where power demand was greater than Y kW are likely to be … <em>Can’t do without GPS data</em></p>
 <blockquote>
 <p>Discuss any other patterns</p>
 </blockquote>
 </div>
 <div id="duration" class="section level1">
 <h1><span class="header-section-number">5</span> Charging duration</h1>
-<p>Fig: Histogram of charging event durations (faceted by at home vs not at home)</p>
-<p>The histogram shows two kinds of charging events - those of short duration and much longer ones which tend to be overnight and occur at home.</p>
+<p>Fig: Histogram of charging event durations (faceted by at home vs not at home) <em>Can’t do without date column</em></p>
+<p>The histogram shows two kinds of charging events - those of short duration and much longer ones which tend to be overnight and occur at home. <em>Can’t do without date column</em></p>
 <blockquote>
 <p>Discuss any other patterns</p>
 </blockquote>
@@ -351,11 +351,11 @@ div.tocify {
 </div>
 <div id="time-of-charging" class="section level1">
 <h1><span class="header-section-number">6</span> Time of charging</h1>
-<p>Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home</p>
-<p>Fig: profile of median charging demand by time of day and day of the week faceted by at home vs not at home</p>
+<p>Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home <em>Can do this with the data we have provided missing data implies zero charging</em></p>
+<p>Fig: profile of median charging demand by time of day and day of the week <em>Difficult to do without date column</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
 <p>Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show … whilst weekends show. Saturdays and Sundays vary with…</p>
-<p>Fig: profile of start and end of charging events by time of day and day of the week faceted by at home vs not at home</p>
-<p>At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends.</p>
+<p>Fig: profile of start and end of charging events by time of day and day of the week <em>This we can do</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
+<p>At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. <em>We can get “Slow” charging events rather than “home”</em></p>
 <p>Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.</p>
 <blockquote>
 <p>Discuss any other patterns</p>
@@ -364,7 +364,7 @@ div.tocify {
 <div id="state-of-charge" class="section level1">
 <h1><span class="header-section-number">7</span> State of charge</h1>
 <p>The duration of charging events (see Section <a href="#duration">5</a>) suggests that EVs may be ‘plugged in’ at home (and elsewhere) for considerable durations.</p>
-<p>Fig: Distribution of state of charge when evening charge event starts ‘at home’ (histogram (or joy plot) by day of week)</p>
+<p>Fig: Distribution of state of charge when evening charge event starts ‘at home’ (histogram (or joy plot) by day of week) <img src="plots/SOC_when_charging_begins.png" alt="SOC when charging begins" /></p>
 <p>The figure shows that x % of vehicles may be arriving home with Y% charge and would therefore be able to transfer energy to the home as a form of demand response.</p>
 <p>Fig: Mean state of battery charge at the first ‘at home’ charging observation by hour and day of the week</p>
 <blockquote>
