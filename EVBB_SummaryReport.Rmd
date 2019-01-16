@@ -27,68 +27,136 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+library(readr) # tidy data reading
+library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
+library(lubridate) # for data & time manip
+library(hms) # for hh:mm:ss if we need it
+library(ggplot2) # fancy plots
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 # with grey
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# for Xubuntu:
-dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
-
 # for Mac
-# dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/”
+user <- Sys.info()[[6]]
+if(user == "ben"){
+  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+} else {
+  # for Xubuntu:
+  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+}
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 
-df <- readr::read_csv(dFile)
+df <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
+
+```
+
+```{r dataPrep}
+# set correct order for days of the week
+#levels(as.factor(df$day_of_week))
+
+df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
+                                         "Friday", "Saturday", "Sunday"))
+# set charge type
+df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", "Not charging") # appears not to set not charging label. Why?
+df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", "Standard charge")
+
+# set charge type order so charts make sense from left (std) to right (fast)
+df$chargeType <- ordered(df$chargeType, levels=c("Not charging", "Standard charge", "Fast charge"))
+
+df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
+
+dt <- as.data.table(df) # creates a data.table for fast data crunching
+
+chargingDT <- dt[charge_power_kw > 0] # select just charging
 ```
 
 # Note
 
 Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
 
-# Key Findings:
+Data used: `r dFile`
 
- * _Power supplied_: The median power supplied during domestic ('at home') standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = ) _Can't do without date column_
-  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. _Can't do without date column_
-  * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day, day of the week and apparent location (home vs not home)
-  
+Observations: `r nrow(dt)`
+Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
+
 # Definitions:
-The data consisted of X data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
+The data consisted of `r nrow(dt)` data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
 
-The home location was defined as the location the vehicle was found most frequently between 00:00 and 06:00 (?). 'Not at home' was all other locations.
+The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Slow" (below 7kW). 
 
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (above 7kW) and "Slow" (below 7kW). 
-
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Difficult to do accurately without date column due to charging occurring through the night_
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences._
 
 For a discussion of data limitations see Section  \@ref(dataIssues).
 
+# Key Findings:
+
+```{r keyFindings}
+stdMedian <- median(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
+stdMean <- mean(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
+  
+fastMedian <- median(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
+fastMean <- mean(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
+```
+
+ * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
+  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. _Gets truncated at midnight as not possible to determine exact sequence of days_
+  * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.
+
+# Observed demand
+
+Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common and, partly due to our definition, are concentrated around 3 kW. At the present time charging at home is likely to be predominatly standard charging whilst charging outside the home is likely to be a mix of the two.
+
+```{r obsPower, fig.cap="Observed power demand distribution by day of the week and charge type where charging observed"}
+p <- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
+  geom_histogram() +
+  facet_grid(. ~ chargeType, scales = "free")
+
+# now draw the plot with any fancy extras we want
+p + labs(y = "Density",
+       x = "Power (kW)") +
+  guides(fill = guide_legend(title = "Charge type:")) +
+  scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+```
+
+The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`).
+
+```{r stdChargeSizing}
+stdQT <- quantile(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
+fastQT <- quantile(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
+```
+
+75% of standard charging observations were `r round(stdQT[[2]],2)` kW or more but the figure was `r round(fastQT[[2]],2)` kW or more for fast charging
+
 # Daily demand
 
-Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by slow vs fast). _Can't do without date column_
+```{r dailyPower, fig.cap="Observed power demand distribution by day of the week and charge type"}
+p <- ggplot2::ggplot(dt, aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
+  geom_boxplot(aes(y = charge_power_kw)) +
+  facet_grid(. ~ chargeType)
 
-Fig: Power demand distributions (Histogram, faceted by at home vs not at home)
+# now draw the plot with any fancy extras we want
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = "Day of week",
+       y = "Power (kW)") +
+  guides(colour = guide_legend(title = "Charge type:")) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+```
 
-The median power demand was X kW (mean = ? kW) in 'home' charging events and 
-Y kw (mean = ? kW) for 'not at home' events. _Can't do without date column_
+Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is reltively constant across days.
 
-X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. _expand to suit histogram_ _Can't do without GPS data_
-
-Observations where power demand was greater than Y kW are likely to be ...
-_Can't do without GPS data_
 
 > Discuss any other patterns
 
 # Charging duration {#duration}
 
-Fig: Histogram of charging event durations (faceted by at home vs not at home) _Can't do without date column_
-
-The histogram shows two kinds of charging events - those of short duration and  much longer ones which tend to be overnight and occur at home. _Can't do without date column_
+Fig: Histogram of charging event durations (faceted by fast vs standard) _Can't do without true date column - see above_
 
 > Discuss any other patterns
 
@@ -96,8 +164,29 @@ The histogram shows two kinds of charging events - those of short duration and  
 
 # Time of charging
 
-Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home
-_Can do this with the data we have provided missing data implies zero charging_
+```{r chargeTime, fig.cap="Count of observed charging events by type,day of week and time"}
+plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
+
+# make a weekend facet label
+plotDT <- plotDT[, weekEnd := "Weekend"]
+plotDT <- plotDT[day_of_week != "Saturday" & day_of_week != "Sunday", weekEnd := "Week day"]
+
+p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = count, colour = day_of_week)) +
+  geom_line() +
+  facet_grid(weekEnd ~  chargeType)
+  
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = "Time of day",
+       y = "Count") +
+  guides(colour = guide_legend(title = "Day of week:")) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+
+```
+
+Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see...
+
+> _XX haven't edited beyond here_ XX
 
 Fig: profile of median charging demand by time of day and day of the week _Difficult to do without date column_ faceted by at home vs not at home _Would need GPS data_
 
