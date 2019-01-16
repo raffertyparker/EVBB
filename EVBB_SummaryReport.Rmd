@@ -128,7 +128,7 @@ Fig: Mean state of battery charge at the first 'at home' charging observation by
 
 Fig: Distribution of duration of charge events starting 'at home' in the evening (by day of the week) _Duration difficult to accurately determine without date due to charging occurring through the night_
 
-The figure shows that vehicles may then be available for further demand reposne and/or re-charging for up to XX hours from this point.
+The figure shows that vehicles may then be available for further demand response and/or re-charging for up to XX hours from this point.
 
 > Discuss any other patterns
 

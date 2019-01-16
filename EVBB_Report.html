@@ -301,7 +301,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-14 14:58:29</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-16 13:47:58</em></h4>
 
 </div>
 
@@ -344,7 +344,7 @@ div.tocify {
 <li>Histograms of power (kW)</li>
 </ul>
 <p>Load the data - note the feedback readr gives you on the assumed format of the columns. You might <em>not</em> want to remove the original dateTime :-)</p>
-<pre class="r"><code>df &lt;- readr::read_csv(iFile)</code></pre>
+<pre class="r"><code>df &lt;- readr::read_csv(dFile)</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   id = col_character(),
@@ -506,13 +506,12 @@ df$id &lt;- paste(&quot;Vehicle&quot;, df$id, sep = &quot; &quot;)
 <pre class="r"><code>df$state_of_charge_percent[df$state_of_charge_percent &gt; 100] &lt;- NA
 df$state_of_charge_percent[df$state_of_charge_percent &lt; 0] &lt;- NA</code></pre>
 <p>The following dataframe “chargeBegins” is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc. Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking. This should be useful for establishing average state of charge when arriving home. Similarly, “chargeEnds” hopefully captures the time at which the vehicle becomes fully charged. Note that the discrepency between the number of “charge begins” events and “charge ends” events indicated that there may be a better way of defining these.</p>
-<pre class="r"><code>chargeBegins &lt;- filter(df, charge_power_kw &gt; 0 &amp; lag(charge_power_kw) == 0 
-                       &amp; lag(charge_power_kw, 2) == 0)
+<pre class="r"><code>chargeBegins &lt;- filter(df, charge_power_kw &gt; 0.1 &amp; lag(charge_power_kw) &lt; 0.1 &amp;
+                         lag(charge_power_kw, 2) &lt; 0.1)
 chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)
 
-chargeEnds &lt;- filter(df, charge_power_kw &lt; 0.1 &amp; lag(charge_power_kw) &gt; 1) 
-                    #    &amp; lag(charge_power_kw, 2) &gt; 0)
-#chargeEnds &lt;- filter(chargeEnds, state_of_charge_percent &lt; 97)
+chargeEnds &lt;- filter(df, charge_power_kw &gt; 0.1 &amp; lead(charge_power_kw) &lt; 0.1 &amp; lead(charge_power_kw, 2) &lt; 0.1)
+chargeEnds &lt;- filter(chargeEnds, state_of_charge_percent &lt; 97)
 
 # Not sure why there are so many more instances of charge beginning than charge ending</code></pre>
 <pre class="r"><code>dayCount &lt;- table(df$day_of_week)
@@ -521,14 +520,48 @@ barplot(dayCount)
 dev.off()</code></pre>
 <pre><code>## png 
 ##   2</code></pre>
-<p>Figure <img src="plots/day_count.png" alt="Count of data by day" /> is created to check that there are the same number of data points for each day. It can be seen that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.</p>
-<pre class="r"><code># perhaps best way to do this:
+<p><img src="plots/day_count.png" alt="Count of data by day" /> The above figure demonstrates that that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.</p>
+<pre class="r"><code>#Mean and median kW demand per day by day of the week (Bar charts, one for fast charging one for slow)</code></pre>
+<pre class="r"><code># This entire block is garbage, will probably need deleting
+
+# perhaps best way to do this:
 # create factor where all zero charge values are NC, all non-zero are MC
 # then create factors for BC and EC using filter method from previous block
 # to overwrite beginning and end MC values
 
-#df$charge_factors &lt;- filter()</code></pre>
+#df$charge_factor &lt;- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c(&#39;NC&#39;, &#39;MC&#39;))
+
+
+#chargeBegins &lt;- filter(df, charge_power_kw &gt; 0 &amp; lag(charge_power_kw) == 0 
+#                       &amp; lag(charge_power_kw, 2) == 0)
+#chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)
+
+#chargeEnds &lt;- filter(df, charge_power_kw &lt; 0.1 &amp; lag(charge_power_kw) &gt; 1) 
+
+
+
+#if (df$charge_power_kw &gt; 0.1 &amp; lag(df$charge_power_kw) &lt; 0.1){
+#  df$charge_factor &lt;- &quot;BC&quot;
+#} else if (df$charge_power_kw &gt; 0.1 &amp; lead(df$charge_power_kw) &lt; 0.1){
+#  df$charge_factor &lt;- &quot;EC&quot;}
+
+
+
+#if (df$charge_power_kw &lt; 0.1){
+#  df$charge_factor &lt;- &quot;NC&quot;
+#} else if (df$charge_power_kw &gt; 0.1 &amp; lag(df$charge_power_kw) &lt; 0.1){
+#  df$charge_factor &lt;- &quot;BC&quot;
+#} else if (df$charge_power_kw &gt; 0.1 &amp; lead(df$charge_power_kw) &lt; 0.1){
+#  df$charge_factor &lt;- &quot;EC&quot;
+# else
+#  df$charge_factor &lt;- &quot;MC&quot;
+
+
+#df$charge_factors &lt;- filter(df)</code></pre>
 <pre class="r"><code>#  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average</code></pre>
+<pre class="r"><code>p &lt;- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom_histogram(bins = 10)
+p + labs(x = &quot;State of charge when charging begins (%)&quot;)</code></pre>
+<p><img src="EVBB_Report_files/figure-html/value%20of%20state%20of%20charge%20at%20beginning%20of%20charge-1.png" width="672" /></p>
 <pre class="r"><code>startCount &lt;- table(chargeBegins$day_of_week)
 barplot(startCount, main=&quot;Charging start times&quot;)</code></pre>
 <p><img src="EVBB_Report_files/figure-html/bar%20plots%20of%20charging%20start%20times-1.png" width="672" /></p>
@@ -728,7 +761,13 @@ p + labs(x = &quot;Time of day (hours)&quot;, y = &quot;Frequency of fast chargi
   geom_boxplot() # &lt;- make the plot in an object first
 p + labs(x = &quot;Time of day&quot;, y = &quot;State of charge (%)&quot;)</code></pre>
 <pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
-<p><img src="EVBB_Report_files/figure-html/charging%20density%20plot%20by%20vehicle-1.png" width="672" /> # Density plot of half-hour values (see when data is being collected)</p>
+<p><img src="EVBB_Report_files/figure-html/charging%20density%20plot%20by%20vehicle-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/SOC_when_charging_begins.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
+</div>
+<div id="density-plot-of-half-hour-values-see-when-data-is-being-collected" class="section level1">
+<h1><span class="header-section-number">7</span> Density plot of half-hour values (see when data is being collected)</h1>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
   guides(colour = guide_legend(title = &quot;Vehicle:&quot;)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
@@ -741,15 +780,15 @@ p + labs(x = &quot;Time of Day&quot;, y = &quot;State of charge (%)&quot;) + fac
 <p><img src="EVBB_Report_files/figure-html/State%20of%20charge%20by%20weekend/weekday-1.png" width="672" /></p>
 <p>Need to get average SOC when charging begins. To do this, we will select all data whereby the charging rate is non-zero, but the previous charge rate is zero</p>
 <div id="research-question-2" class="section level2">
-<h2><span class="header-section-number">6.1</span> Research question 2</h2>
+<h2><span class="header-section-number">7.1</span> Research question 2</h2>
 <p>How might this affect the NZ electricity grid?</p>
 </div>
 </div>
 <div id="conclusions" class="section level1">
-<h1><span class="header-section-number">7</span> Conclusions</h1>
+<h1><span class="header-section-number">8</span> Conclusions</h1>
 </div>
 <div id="references" class="section level1">
-<h1><span class="header-section-number">8</span> References</h1>
+<h1><span class="header-section-number">9</span> References</h1>
 </div>
 
 
