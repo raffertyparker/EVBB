@@ -101,9 +101,6 @@ img {
 button.code-folding-btn:focus {
   outline: none;
 }
-summary {
-  display: list-item;
-}
 </style>
 
 
@@ -111,70 +108,9 @@ summary {
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
-
-<style type="text/css">
-.tabset-dropdown > .nav-tabs {
-  display: inline-table;
-  max-height: 500px;
-  min-height: 44px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs > li.active {
-  display: block;
-}
-
-.tabset-dropdown > .nav-tabs > li > a,
-.tabset-dropdown > .nav-tabs > li > a:focus,
-.tabset-dropdown > .nav-tabs > li > a:hover {
-  border: none;
-  display: inline-block;
-  border-radius: 4px;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
-  display: block;
-  float: none;
-}
-
-.tabset-dropdown > .nav-tabs > li {
-  display: none;
-}
-</style>
-
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
 });
 </script>
 
@@ -187,6 +123,7 @@ $(document).ready(function () {
   window.initializeCodeFolding("hide" === "show");
 });
 </script>
+
 
 
 
@@ -302,46 +239,106 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Summary Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-15 15:02:36</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-16 15:09:00</em></h4>
 
 </div>
 
 
+<pre class="r"><code># set correct order for days of the week
+#levels(as.factor(df$day_of_week))
+
+df$day_of_week &lt;- ordered(df$day_of_week, levels=c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, 
+                                         &quot;Friday&quot;, &quot;Saturday&quot;, &quot;Sunday&quot;))
+# set charge type
+df$chargeType &lt;- ifelse(df$charge_power_kw &gt; 0, &quot;Standard charge&quot;, &quot;Not charging&quot;) # appears not to set not charging label. Why?
+df$chargeType &lt;- ifelse(df$charge_power_kw &gt;= 7, &quot;Fast charge&quot;, &quot;Standard charge&quot;)
+
+# set charge type order so charts make sense from left (std) to right (fast)
+df$chargeType &lt;- ordered(df$chargeType, levels=c(&quot;Not charging&quot;, &quot;Standard charge&quot;, &quot;Fast charge&quot;))
+
+df$qHour &lt;- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
+
+dt &lt;- as.data.table(df) # creates a data.table for fast data crunching
+
+chargingDT &lt;- dt[charge_power_kw &gt; 0] # select just charging</code></pre>
 <div id="note" class="section level1">
 <h1><span class="header-section-number">1</span> Note</h1>
 <p>Based on and inspired by the <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf">UK DoT statistical report 2018</a>.</p>
-</div>
-<div id="key-findings" class="section level1">
-<h1><span class="header-section-number">2</span> Key Findings:</h1>
-<ul>
-<li><em>Power supplied</em>: The median power supplied during domestic (‘at home’) standard charging event was XX kW. The mean was slightly lower/higher at XX kW. Fast charging events had a higher median of XX kW (mean = ) <em>Can’t do without date column</em></li>
-<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. <em>Can’t do without date column</em></li>
-<li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day, day of the week and apparent location (home vs not home)</li>
-</ul>
+<p>Data used: /Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/EVBB_processed_founders.csv</p>
+<p>Observations: 73836 Observed charging: 50056 observations (power demand &gt; 0)</p>
 </div>
 <div id="definitions" class="section level1">
-<h1><span class="header-section-number">3</span> Definitions:</h1>
-<p>The data consisted of X data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
-<p>The home location was defined as the location the vehicle was found most frequently between 00:00 and 06:00 (?). ‘Not at home’ was all other locations.</p>
-<p>The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations<span class="citation">[@concept2018]</span>. Each charging event was therefore seperated into “Fast” (above 7kW) and “Slow” (below 7kW).</p>
-<p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed. <em>Can’t do without date column due to charging occurring through the night</em></p>
-<p>For a discussion of data limitations see Section <a href="#dataIssues">8</a>.</p>
+<h1><span class="header-section-number">2</span> Definitions:</h1>
+<p>The data consisted of 73836 data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
+<p>The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations<span class="citation">[@concept2018]</span>. Each charging event was therefore seperated into “Fast” (&gt; = 7kW) and “Slow” (below 7kW).</p>
+<p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed. <em>Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences.</em></p>
+<p>For a discussion of data limitations see Section <a href="#dataIssues">9</a>.</p>
+</div>
+<div id="key-findings" class="section level1">
+<h1><span class="header-section-number">3</span> Key Findings:</h1>
+<pre class="r"><code>stdMedian &lt;- median(chargingDT[chargeType == &quot;Standard charge&quot;]$charge_power_kw)
+stdMean &lt;- mean(chargingDT[chargeType == &quot;Standard charge&quot;]$charge_power_kw)
+  
+fastMedian &lt;- median(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)
+fastMean &lt;- mean(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)</code></pre>
+<ul>
+<li><em>Power supplied</em>: The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower/higher at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59);</li>
+<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. <em>Gets truncated at midnight as not possible to determine exact sequence of days</em></li>
+<li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.</li>
+</ul>
+</div>
+<div id="observed-demand" class="section level1">
+<h1><span class="header-section-number">4</span> Observed demand</h1>
+<p>Figure <a href="#fig:obsPower">4.1</a> shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common and, partly due to our definition, are concentrated around 3 kW. At the present time charging at home is likely to be predominatly standard charging whilst charging outside the home is likely to be a mix of the two.</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
+  geom_histogram() +
+  facet_grid(. ~ chargeType, scales = &quot;free&quot;)
+
+# now draw the plot with any fancy extras we want
+p + labs(y = &quot;Density&quot;,
+       x = &quot;Power (kW)&quot;) +
+  guides(fill = guide_legend(title = &quot;Charge type:&quot;)) +
+  scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<div class="figure"><span id="fig:obsPower"></span>
+<img src="EVBB_SummaryReport_files/figure-html/obsPower-1.png" alt="Observed power demand distribution by day of the week and charge type where charging observed" width="672" />
+<p class="caption">
+Figure 4.1: Observed power demand distribution by day of the week and charge type where charging observed
+</p>
+</div>
+<p>The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower/higher at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59).</p>
+<pre class="r"><code>stdQT &lt;- quantile(chargingDT[chargeType == &quot;Standard charge&quot;]$charge_power_kw)
+fastQT &lt;- quantile(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)</code></pre>
+<p>75% of standard charging observations were 2.76 kW or more but the figure was 13.34 kW or more for fast charging</p>
 </div>
 <div id="daily-demand" class="section level1">
-<h1><span class="header-section-number">4</span> Daily demand</h1>
-<p>Fig: Mean and median kW demand per day by day of the week (Bar chart, faceted by slow vs fast). <em>Can’t do without date column</em></p>
-<p>Fig: Power demand distributions (Histogram, faceted by at home vs not at home)</p>
-<p>The median power demand was X kW (mean = ? kW) in ‘home’ charging events and Y kw (mean = ? kW) for ‘not at home’ events. <em>Can’t do without date column</em></p>
-<p>X% of charging observations at home were X kW or less whilst those elsewhere tended to be higher. <em>expand to suit histogram</em> <em>Can’t do without GPS data</em></p>
-<p>Observations where power demand was greater than Y kW are likely to be … <em>Can’t do without GPS data</em></p>
+<h1><span class="header-section-number">5</span> Daily demand</h1>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
+  geom_boxplot(aes(y = charge_power_kw)) +
+  facet_grid(. ~ chargeType)
+
+# now draw the plot with any fancy extras we want
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = &quot;Day of week&quot;,
+       y = &quot;Power (kW)&quot;) +
+  guides(colour = guide_legend(title = &quot;Charge type:&quot;)) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<div class="figure"><span id="fig:dailyPower"></span>
+<img src="EVBB_SummaryReport_files/figure-html/dailyPower-1.png" alt="Observed power demand distribution by day of the week and charge type" width="672" />
+<p class="caption">
+Figure 5.1: Observed power demand distribution by day of the week and charge type
+</p>
+</div>
+<p>Figure <a href="#fig:dailyPower">5.1</a> shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is reltively constant across days.</p>
 <blockquote>
 <p>Discuss any other patterns</p>
 </blockquote>
 </div>
 <div id="duration" class="section level1">
-<h1><span class="header-section-number">5</span> Charging duration</h1>
-<p>Fig: Histogram of charging event durations (faceted by at home vs not at home) <em>Can’t do without date column</em></p>
-<p>The histogram shows two kinds of charging events - those of short duration and much longer ones which tend to be overnight and occur at home. <em>Can’t do without date column</em></p>
+<h1><span class="header-section-number">6</span> Charging duration</h1>
+<p>Fig: Histogram of charging event durations (faceted by fast vs standard) <em>Can’t do without true date column - see above</em></p>
 <blockquote>
 <p>Discuss any other patterns</p>
 </blockquote>
@@ -350,8 +347,33 @@ div.tocify {
 </blockquote>
 </div>
 <div id="time-of-charging" class="section level1">
-<h1><span class="header-section-number">6</span> Time of charging</h1>
-<p>Fig: profile of frequency of charging (e.g. % of observations where charging recorded) by time of day and day of the week faceted by at home vs not at home <em>Can do this with the data we have provided missing data implies zero charging</em></p>
+<h1><span class="header-section-number">7</span> Time of charging</h1>
+<pre class="r"><code>plotDT &lt;- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
+
+# make a weekend facet label
+plotDT &lt;- plotDT[, weekEnd := &quot;Weekend&quot;]
+plotDT &lt;- plotDT[day_of_week != &quot;Saturday&quot; &amp; day_of_week != &quot;Sunday&quot;, weekEnd := &quot;Week day&quot;]
+
+p &lt;- ggplot2::ggplot(plotDT, aes(x = qHour, y = count, colour = day_of_week)) +
+  geom_line() +
+  facet_grid(weekEnd ~  chargeType)
+  
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = &quot;Time of day&quot;,
+       y = &quot;Count&quot;) +
+  guides(colour = guide_legend(title = &quot;Day of week:&quot;)) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<div class="figure"><span id="fig:chargeTime"></span>
+<img src="EVBB_SummaryReport_files/figure-html/chargeTime-1.png" alt="Count of observed charging events by type,day of week and time" width="672" />
+<p class="caption">
+Figure 7.1: Count of observed charging events by type,day of week and time
+</p>
+</div>
+<p>Figure <a href="#fig:chargeTime">7.1</a> shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see…</p>
+<blockquote>
+<p><em>XX haven’t edited beyond here</em> XX</p>
+</blockquote>
 <p>Fig: profile of median charging demand by time of day and day of the week <em>Difficult to do without date column</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
 <p>Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show … whilst weekends show. Saturdays and Sundays vary with…</p>
 <p>Fig: profile of start and end of charging events by time of day and day of the week <em>This we can do</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
@@ -362,22 +384,22 @@ div.tocify {
 </blockquote>
 </div>
 <div id="state-of-charge" class="section level1">
-<h1><span class="header-section-number">7</span> State of charge</h1>
-<p>The duration of charging events (see Section <a href="#duration">5</a>) suggests that EVs may be ‘plugged in’ at home (and elsewhere) for considerable durations.</p>
-<p>Fig: Distribution of state of charge when evening charge event starts ‘at home’ (histogram (or joy plot) by day of week) <img src="plots/SOC_when_charging_begins.png" alt="SOC when charging begins" /></p>
-<p>The figure shows that x % of vehicles may be arriving home with Y% charge and would therefore be able to transfer energy to the home as a form of demand response.</p>
-<p>Fig: Mean state of battery charge at the first ‘at home’ charging observation by hour and day of the week</p>
+<h1><span class="header-section-number">8</span> State of charge</h1>
+<p>The duration of charging events (see Section <a href="#duration">6</a>) suggests that EVs may be ‘plugged in’ at home (and elsewhere) for considerable durations.</p>
+<p>Fig: Distribution of state of charge when evening charge event starts ‘at home’ (histogram (or joy plot) by day of week) <img src="~/EVBB/plots/SOC_when_charging_begins.png" alt="SOC when charging begins" /></p>
+<p>The figure shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response.</p>
+<p>Fig: Mean state of battery charge at the first ‘at home’ charging observation by hour and day of the week <em>No “at home” data with SOC</em></p>
 <blockquote>
 <p>should show the timing of ‘coming home’ battery state?</p>
 </blockquote>
-<p>Fig: Distribution of duration of charge events starting ‘at home’ in the evening (by day of the week)</p>
+<p>Fig: Distribution of duration of charge events starting ‘at home’ in the evening (by day of the week) <em>Duration difficult to accurately determine without date due to charging occurring through the night</em></p>
 <p>The figure shows that vehicles may then be available for further demand reposne and/or re-charging for up to XX hours from this point.</p>
 <blockquote>
 <p>Discuss any other patterns</p>
 </blockquote>
 </div>
 <div id="dataIssues" class="section level1">
-<h1><span class="header-section-number">8</span> Data limitations</h1>
+<h1><span class="header-section-number">9</span> Data limitations</h1>
 <p>The GPS data used to determine location is not available for x% of observations possibly due to in-garage parking or other physical signal inhibition. Location cannot be deduced in these cases and has instead been imputed as the ‘last’ GPS location recorded. These errors may affect the location/‘at home’ coding.</p>
 </div>
 
