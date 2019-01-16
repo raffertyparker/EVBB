@@ -74,11 +74,16 @@ chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
 
 #######################
 
+
+
+#######################
+
+
 p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position="bottom") +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
-  geom_density() # <- make the plot in an object first
+  geom_density()
 
 p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
   annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,
@@ -90,31 +95,3 @@ p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
 
 ################################
 
-
-
-# charging density plot by vehicle
-
-p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
-  guides(colour = guide_legend(title = "Vehicle:")) +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
-  geom_boxplot() # <- make the plot in an object first
-p + labs(x = "Time of day", y = "State of charge (%)")
-
-# Density plot of half-hour values (see when data is being collected)
-
-
-
-
-# State of charge by weekend/weekday
-
-p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
-  guides(colour = guide_legend(title = "Vehicle:")) +
-  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
-  geom_boxplot() +
-  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red")
-
-p + labs(x = "Time of Day", y = "State of charge (%)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
-
-# Need to get average SOC when charging begins. To do this, we will select all data whereby the 
-# charging rate is non-zero, but the previous charge rate is zero
