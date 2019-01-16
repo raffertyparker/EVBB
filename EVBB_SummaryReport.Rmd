@@ -41,7 +41,11 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 #dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
-dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+# for Mac
+# dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+
+# for Xubuntu:
+dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 
