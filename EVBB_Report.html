@@ -301,7 +301,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-16 13:47:58</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-16 15:55:00</em></h4>
 
 </div>
 
@@ -562,6 +562,8 @@ dev.off()</code></pre>
 <pre class="r"><code>p &lt;- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom_histogram(bins = 10)
 p + labs(x = &quot;State of charge when charging begins (%)&quot;)</code></pre>
 <p><img src="EVBB_Report_files/figure-html/value%20of%20state%20of%20charge%20at%20beginning%20of%20charge-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/SOC_when_charging_begins.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
 <pre class="r"><code>startCount &lt;- table(chargeBegins$day_of_week)
 barplot(startCount, main=&quot;Charging start times&quot;)</code></pre>
 <p><img src="EVBB_Report_files/figure-html/bar%20plots%20of%20charging%20start%20times-1.png" width="672" /></p>
@@ -762,7 +764,7 @@ p + labs(x = &quot;Time of day (hours)&quot;, y = &quot;Frequency of fast chargi
 p + labs(x = &quot;Time of day&quot;, y = &quot;State of charge (%)&quot;)</code></pre>
 <pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
 <p><img src="EVBB_Report_files/figure-html/charging%20density%20plot%20by%20vehicle-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(&quot;~/EVBB/plots/SOC_when_charging_begins.png&quot;)</code></pre>
+<pre class="r"><code>ggsave(&quot;~/EVBB/plots/SOC_throughout_day.png&quot;)</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
 </div>

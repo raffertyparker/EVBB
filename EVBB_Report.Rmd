@@ -223,12 +223,34 @@ The above figure demonstrates that that for the current data set there is a disp
 ```
 
 ```{r create no charge, startcharge, mid charge, and end charge factors for df}
+
 # This entire block is garbage, will probably need deleting
 
 # perhaps best way to do this:
 # create factor where all zero charge values are NC, all non-zero are MC
 # then create factors for BC and EC using filter method from previous block
 # to overwrite beginning and end MC values
+
+
+#df$chargeFactor <- factor(df$id)
+#for (i in 3:nrow(df)){
+  if(df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i-1] < 0.1 &
+                         df$charge_power_kw[i-2] < 0.1){
+  df$chargeFactor[i] <- "Charge begins"
+  } else if (df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i+1] < 0.1 &
+             df$charge_power_kw[i+2] < 0.1){
+  df$chargeFactor[i] <- "Charge ends"
+  } else if (df$charge_power_kw[i] < 0.1){
+  df$chargeFactor[i] <- "No charging"
+  } else {
+  df$chargeFactor[i] <- "Mid charge"
+  }
+}
+
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
 
 #df$charge_factor <- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c('NC', 'MC'))
 
@@ -259,6 +281,18 @@ The above figure demonstrates that that for the current data set there is a disp
 
 
 #df$charge_factors <- filter(df)
+
+#df = data.table(df)                                       # Make df a data table
+df$RowID = 1:nrow(df)                                     # Add a row ID column
+d1 = data.table(df[charge_power_kw > 0])                               # Second data table, containing only the rows with non-zero charging
+
+d1 = d1[df, on = c("id","id2",text = "text2")]             # Join the two data tables
+
+d1 = d1[i.num==0 & i.RowID > RowID & i.RowID < RowID + 5] # Get only the candidate rows
+dFinal = d1[,.(check = min(i.RowID-RowID)),by='RowID']    # Find which match came first
+df = dFinal[df,on="RowID"]                                # Join the tables
+df[num==1 & is.na(check),check:=-1]                       # Fill empty checks where num = 1 with value -1
+
 
 ```
 

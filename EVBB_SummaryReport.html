@@ -302,7 +302,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Summary Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-16 15:45:25</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-17 10:12:57</em></h4>
 
 </div>
 
@@ -313,17 +313,24 @@ div.tocify {
 df$day_of_week &lt;- ordered(df$day_of_week, levels=c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, 
                                          &quot;Friday&quot;, &quot;Saturday&quot;, &quot;Sunday&quot;))
 # set charge type
-df$chargeType &lt;- ifelse(df$charge_power_kw &gt; 0, &quot;Standard charge&quot;, &quot;Not charging&quot;) # appears not to set not charging label. Why?
-df$chargeType &lt;- ifelse(df$charge_power_kw &gt;= 7, &quot;Fast charge&quot;, &quot;Standard charge&quot;)
+#df$chargeType &lt;- ifelse(df$charge_power_kw &gt; 0, &quot;Standard charge&quot;, &quot;Not charging&quot;) # appears not to set not charging label. Why?
+# have switched with method I used previously, seems to work fine.
+#df$chargeType &lt;- ifelse(df$charge_power_kw &gt;= 7, &quot;Fast charge&quot;, &quot;Standard charge&quot;)
 
 # set charge type order so charts make sense from left (std) to right (fast)
-df$chargeType &lt;- ordered(df$chargeType, levels=c(&quot;Not charging&quot;, &quot;Standard charge&quot;, &quot;Fast charge&quot;))
+
+df$chargeType &lt;- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c(&#39;Not charging&#39;, &#39;Standard charging&#39;, &#39;Fast charging&#39;))
+df$chargeType &lt;- factor(df$chargeType, ordered = TRUE)
+
+#&lt;- ordered(df$chargeType, levels=c(&quot;Not charging&quot;, &quot;Standard charge&quot;, &quot;Fast charge&quot;))
 
 df$qHour &lt;- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
 
 dt &lt;- as.data.table(df) # creates a data.table for fast data crunching
 
-chargingDT &lt;- dt[charge_power_kw &gt; 0] # select just charging</code></pre>
+chargingDT &lt;- dt[charge_power_kw &gt; 0] # select just charging
+
+df$id &lt;- factor(df$id, ordered = TRUE) # To get N vehicles</code></pre>
 <div id="note" class="section level1">
 <h1><span class="header-section-number">1</span> Note</h1>
 <p>Based on and inspired by the <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf">UK DoT statistical report 2018</a>.</p>
@@ -332,7 +339,7 @@ chargingDT &lt;- dt[charge_power_kw &gt; 0] # select just charging</code></pre>
 </div>
 <div id="definitions" class="section level1">
 <h1><span class="header-section-number">2</span> Definitions:</h1>
-<p>The data consisted of 73836 data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
+<p>The data consisted of 73836 data points from 3 vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
 <p>The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations<span class="citation">[@concept2018]</span>. Each charging event was therefore seperated into “Fast” (&gt; = 7kW) and “Slow” (below 7kW).</p>
 <p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed. <em>Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences.</em></p>
 <p>For a discussion of data limitations see Section <a href="#dataIssues">9</a>.</p>
@@ -345,7 +352,7 @@ stdMean &lt;- mean(chargingDT[chargeType == &quot;Standard charge&quot;]$charge_
 fastMedian &lt;- median(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)
 fastMean &lt;- mean(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)</code></pre>
 <ul>
-<li><em>Power supplied</em>: The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower/higher at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59);</li>
+<li><em>Power supplied</em>: The median power supplied during a standard charging was NA kW. The mean was slightly lower/higher at NaN kW. Fast charging observations had a higher median of NA kW (mean = NaN);</li>
 <li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. <em>Gets truncated at midnight as not possible to determine exact sequence of days</em></li>
 <li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.</li>
 </ul>
@@ -370,10 +377,10 @@ p + labs(y = &quot;Density&quot;,
 Figure 4.1: Observed power demand distribution by day of the week and charge type where charging observed
 </p>
 </div>
-<p>The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower/higher at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59).</p>
+<p>The median power supplied during a standard charging was NA kW. The mean was slightly lower/higher at NaN kW. Fast charging observations had a higher median of NA kW (mean = NaN).</p>
 <pre class="r"><code>stdQT &lt;- quantile(chargingDT[chargeType == &quot;Standard charge&quot;]$charge_power_kw)
 fastQT &lt;- quantile(chargingDT[chargeType == &quot;Fast charge&quot;]$charge_power_kw)</code></pre>
-<p>75% of standard charging observations were 2.76 kW or more but the figure was 13.34 kW or more for fast charging</p>
+<p>75% of standard charging observations were NA kW or more but the figure was NA kW or more for fast charging</p>
 </div>
 <div id="daily-demand" class="section level1">
 <h1><span class="header-section-number">5</span> Daily demand</h1>

@@ -43,10 +43,10 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # for Mac
 user <- Sys.info()[[6]]
 if(user == "ben"){
-  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
 } else {
   # for Xubuntu:
-  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
 }
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
@@ -62,17 +62,30 @@ df <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
                                          "Friday", "Saturday", "Sunday"))
 # set charge type
-df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", "Not charging") # appears not to set not charging label. Why?
-df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", "Standard charge")
+#df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", "Not charging") # appears not to set not charging label. Why?
+# have switched with method I used previously, seems to work fine.
+#df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", "Standard charge")
 
 # set charge type order so charts make sense from left (std) to right (fast)
-df$chargeType <- ordered(df$chargeType, levels=c("Not charging", "Standard charge", "Fast charge"))
+
+df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
+df$chargeType <- factor(df$chargeType, ordered = TRUE)
+
+#<- ordered(df$chargeType, levels=c("Not charging", "Standard charge", "Fast charge"))
 
 df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
 
 dt <- as.data.table(df) # creates a data.table for fast data crunching
 
 chargingDT <- dt[charge_power_kw > 0] # select just charging
+
+df$id <- factor(df$id, ordered = TRUE) # To get N vehicles
+
+df$time <- hms::round_hms(df$time, 60)
+
+# removal of silly percentage values
+df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
+df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 ```
 
 # Note
@@ -85,9 +98,9 @@ Observations: `r nrow(dt)`
 Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 # Definitions:
-The data consisted of `r nrow(dt)` data points from N vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
+The data consisted of `r nrow(dt)` data points from `r length(levels(df$id))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
 
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Slow" (below 7kW). 
+The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences._
 

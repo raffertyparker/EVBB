@@ -1,4 +1,6 @@
-No date makes constructing temporal averages very difficult
+No date makes constructing temporal averages difficult
+
+Data being sent at non-standard intervals (approx 67 seconds?) makes workarounds for the previous issue difficult
 
 The zero state of charge values are likely false - there seem to be no values that approach zero
 
