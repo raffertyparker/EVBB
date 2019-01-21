@@ -59,7 +59,8 @@ df <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.
 # set correct order for days of the week
 #levels(as.factor(df$day_of_week))
 
-df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
+df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday",
+                                                   "Wednesday", "Thursday", 
                                          "Friday", "Saturday", "Sunday"))
 # set charge type
 #df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", "Not charging") # appears not to set not charging label. Why?
@@ -109,11 +110,11 @@ For a discussion of data limitations see Section  \@ref(dataIssues).
 # Key Findings:
 
 ```{r keyFindings}
-stdMedian <- median(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
-stdMean <- mean(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
+stdMedian <- median(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
+stdMean <- mean(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
   
-fastMedian <- median(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
-fastMean <- mean(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
+fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
+fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 ```
 
  * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
@@ -140,8 +141,8 @@ p + labs(y = "Density",
 The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`).
 
 ```{r stdChargeSizing}
-stdQT <- quantile(chargingDT[chargeType == "Standard charge"]$charge_power_kw)
-fastQT <- quantile(chargingDT[chargeType == "Fast charge"]$charge_power_kw)
+stdQT <- quantile(chargingDT[chargeType == "Standard charging"]$charge_power_kw)
+fastQT <- quantile(chargingDT[chargeType == "Fast charging"]$charge_power_kw)
 ```
 
 75% of standard charging observations were `r round(stdQT[[2]],2)` kW or more but the figure was `r round(fastQT[[2]],2)` kW or more for fast charging
