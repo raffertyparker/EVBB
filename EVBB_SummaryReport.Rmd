@@ -43,7 +43,7 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # for Mac
-user <- Sys.info()[[6]]
+user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
 } else {
@@ -53,15 +53,26 @@ if(user == "ben"){
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 
-df <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
+rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 
 ```
 
 ```{r dataPrep}
+df <- rawDF # so can always re-create df without having to re-load data
+
 # set correct order for days of the week
-df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday",
-                                                   "Wednesday", "Thursday", 
+
+df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
                                          "Friday", "Saturday", "Sunday"))
+# set charge type
+df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", NA) 
+df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", df$chargeType)
+
+#table(df$chargeType, useNA = "always")
+
+df$chargeType <- ifelse(is.na(df$chargeType), "Not charging", df$chargeType) # not charging
+
+#table(df$chargeType, useNA = "always")
 
 # set charge type order so charts make sense from left (std) to right (fast)
 df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
@@ -72,6 +83,27 @@ df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
 
 dt <- as.data.table(df) # creates a data.table for fast data crunching
 
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw == 0, 
+                                "preFirst", NA), by = id] # useful for checking
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw > 0,
+                                "first", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw > 0, 
+                                "charging", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0, 
+                                "last", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw == 0, 
+                                "apresLast", chargeFlag), by = id]
+
+dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("preFirst", "first", "charging",
+                                                 "last","apresLast"))
+# table(dt$chargeFlag)
+
+dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
+
+dt <- dt[, obsDiffTime := difftime(time,shift(time)), by = id] # time since previous observation (within id)
+
+dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
+  
 chargingDT <- dt[charge_power_kw > 0] # select just charging
 
 # Rename vehicle ids to something more user-friendly
@@ -196,6 +228,54 @@ Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW dema
 # Charging duration {#duration}
 
 Fig: Histogram of charging event durations (faceted by fast vs standard) _Can't do without true date column - see above_
+
+> This is a bit of a kludge but...
+
+If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
+
+
+```{r calculateChargeDurations}
+# select the observations which we've flagged as first & last in a sequence of charging
+firstLastDT <- dt[chargeFlag == "first" | chargeFlag == "last"]
+
+# flag the first of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "first" & shift(chargeFlag == "last", type = "lead"), "Pair start", NA)]
+# flag the second of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "last" & shift(chargeFlag == "first"), "Pair end", pairOK)]
+
+# calculate the time diff between all obs
+firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = time, time2 = shift(time), units = c("mins"))]
+
+# we only want the time difference which was calculated for an obs where pairOK == "Pair end". This should also be where chargeFlag == "last" _except_ for where we have no 'first' (e.g. at start of data)
+
+# note that we will still have pairs that bridge 00:00 which will give us -ve values
+# if we have a -ve value then we need to change the calculation to add the time
+# up to midnight from the start to the time after midnight to the end
+
+firstLastDT <- firstLastDT[pairOK == "Pair start" & shift(pairDuration < 0, type = "lead"), 
+                           toMidnight := difftime(time1 = as.hms("23:59:59"), time2 = time)]
+
+firstLastDT <- firstLastDT[pairOK == "Pair end" & pairDuration < 0, 
+                           afterMidnight := difftime(time1 = time, time2 = as.hms("00:00:00"), units = c("mins"))]
+
+firstLastDT <- firstLastDT[, pairDurationFix := shift(toMidnight) + afterMidnight]
+
+firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
+                                                         pairDurationFix,
+                                                         pairDuration)]
+
+
+t <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType)]
+```
+
+
+```{r meanDurationTable}
+kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
+```
+
+```{r meanDurationPlot, fig.cap="Mean duration by time of charging start"}
+plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, qHour)]
+```
 
 > Discuss any other patterns
 
