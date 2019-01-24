@@ -59,22 +59,14 @@ df <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.
 
 ```{r dataPrep}
 # set correct order for days of the week
-#levels(as.factor(df$day_of_week))
-
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday",
                                                    "Wednesday", "Thursday", 
                                          "Friday", "Saturday", "Sunday"))
-# set charge type
-#df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", "Not charging") # appears not to set not charging label. Why?
-# have switched with method I used previously, seems to work fine.
-#df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", "Standard charge")
 
 # set charge type order so charts make sense from left (std) to right (fast)
-
 df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
 df$chargeType <- factor(df$chargeType, ordered = TRUE)
 
-#<- ordered(df$chargeType, levels=c("Not charging", "Standard charge", "Fast charge"))
 
 df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
 
@@ -82,26 +74,22 @@ dt <- as.data.table(df) # creates a data.table for fast data crunching
 
 chargingDT <- dt[charge_power_kw > 0] # select just charging
 
-df$id <- factor(df$id, ordered = TRUE) # To get N vehicles
+# Rename vehicle ids to something more user-friendly
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+df$id <- factor(df$id,
+  labels = levSeqChar)
+df$id <- as.character(df$id)
+df$id <- paste("Vehicle", df$id, sep = " ")
 
-df$time <- hms::round_hms(df$time, 60)
+df$time <- hms::round_hms(df$time, 60) # Not sure this line is necessary
 
 # Month as ordered factor
 df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
                                                         "Jun", "Jul", "Aug", "Sep", "Oct",
                                                         "Nov", "Dec"))
 
-# Rename vehicle ids to something more user-friendly
-df$id <- factor(df$id, ordered = TRUE)
-levSeq <- seq(1:length(levels(df$id)))
-levSeqChar <- as.character(levSeq)
-
-df$id <- factor(df$id,
-  labels = levSeqChar)
-
-df$id <- as.character(df$id)
-
-df$id <- paste("Vehicle", df$id, sep = " ")
 
 # Create factor for weekdays/weekends
 weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
@@ -115,9 +103,8 @@ df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 
 
 
-
 ```{r establishment of chargeBegins and chargeEnds dataframes}
-# See EVBB_Report for information regarding these dataframes
+# See EVBB_Report for more information regarding these dataframes
 chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
                          lag(charge_power_kw, 2) < 0.1)
 chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
@@ -188,7 +175,7 @@ fastQT <- quantile(chargingDT[chargeType == "Fast charging"]$charge_power_kw)
 # Daily demand
 
 ```{r dailyPower, fig.cap="Observed power demand distribution by day of the week and charge type"}
-p <- ggplot2::ggplot(dt, aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
+p <- ggplot2::ggplot(filter(dt, chargeType == "Standard charging" | chargeType == "Fast charging"), aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
   geom_boxplot(aes(y = charge_power_kw)) +
   facet_grid(. ~ chargeType)
 
@@ -237,9 +224,7 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
 ```
 
 Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see...
-
-> _XX haven't edited beyond here_ XX
-
+ 
 Fig: profile of median charging demand by time of day and day of the week _Difficult to do without date column_ faceted by at home vs not at home _Would need GPS data_
 
 Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
@@ -259,7 +244,7 @@ p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standa
 ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
   geom_joy(rel_min_height = 0.01) +        # removes tails
   scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
-  labs(x="Total Length (mm)",y="Year") +
+  labs(x="Charging power",y="Day") +
   theme_minimal()
 
 
