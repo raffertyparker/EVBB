@@ -45,14 +45,12 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 
 
 # for Xubuntu:
-dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/"
+dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
 
 # for Mac
 # dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/”
 
 dFile <- paste0(dPath, "EVBB_processed_founders.csv")
-
-
 
 ```
 
@@ -234,23 +232,23 @@ The above figure demonstrates that that for the current data set there is a disp
 
 #df$chargeFactor <- factor(df$id)
 #for (i in 3:nrow(df)){
-  if(df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i-1] < 0.1 &
-                         df$charge_power_kw[i-2] < 0.1){
-  df$chargeFactor[i] <- "Charge begins"
-  } else if (df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i+1] < 0.1 &
-             df$charge_power_kw[i+2] < 0.1){
-  df$chargeFactor[i] <- "Charge ends"
-  } else if (df$charge_power_kw[i] < 0.1){
-  df$chargeFactor[i] <- "No charging"
-  } else {
-  df$chargeFactor[i] <- "Mid charge"
-  }
-}
+#  if(df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i-1] < 0.1 &
+#                         df$charge_power_kw[i-2] < 0.1){
+#  df$chargeFactor[i] <- "Charge begins"
+#  } else if (df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i+1] < 0.1 &
+#             df$charge_power_kw[i+2] < 0.1){
+#  df$chargeFactor[i] <- "Charge ends"
+#  } else if (df$charge_power_kw[i] < 0.1){
+#  df$chargeFactor[i] <- "No charging"
+#  } else {
+#  df$chargeFactor[i] <- "Mid charge"
+#  }
+#}
 
-chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+#chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
 
-chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
-chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+#chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+#chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
 
 #df$charge_factor <- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c('NC', 'MC'))
 
@@ -283,15 +281,15 @@ chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
 #df$charge_factors <- filter(df)
 
 #df = data.table(df)                                       # Make df a data table
-df$RowID = 1:nrow(df)                                     # Add a row ID column
-d1 = data.table(df[charge_power_kw > 0])                               # Second data table, containing only the rows with non-zero charging
+#df$RowID = 1:nrow(df)                                     # Add a row ID column
+#d1 = data.table(df[charge_power_kw > 0])                               # Second data table, containing only the rows with non-zero charging
 
-d1 = d1[df, on = c("id","id2",text = "text2")]             # Join the two data tables
+#d1 = d1[df, on = c("id","id2",text = "text2")]             # Join the two data tables
 
-d1 = d1[i.num==0 & i.RowID > RowID & i.RowID < RowID + 5] # Get only the candidate rows
-dFinal = d1[,.(check = min(i.RowID-RowID)),by='RowID']    # Find which match came first
-df = dFinal[df,on="RowID"]                                # Join the tables
-df[num==1 & is.na(check),check:=-1]                       # Fill empty checks where num = 1 with value -1
+#d1 = d1[i.num==0 & i.RowID > RowID & i.RowID < RowID + 5] # Get only the candidate rows
+#dFinal = d1[,.(check = min(i.RowID-RowID)),by='RowID']    # Find which match came first
+#df = dFinal[df,on="RowID"]                                # Join the tables
+#df[num==1 & is.na(check),check:=-1]                       # Fill empty checks where num = 1 with value -1
 
 
 ```
@@ -318,7 +316,7 @@ barplot(startCount, main="Charging start times")
 endCount <- table(chargeEnds$day_of_week)
 barplot(endCount, main = "Charging end times")
 
-# NOTE I am very skeptical of these, I think the previous block (that constructs chargeBegins/Ends) needs improving upon
+# NOTE I am skeptical of these, I think the block that constructs chargeBegins/Ends needs improving upon
 # Also the "count" on the y axis is pretty meaningless, perhaps it would be good to (for example) divide by number of vehicles and then perhaps number of months, then change the title to " Monthly average charging start times". Alternatively just remove the numbers.
 ```
 
@@ -377,13 +375,13 @@ p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id)
  
  
 ```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
-p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+p <- ggplot2::ggplot(subset(df, chargeType %in% c("Standard charging", "Fast charging")), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
-p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ charging_rate)
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ chargeType)
 
 # let the rhs panel have a free y axis to see the patterns - as they are scaled down by the magnitude of the fast charging. 
 ```

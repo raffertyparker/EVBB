@@ -32,6 +32,8 @@ library(data.table) # cos we like data.table (you may not in which case dplyr is
 library(lubridate) # for data & time manip
 library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
+library(dplyr) # for filter
+library(ggjoy) # for joyplots
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -84,10 +86,46 @@ df$id <- factor(df$id, ordered = TRUE) # To get N vehicles
 
 df$time <- hms::round_hms(df$time, 60)
 
+# Month as ordered factor
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+
+# Rename vehicle ids to something more user-friendly
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+
+df$id <- factor(df$id,
+  labels = levSeqChar)
+
+df$id <- as.character(df$id)
+
+df$id <- paste("Vehicle", df$id, sep = " ")
+
+# Create factor for weekdays/weekends
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE)
+
 # removal of silly percentage values
 df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
 df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 ```
+
+
+
+
+```{r establishment of chargeBegins and chargeEnds dataframes}
+# See EVBB_Report for information regarding these dataframes
+chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
+                         lag(charge_power_kw, 2) < 0.1)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+```
+
 
 # Note
 
@@ -99,7 +137,7 @@ Observations: `r nrow(dt)`
 Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 # Definitions:
-The data consisted of `r nrow(dt)` data points from `r length(levels(df$id))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.
+The data consisted of `r nrow(dt)` data points from `r length(levels(df$id))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GP.
 
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
@@ -117,7 +155,7 @@ fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, 
 fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 ```
 
- * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
+ * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
   * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. _Gets truncated at midnight as not possible to determine exact sequence of days_
   * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.
 
@@ -163,7 +201,7 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "bottom")
 ```
 
-Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is reltively constant across days.
+Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is relatively constant across days.
 
 
 > Discuss any other patterns
@@ -206,7 +244,87 @@ Fig: profile of median charging demand by time of day and day of the week _Diffi
 
 Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
 
+```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
+                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standard charging demand")
+
+```
+
+```{r joyplot}
+ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
+  geom_joy(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x="Total Length (mm)",y="Year") +
+  theme_minimal()
+
+
+```
+
+
+```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(subset(df, chargeType %in% "Fast charging"), 
+                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily fast charging demand")
+```
+
+```{r plot2, fig.cap="Boxplot of charging timing"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an daysobject first
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+```
+
 Fig: profile of start and end of charging events by time of day and day of the week _This we can do_ faceted by at home vs not at home _Would need GPS data_
+
+
+
+```{r chargeBeginsWeekday}
+p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging start times during weekdays" )
+
+```
+
+```{r chargeBeginsWeekend}
+p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekend", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging start times during weekends" )
+
+```
+
+```{r chargeEndsWeekday}
+p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end times during weekdays" )
+
+```
+
+
+```{r chargeEndsWeekend}
+p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekend", ], aes(x = qHour, fill = chargeType))  +
+  scale_colour_manual(values=cbPalette)+
+  geom_density(alpha = 0.3) +
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end times during weekends" )
+
+```
+
+
 
 At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
 _We can get "Slow" charging events rather than "home"_

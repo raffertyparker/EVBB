@@ -301,7 +301,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h4 class="author"><em>Rafferty Parker (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-16 15:55:00</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-24 10:22:36</em></h4>
 
 </div>
 
@@ -529,6 +529,27 @@ dev.off()</code></pre>
 # then create factors for BC and EC using filter method from previous block
 # to overwrite beginning and end MC values
 
+
+#df$chargeFactor &lt;- factor(df$id)
+#for (i in 3:nrow(df)){
+#  if(df$charge_power_kw[i] &gt; 0.1 &amp; df$charge_power_kw[i-1] &lt; 0.1 &amp;
+#                         df$charge_power_kw[i-2] &lt; 0.1){
+#  df$chargeFactor[i] &lt;- &quot;Charge begins&quot;
+#  } else if (df$charge_power_kw[i] &gt; 0.1 &amp; df$charge_power_kw[i+1] &lt; 0.1 &amp;
+#             df$charge_power_kw[i+2] &lt; 0.1){
+#  df$chargeFactor[i] &lt;- &quot;Charge ends&quot;
+#  } else if (df$charge_power_kw[i] &lt; 0.1){
+#  df$chargeFactor[i] &lt;- &quot;No charging&quot;
+#  } else {
+#  df$chargeFactor[i] &lt;- &quot;Mid charge&quot;
+#  }
+#}
+
+#chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)
+
+#chargeEnds &lt;- filter(df, charge_power_kw &gt; 0.1 &amp; lead(charge_power_kw) &lt; 0.1 &amp; lead(charge_power_kw, 2) &lt; 0.1)
+#chargeEnds &lt;- filter(chargeEnds, state_of_charge_percent &lt; 97)
+
 #df$charge_factor &lt;- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c(&#39;NC&#39;, &#39;MC&#39;))
 
 
@@ -557,7 +578,18 @@ dev.off()</code></pre>
 #  df$charge_factor &lt;- &quot;MC&quot;
 
 
-#df$charge_factors &lt;- filter(df)</code></pre>
+#df$charge_factors &lt;- filter(df)
+
+#df = data.table(df)                                       # Make df a data table
+#df$RowID = 1:nrow(df)                                     # Add a row ID column
+#d1 = data.table(df[charge_power_kw &gt; 0])                               # Second data table, containing only the rows with non-zero charging
+
+#d1 = d1[df, on = c(&quot;id&quot;,&quot;id2&quot;,text = &quot;text2&quot;)]             # Join the two data tables
+
+#d1 = d1[i.num==0 &amp; i.RowID &gt; RowID &amp; i.RowID &lt; RowID + 5] # Get only the candidate rows
+#dFinal = d1[,.(check = min(i.RowID-RowID)),by=&#39;RowID&#39;]    # Find which match came first
+#df = dFinal[df,on=&quot;RowID&quot;]                                # Join the tables
+#df[num==1 &amp; is.na(check),check:=-1]                       # Fill empty checks where num = 1 with value -1</code></pre>
 <pre class="r"><code>#  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average</code></pre>
 <pre class="r"><code>p &lt;- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom_histogram(bins = 10)
 p + labs(x = &quot;State of charge when charging begins (%)&quot;)</code></pre>

@@ -302,7 +302,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Summary Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-01-22 10:29:47</em></h4>
+<h4 class="date"><em>Last run at: 2019-01-24 11:31:35</em></h4>
 
 </div>
 
@@ -335,9 +335,38 @@ df$id &lt;- factor(df$id, ordered = TRUE) # To get N vehicles
 
 df$time &lt;- hms::round_hms(df$time, 60)
 
+# Month as ordered factor
+df$month &lt;- factor(df$month, ordered = TRUE, levels = c(&quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;,
+                                                        &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, &quot;Oct&quot;,
+                                                        &quot;Nov&quot;, &quot;Dec&quot;))
+
+# Rename vehicle ids to something more user-friendly
+df$id &lt;- factor(df$id, ordered = TRUE)
+levSeq &lt;- seq(1:length(levels(df$id)))
+levSeqChar &lt;- as.character(levSeq)
+
+df$id &lt;- factor(df$id,
+  labels = levSeqChar)
+
+df$id &lt;- as.character(df$id)
+
+df$id &lt;- paste(&quot;Vehicle&quot;, df$id, sep = &quot; &quot;)
+
+# Create factor for weekdays/weekends
+weekdays1 &lt;- c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;)
+df$weekday &lt;- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(TRUE, FALSE), labels = c(&#39;Weekday&#39;, &#39;Weekend&#39;), ordered = TRUE)
+
 # removal of silly percentage values
 df$state_of_charge_percent[df$state_of_charge_percent &gt; 100] &lt;- NA
 df$state_of_charge_percent[df$state_of_charge_percent &lt; 0] &lt;- NA</code></pre>
+<pre class="r"><code># See EVBB_Report for information regarding these dataframes
+chargeBegins &lt;- filter(df, charge_power_kw &gt; 0.1 &amp; lag(charge_power_kw) &lt; 0.1 &amp;
+                         lag(charge_power_kw, 2) &lt; 0.1)
+chargeBegins &lt;- filter(chargeBegins, state_of_charge_percent &lt; 97)
+
+chargeEnds &lt;- filter(df, charge_power_kw &gt; 0.1 &amp; lead(charge_power_kw) &lt; 0.1 &amp; lead(charge_power_kw, 2) &lt; 0.1)
+chargeEnds &lt;- filter(chargeEnds, state_of_charge_percent &lt; 97)</code></pre>
 <div id="note" class="section level1">
 <h1><span class="header-section-number">1</span> Note</h1>
 <p>Based on and inspired by the <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf">UK DoT statistical report 2018</a>.</p>
@@ -346,7 +375,7 @@ df$state_of_charge_percent[df$state_of_charge_percent &lt; 0] &lt;- NA</code></p
 </div>
 <div id="definitions" class="section level1">
 <h1><span class="header-section-number">2</span> Definitions:</h1>
-<p>The data consisted of 73836 data points from 3 vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GPS.</p>
+<p>The data consisted of 73836 data points from 0 vehicles over M months (X - Y, 2018) derived from FlipTheFleet’s <a href="https://flipthefleet.org/ev-black-box/">blackbox recorder</a>. The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GP.</p>
 <p>The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations<span class="citation">[@concept2018]</span>. Each charging event was therefore seperated into “Fast” (&gt; = 7kW) and “Standard” (below 7kW).</p>
 <p>A charging event was defined as a continuous sequence of 1 minute observations per vehicle when &gt; 0 kW was demand was observed. <em>Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences.</em></p>
 <p>For a discussion of data limitations see Section <a href="#dataIssues">9</a>.</p>
@@ -359,7 +388,7 @@ stdMean &lt;- mean(chargingDT[chargeType == &quot;Standard charging&quot;]$charg
 fastMedian &lt;- median(chargingDT[chargeType == &quot;Fast charging&quot;]$charge_power_kw, na.rm = TRUE)
 fastMean &lt;- mean(chargingDT[chargeType == &quot;Fast charging&quot;]$charge_power_kw, na.rm = TRUE)</code></pre>
 <ul>
-<li><em>Power supplied</em>: The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower/higher at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59);</li>
+<li><em>Power supplied</em>: The median power supplied during a standard charging was 2.93 kW. The mean was slightly lower at 2.82 kW. Fast charging observations had a higher median of 20.37 kW (mean = 23.59);</li>
 <li><em>Charging duration</em>: Charging durations tended to fall into one of two groups - longer ‘overnight’ charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. <em>Gets truncated at midnight as not possible to determine exact sequence of days</em></li>
 <li><em>Time of Day</em>: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.</li>
 </ul>
@@ -454,6 +483,11 @@ Figure 7.1: Count of observed charging events by type,day of week and time
 <p>Fig: profile of median charging demand by time of day and day of the week <em>Difficult to do without date column</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
 <p>Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show … whilst weekends show. Saturdays and Sundays vary with…</p>
 <p>Fig: profile of start and end of charging events by time of day and day of the week <em>This we can do</em> faceted by at home vs not at home <em>Would need GPS data</em></p>
+<pre class="r"><code>p &lt;- ggplot(chargeBegins, aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) +
+  facet_grid(~weekday)
+p + labs(x = &quot;Time&quot;, fill = &quot;Charge type&quot; )</code></pre>
+<p><img src="EVBB_SummaryReport_files/figure-html/chargeBegins-1.png" width="672" /></p>
 <p>At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. <em>We can get “Slow” charging events rather than “home”</em></p>
 <p>Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.</p>
 <blockquote>
