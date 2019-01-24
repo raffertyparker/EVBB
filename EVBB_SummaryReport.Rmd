@@ -58,11 +58,9 @@ rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyver
 ```
 
 ```{r dataPrep}
-# set correct order for days of the week
-<<<<<<< HEAD
-#levels(as.factor(df$day_of_week))
-
 df <- rawDF # so can always re-create df without having to re-load data
+
+# set correct order for days of the week
 
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
                                          "Friday", "Saturday", "Sunday"))
@@ -75,11 +73,6 @@ df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", df$chargeType)
 df$chargeType <- ifelse(is.na(df$chargeType), "Not charging", df$chargeType) # not charging
 
 #table(df$chargeType, useNA = "always")
-=======
-df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday",
-                                                   "Wednesday", "Thursday", 
-                                         "Friday", "Saturday", "Sunday"))
->>>>>>> 987ce5d267ad12236ca0f81e58526651845d4d0d
 
 # set charge type order so charts make sense from left (std) to right (fast)
 df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
