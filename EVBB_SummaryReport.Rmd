@@ -34,7 +34,8 @@ library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(dplyr) # for filter
 library(ggjoy) # for joyplots
-library(kableExtra) # for fancy tables
+library(knitr) # for knitting
+library(kableExtra) # for extra kable
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -63,8 +64,8 @@ df <- rawDF # so can always re-create df without having to re-load data
 
 # set correct order for days of the week
 
-df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", 
-                                         "Friday", "Saturday", "Sunday"))
+df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
+                                                   "Thursday", "Friday", "Saturday", "Sunday"))
 # set charge type
 df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", NA) 
 df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", df$chargeType)
@@ -133,7 +134,6 @@ df$weekday <- factor((df$day_of_week %in% weekdays1),
 df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
 df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
 ```
-
 
 
 ```{r establishment of chargeBegins and chargeEnds dataframes}
@@ -233,6 +233,12 @@ Fig: Histogram of charging event durations (faceted by fast vs standard) _Can't 
 > This is a bit of a kludge but...
 
 If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
+
+```{r chargeFlagHistogram}
+ggplot(filter(dt, chargeFlag == "first" & chargeFlag == "last"), aes(chargeFlag)) +
+  geom_histogram(stat = "count")
+```
+This histogram shows that there are discrepencies in the number of "charge begins" and "charge ends" flags.
 
 
 ```{r calculateChargeDurations}
@@ -388,11 +394,11 @@ Fig: profile of median charging demand by time of day and day of the week _Diffi
 
 Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
 
-```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+```{r boxplotCharging, fig.cap="Boxplot of charging timing by charge rate"}
 p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
-                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
 p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standard charging demand")
@@ -412,19 +418,19 @@ ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
 
 ```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
 p <- ggplot2::ggplot(subset(df, chargeType %in% "Fast charging"), 
-                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
 p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily fast charging demand")
 ```
 
 ```{r plot2, fig.cap="Boxplot of charging timing"}
-p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+p <- ggplot2::ggplot(df, aes(x = qHour, group = qHour, y = charge_power_kw)) +
   guides(colour = guide_legend(title = "Vehicle:")) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an daysobject first
 
 p + labs(x = "Time of Day", y = "Power (kW)")
@@ -461,7 +467,7 @@ p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end
 
 ```{r chargeEndsWeekend}
 p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekend", ], aes(x = qHour, fill = chargeType))  +
-  scale_colour_manual(values=cbPalette)+
+  scale_colour_manual(values=cbbPalette)+
   geom_density(alpha = 0.3) +
   facet_grid(~weekday)
 p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end times during weekends" )
