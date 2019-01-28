@@ -306,7 +306,6 @@ p <- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom
 p + labs(x = "State of charge when charging begins (%)")
 ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
 
-
 ```
 
 ```{r bar plots of charging start times}

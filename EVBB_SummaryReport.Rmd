@@ -36,6 +36,7 @@ library(dplyr) # for filter
 library(ggjoy) # for 
 library(knitr)
 library(kableExtra)
+library(forcats)
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -47,23 +48,27 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # for Mac
 user <- Sys.info()[[7]]
 if(user == "ben"){
-  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
+  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
 } else {
   # for Xubuntu:
-  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
+  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
 }
 
-dFile <- paste0(dPath, "EVBB_processed_founders.csv")
+dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
 
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 
 ```
 
-```{r dataPrep}
+```{r dataPrep1}
 df <- rawDF # so can always re-create df without having to re-load data
 
-# set correct order for days of the week
+#Combine date and time columns into POSIXct datetime
+df$dateTime <- as.POSIXct(paste(df$date, df$time), format="%Y-%m-%d %H:%M:%S")
+```
 
+```{r dataPrep2}
+# set correct order for days of the week
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
                                                    "Thursday", "Friday", "Saturday", "Sunday"))
 # set charge type
@@ -74,39 +79,12 @@ df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", df$chargeType)
 
 df$chargeType <- ifelse(is.na(df$chargeType), "Not charging", df$chargeType) # not charging
 
+
 #table(df$chargeType, useNA = "always")
 
 # set charge type order so charts make sense from left (std) to right (fast)
 df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
 df$chargeType <- factor(df$chargeType, ordered = TRUE)
-
-
-df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
-
-dt <- as.data.table(df) # creates a data.table for fast data crunching
-
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw == 0, 
-                                "preFirst", NA), by = id] # useful for checking
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw > 0,
-                                "first", chargeFlag), by = id]
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw > 0, 
-                                "charging", chargeFlag), by = id]
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0, 
-                                "last", chargeFlag), by = id]
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw == 0, 
-                                "apresLast", chargeFlag), by = id]
-
-dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("preFirst", "first", "charging",
-                                                 "last","apresLast"))
-# table(dt$chargeFlag)
-
-dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
-
-dt <- dt[, obsDiffTime := difftime(time,shift(time)), by = id] # time since previous observation (within id)
-
-dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
-  
-chargingDT <- dt[charge_power_kw > 0] # select just charging
 
 # Rename vehicle ids to something more user-friendly
 df$id <- factor(df$id, ordered = TRUE)
@@ -117,7 +95,11 @@ df$id <- factor(df$id,
 df$id <- as.character(df$id)
 df$id <- paste("Vehicle", df$id, sep = " ")
 
-df$time <- hms::round_hms(df$time, 60) # Not sure this line is necessary
+names(df)[names(df) == 'state_of_charge_percent'] <- 'SoC_percent'
+
+#df$time <- hms::round_hms(df$time, 60) # Not sure this line is necessary
+
+df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
 
 # Month as ordered factor
 df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
@@ -131,22 +113,65 @@ df$weekday <- factor((df$day_of_week %in% weekdays1),
                    levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE)
 
 # removal of silly percentage values
-df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
-df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
+df$SoC_percent[df$SoC_percent > 100] <- NA
+df$SoC_percent[df$SoC_percent < 0] <- NA
+
+# removal of silly charge_power_kw values
+# "...charging stations are being developed with capacities of 120kW in New Zealand"
+# (Concept Consulting report)
+df$charge_power_kw[df$charge_power_kw > 120] <- NA
+
+
+dt <- as.data.table(df) # creates a data.table for fast data crunching
+
+
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw == 0, 
+                                "preFirst", NA), by = id] # useful for checking
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw > 0,
+                                "first", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw > 0, 
+                                "charging", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0, 
+                                "last", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw == 0, 
+                                "apresLast", chargeFlag), by = id]
+dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("preFirst", "first", "charging",
+                                                 "last","apresLast"))
+ table(dt$chargeFlag)
+
+#dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
+
+#dt <- dt[, obsDiffTime := difftime(dateTime,shift(dateTime)), by = id] # time since previous observation (within id)
+
+#dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
+  
+#chargingDT <- dt[charge_power_kw > 0] # select just charging
+
 ```
 
 
 ```{r establishment of chargeBegins and chargeEnds dataframes}
 # See EVBB_Report for more information regarding these dataframes
-chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
-                         lag(charge_power_kw, 2) < 0.1)
-chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+chargeBegins <- filter(df, (shift(charge_power_kw == 0) & charge_power_kw > 0))
 
-chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
-chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+#                                "first", chargeFlag), by = id
+#chargeBegins <- filter(chargeBegins, SoC_percent < 97)
+chargeBegins$chargeFlag <- "Charge begins"
+chargeBegins <- chargeBegins[,  c("id","day_of_week", "charge_power_kw", "SoC_percent", "odometer_km", "dateTime", "chargeType", "qHour", "weekday", "chargeFlag") ]
+
+chargeEnds <- filter(df, shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0)
+chargeEnds$chargeFlag <- "Charge ends"
+chargeEnds <- chargeEnds[,  c("id","day_of_week", "charge_power_kw", "SoC_percent", "odometer_km", "dateTime", "chargeType", "qHour", "weekday", "chargeFlag") ]
 ```
 
+```{r chargeDT constructed}
+chargeDT <- rbind(chargeBegins, chargeEnds)
+chargeDT <- arrange(chargeDT, dateTime, id)
+#chargeDT <- chargeDT[ , "charge_power_kw" > 1]
 
+
+# chargingDT <- filter(chargingDT, abs(SoC_percent - shift(SoC_percent)) > 1 )
+```
 # Note
 
 Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
@@ -234,11 +259,6 @@ Fig: Histogram of charging event durations (faceted by fast vs standard) _Can't 
 
 If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
 
-```{r chargeFlagHistogram}
-ggplot(filter(dt, chargeFlag == "first" & chargeFlag == "last"), aes(chargeFlag)) +
-  geom_histogram(stat = "count")
-```
-This histogram shows that there are discrepencies in the number of "charge begins" and "charge ends" flags.
 
 
 ```{r calculateChargeDurations}
@@ -251,7 +271,7 @@ firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "first" & shift(char
 firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "last" & shift(chargeFlag == "first"), "Pair end", pairOK)]
 
 # calculate the time diff between all obs
-firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = time, time2 = shift(time), units = c("mins"))]
+firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = dateTime, time2 = shift(dateTime), units = c("mins"))]
 
 # we only want the time difference which was calculated for an obs where pairOK == "Pair end". This should also be where chargeFlag == "last" _except_ for where we have no 'first' (e.g. at start of data)
 
@@ -276,12 +296,20 @@ t <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, 
 ```
 
 
+```{r chargeFlagHistogram}
+ggplot(firstLastDT, aes(chargeFlag)) +
+  geom_histogram(stat = "count")
+```
+
+
+This histogram shows that there are discrepencies in the number of "charge begins" and "charge ends" flags.
+
 ```{r meanDurationTable}
 kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
 ```
 
 ```{r meanDurationPlot, fig.cap="Mean duration by time of charging start"}
-plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, qHour)]
+plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, dateTime)]
 ```
 
 > Discuss any other patterns
@@ -331,10 +359,16 @@ p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standa
 ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
   geom_joy(rel_min_height = 0.01) +        # removes tails
   scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
-  labs(x="Charging power",y="Day") +
-  theme_minimal()
+  labs(x="Charging power",y="Day")
 
+```
+```{r ggjoyplotTimeChargingBegins}
+ggplot(chargeBegins,aes(x=fractime, y= forcats::fct_rev(day_of_week))) +
+  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x="Time charging begins",y="Day") 
 
+# Not sure how to get time on x axis (or if I want to)
 ```
 
 
@@ -411,6 +445,13 @@ The duration of charging events (see Section \@ref(duration)) suggests that EVs 
 
 Fig: Distribution of state of charge when evening charge event starts 'at home' (histogram (or joy plot) by day of week)
 ![SOC when charging begins](~/EVBB/plots/SOC_when_charging_begins.png)
+
+```{r value of state of charge at beginning of charge}
+p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 10)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+
+```
 
 The figure shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
 
