@@ -34,9 +34,12 @@ library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(dplyr) # for filter
 library(ggjoy) # for joyplots
-library(knitr)
-library(kableExtra) # for fancy tables
+
+
 library(forcats)
+
+library(knitr) # for knitting
+library(kableExtra) # for extra kable
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
