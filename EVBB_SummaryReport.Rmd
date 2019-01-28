@@ -33,10 +33,13 @@ library(lubridate) # for data & time manip
 library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(dplyr) # for filter
-library(ggjoy) # for 
-library(knitr)
-library(kableExtra)
+library(ggjoy) # for joyplots
+
+
 library(forcats)
+
+library(knitr) # for knitting
+library(kableExtra) # for extra kable
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -291,10 +294,96 @@ firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
                                                          pairDurationFix,
                                                          pairDuration)]
 
-
-t <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType)]
 ```
 
+Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for Standard Charges but this is not the case for Fast charges.
+
+```{r durationHist, fig.cap="Duration of charging sequences"}
+
+ggplot2::ggplot(firstLastDT[pairOK == "Pair end"], 
+                aes(x = pairDurationFinal)) +
+  geom_histogram(binwidth = 5) +
+  facet_grid(chargeType ~ .) +
+  labs(x = "Minutes")
+```
+
+Table \@ref(tab:durationDescTable) shows the overall distributions and indeicates the extent to which the means are skewed by the very small and a few very large values shown in Figure \@ref(fig:durationHist).
+
+```{r durationDescTable}
+t <- firstLastDT[pairOK == "Pair end", 
+                 .(N = .N,
+                   mean = mean(pairDurationFinal),
+                   median = median(pairDurationFinal),
+                   min = min(pairDurationFinal),
+                   max = max(pairDurationFinal)), 
+                 keyby = .(chargeType)]
+kableExtra::kable(t, 
+                  caption = "Duration of all charge sequences by charge type (minutes)", digits = 2) %>%
+  kable_styling()
+```
+
+Figure \@ref(fig:shortDuration) shows the distribution of very short charging sequences which are likely to be 'top-ups' occuring towards the end of a longer charging period. As we can see these appear to be generally less than 8 minutes in length for Standard Charges.
+
+```{r shortDuration, fig.cap="Duration of charging sequences < 10 minutes"}
+
+ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal < 10], 
+                aes(x = pairDurationFinal)) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(chargeType ~ .) +
+  labs(x = "Minutes")
+```
+
+Table \@ref(tab:durationDescTableReduced) shows the same descriptive statistics but for all sequences of greater than 8 minute duration. Now we can see that the mean and median durations for Standard Charge sequences are closer at 130 - 140 minutes.
+
+```{r durationDescTableReduced}
+t <- firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8, 
+                 .(N = .N,
+                   mean = mean(pairDurationFinal),
+                   median = median(pairDurationFinal),
+                   min = min(pairDurationFinal),
+                   max = max(pairDurationFinal)), 
+                 keyby = .(chargeType)]
+kableExtra::kable(t, 
+                  caption = "Duration of charge sequences > 8 minutes by charge type (minutes, )", digits = 2) %>%
+  kable_styling()
+```
+
+Figure \@ref(fig:longDuration) shows the distribution of long (> 8 minutes) charging sequences. As we can see these appear to be generally less than 3 hours in length for Standard Charges.
+
+```{r longDuration, fig.cap="Duration of charging sequences > 8 minutes"}
+
+ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8], 
+                aes(x = pairDurationFinal)) +
+  geom_histogram(binwidth = 20) +
+  facet_grid(chargeType ~ .) +
+  labs(x = "Minutes")
+```
+
+## Duration by time of day
+
+
+
+```{r durationTimeBox, fig.cap="Duration by time of charging start for sequences > 8 minutes"}
+
+ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8], 
+                aes(x = qHour, y = pairDurationFinal, group = qHour)) +
+  geom_boxplot() +
+  facet_grid(chargeType ~ .) +
+  labs(x = "Time of Day",
+       y = "Minutes")
+```
+
+```{r durationTimeMean, fig.cap="Mean duration (within quarter hours) by time of charging start for sequences > 8 minutes"}
+
+plotDT <- firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8,
+                      .(meanDuration = mean(pairDurationFinal)),
+                      keyby = .(qHour, chargeType)]
+ggplot2::ggplot(plotDT, 
+                aes(x = qHour, y = meanDuration, colour = chargeType)) +
+  geom_point() +
+  labs(x = "Time of Day",
+       y = "Minutes")
+```
 
 ```{r chargeFlagHistogram}
 ggplot(firstLastDT, aes(chargeFlag)) +
@@ -314,7 +403,7 @@ plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFi
 
 > Discuss any other patterns
 
-> NB: are the durations being truncated at midnight as we do not have consecutive dateTimes?
+> What was the research question? :-)
 
 # Time of charging
 
