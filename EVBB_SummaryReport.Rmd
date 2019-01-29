@@ -48,29 +48,41 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
+# data file to use
+file <- "EVBB_processed_all_v1.0_20180125.csv"
 # for Mac
 user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
+  dFile <- paste0(dPath, file, ".zip") # use zipped data
+  if(!file.exists(dFile)) {
+    # we probably don't have the HCS mounted so switch to local
+    dPath <- "~/Data/NZ_GREENGrid/ftf/"
+    dFile <- paste0(dPath, file, ".zip")
+  }
 } else {
   # for Xubuntu:
   dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
+  dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
 }
 
-dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
-
+print(paste0("Using ", dFile))
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 
 ```
 
 ```{r dataPrep1}
 df <- rawDF # so can always re-create df without having to re-load data
-
-#Combine date and time columns into POSIXct datetime
-df$dateTime <- as.POSIXct(paste(df$date, df$time), format="%Y-%m-%d %H:%M:%S")
+# don't do anything else here to avoid confusion
 ```
 
 ```{r dataPrep2}
+#Combine date and time columns into POSIXct datetime
+#df$dateTime <- as.POSIXct(paste(df$date, df$time), format="%Y-%m-%d %H:%M:%S")
+# this is quicker:
+df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
+
+
 # set correct order for days of the week
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
                                                    "Thursday", "Friday", "Saturday", "Sunday"))
@@ -90,13 +102,13 @@ df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not 
 df$chargeType <- factor(df$chargeType, ordered = TRUE)
 
 # Rename vehicle ids to something more user-friendly
-df$id <- factor(df$id, ordered = TRUE)
-levSeq <- seq(1:length(levels(df$id)))
+df$dvID <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$dvID)))
 levSeqChar <- as.character(levSeq)
-df$id <- factor(df$id,
+df$dvID <- factor(df$dvID,
   labels = levSeqChar)
-df$id <- as.character(df$id)
-df$id <- paste("Vehicle", df$id, sep = " ")
+df$dvID <- as.character(df$dvID)
+df$dvID <- paste("Vehicle", df$dvID, sep = " ")
 
 names(df)[names(df) == 'state_of_charge_percent'] <- 'SoC_percent'
 
@@ -115,7 +127,7 @@ weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
 df$weekday <- factor((df$day_of_week %in% weekdays1), 
                    levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE)
 
-# removal of silly percentage values
+# removal of silly state of charge percentage values
 df$SoC_percent[df$SoC_percent > 100] <- NA
 df$SoC_percent[df$SoC_percent < 0] <- NA
 
@@ -123,24 +135,21 @@ df$SoC_percent[df$SoC_percent < 0] <- NA
 # "...charging stations are being developed with capacities of 120kW in New Zealand"
 # (Concept Consulting report)
 df$charge_power_kw[df$charge_power_kw > 120] <- NA
+```
 
-
+```{r dataTable stuff}
 dt <- as.data.table(df) # creates a data.table for fast data crunching
 
 
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw == 0, 
-                                "preFirst", NA), by = id] # useful for checking
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw > 0,
-                                "first", chargeFlag), by = id]
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw > 0, 
-                                "charging", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw) == 0 & charge_power_kw > 0,
+                                "first", "Not charging"), by = id] # the previous value was 0 but this value > 0
 dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0, 
-                                "last", chargeFlag), by = id]
-dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw == 0, 
-                                "apresLast", chargeFlag), by = id]
-dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("preFirst", "first", "charging",
-                                                 "last","apresLast"))
- table(dt$chargeFlag)
+                                "last", chargeFlag), by = id] # next value = 0, this value = > 0
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw) > 0 & charge_power_kw > 0, 
+                                "charging", chargeFlag), by = id] # previous value > 0, this value > 0
+
+dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
+ table(dt$chargeFlag, useNA = "always")
 
 #dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
 
