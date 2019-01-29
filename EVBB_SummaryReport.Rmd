@@ -33,9 +33,6 @@ library(lubridate) # for data & time manip
 library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(dplyr) # for filter
-library(ggjoy) # for joyplots
-
-
 library(forcats)
 
 library(knitr) # for knitting
@@ -70,6 +67,7 @@ print(paste0("Using ", dFile))
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 
 ```
+
 
 ```{r dataPrep1}
 df <- rawDF # so can always re-create df without having to re-load data
@@ -174,9 +172,32 @@ Data used: `r dFile`
 Observations: `r nrow(dt)`
 Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
-# Definitions:
-The data consisted of `r nrow(dt)` data points from `r length(levels(df$id))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GP.
+# Data information{#data}
 
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
+
+The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
+
+Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+
+Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.
+
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
+
+Instances of battery state of charge being greater than 100% or less than 0% were also disregarded.
+
+In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
+
+```{r chargeFlagDiff}
+chargeFlagDiff <- nrow(chargeEnds) - nrow(chargeBegins)
+```
+
+
+Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r chargeFlagDiff` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. While it assumed the method by which the duration of charge was determined (taking the time difference between charge ending and charge beginning by vehicle chronologically) would accomodate this anomaly, two very large charging durations (longer than 100 hours) were calculated. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and were discarded.
+
+
+# Definitions:
+The data consisted of `r nrow(dt)` data points from `r length(levels(df$DVid))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
@@ -333,10 +354,6 @@ kableExtra::kable(t,
 
 Figure \@ref(fig:longDuration) shows the distribution of long (> 8 minutes) charging sequences. As we can see these appear to be generally less than 3 hours in length for Standard Charges.
 
-Two incidences were calculated of charging events longer than 100 hours. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and have been discarded from the following plots.
-
-_NOTE these have not yet been discarded from the mean calculations_
-
 
 ```{r longDuration, fig.cap="Duration of charging sequences > 8 minutes"}
 
@@ -409,9 +426,9 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
 
 Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see...
  
-Fig: profile of median charging demand by time of day and day of the week  faceted by at home vs not at home _Would need GPS data_
+Fig: profile of median charging demand by time of day and day of the week  faceted by at home vs not at home
 
-Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
+Charging demand varies somewhat by time of day and day of the week. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
 
 ```{r boxplotCharging, fig.cap="Boxplot of charging timing by charge rate"}
 p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
@@ -460,9 +477,7 @@ p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
 p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
-Fig: profile of start and end of charging events by time of day and day of the week faceted by at home vs not at home _Would need GPS data_
-
-
+Fig: profile of start and end of charging events by time of day and day of the week faceted by at home vs not at home 
 
 ```{r chargeBeginsWeekday}
 p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
@@ -503,7 +518,7 @@ p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end
 At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
 _We can get "Slow" charging events rather than "home"_
 
-Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
+Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
 
 > Discuss any other patterns
 
@@ -537,13 +552,3 @@ The figure shows that vehicles may then be available for further demand response
 
 > Discuss any other patterns
 
-# Data limitations {#dataIssues}
-  
-The GPS data used to determine location is not available for x% of observations possibly due to in-garage parking or other physical signal inhibition. Location cannot be deduced in these cases and has instead been imputed as the 'last' GPS location recorded. These errors may affect the location/'at home' coding.
-
-```{r chargeFlagDiff}
-chargeFlagDiff <- nrow(chargeEnds) - nrow(chargeBegins)
-```
-
-
-There are `r chargeFlagDiff` more instances of the charge ending than there are of the charge beginning. This may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
