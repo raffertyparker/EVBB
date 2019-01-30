@@ -4,6 +4,12 @@ subtitle: "Summary Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -12,12 +18,6 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::word_document2:
     fig_caption: yes
     toc: yes
@@ -26,7 +26,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(readr) # tidy data reading
 library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
 library(lubridate) # for data & time manip
@@ -67,46 +67,6 @@ print(paste0("Using ", dFile))
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 
 ```
-
-# Note
-
-Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
-
-Data used: `r dFile`
-
-Observations: `r nrow(dt)`
-Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
-
-# Data information{#data}
-
-## Background
-
-The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
-
-The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
-
-## Definitions:
-
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
-
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
-
-For a discussion of data limitations see Section  \@ref(dataIssues).
-
-## Cleaning and Preparation
-
-Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
-
-The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
-
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
-
-Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
-
-In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
-
-Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
-
 
 
 ```{r dataPrep1}
@@ -199,10 +159,52 @@ chargingDT <- dt[charge_power_kw > 0] # select just charging
 ```
 
 
+# Note
+
+Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
+
+Data used: `r dFile`
+
+Observations: `r nrow(dt)`
+Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
+
+# Data information{#data}
+
+## Background
+
+The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
+
+The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
+
+## Definitions:
+
+The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
+
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
+
+For a discussion of data limitations see Section  \@ref(dataIssues).
+
+## Cleaning and Preparation
+
+Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+
+The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
+
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
+
+Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
+
+In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
+
+
+
 ```{r establishment of chargeBegins and chargeEnds dataframes}
 chargeBegins <- chargingDT[chargingDT$chargeFlag == "first" , ]
 chargeEnds <- chargingDT[chargingDT$chargeFlag == "last", ]
 ```
+
+
+Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
 
 ```{r calculateChargeDurations}
 # select the observations which we've flagged as first & last in a sequence of charging
@@ -454,7 +456,7 @@ p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"),
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
-p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standard charging demand")
+p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
 ```{r joyplot}
@@ -475,7 +477,7 @@ p <- ggplot2::ggplot(subset(dt, chargeType %in% "Fast charging"),
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
-p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily fast charging demand")
+p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
 ```{r plot2, fig.cap="Boxplot of charging timing"}
