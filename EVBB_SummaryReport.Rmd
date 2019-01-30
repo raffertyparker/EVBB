@@ -228,7 +228,7 @@ A charging event was defined as a continuous sequence of 1 minute observations p
 
 For a discussion of data limitations see Section  \@ref(dataIssues).
 
-## Cleaning and Preperation
+## Cleaning and Preparation
 
 Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
 

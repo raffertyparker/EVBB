@@ -93,7 +93,7 @@ A charging event was defined as a continuous sequence of 1 minute observations p
 
 For a discussion of data limitations see Section  \@ref(dataIssues).
 
-## Cleaning and Preperation
+## Cleaning and Preparation
 
 Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
