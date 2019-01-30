@@ -34,7 +34,6 @@ library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(dplyr) # for filter
 library(forcats)
-
 library(knitr) # for knitting
 library(kableExtra) # for extra kable
 
@@ -146,6 +145,7 @@ dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & cha
 dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
  table(dt$chargeFlag, useNA = "always")
 
+# ATTN BEN - delete following lines if not necessary
 #dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
 
 #dt <- dt[, obsDiffTime := difftime(dateTime,shift(dateTime)), by = id] # time since previous observation (within id)
@@ -162,6 +162,31 @@ chargeBegins <- chargingDT[chargingDT$chargeFlag == "first" , ]
 chargeEnds <- chargingDT[chargingDT$chargeFlag == "last", ]
 ```
 
+```{r calculateChargeDurations}
+# select the observations which we've flagged as first & last in a sequence of charging
+firstLastDT <- dt[chargeFlag == "first" | chargeFlag == "last"]
+# flag the first of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "first" & shift(chargeFlag == "last", type = "lead"), "Pair start", NA)]
+# flag the second of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "last" & shift(chargeFlag == "first"), "Pair end", pairOK)]
+# calculate the time diff between all obs
+firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = dateTime, time2 = shift(dateTime), units = c("mins"))]
+# we only want the time difference which was calculated for an obs where pairOK == "Pair end". This should also be where chargeFlag == "last" _except_ for where we have no 'first' (e.g. at start of data)
+# note that we will still have pairs that bridge 00:00 which will give us -ve values
+# if we have a -ve value then we need to change the calculation to add the time
+# up to midnight from the start to the time after midnight to the end
+firstLastDT <- firstLastDT[pairOK == "Pair start" & shift(pairDuration < 0, type = "lead"), 
+                           toMidnight := difftime(time1 = as.hms("23:59:59"), time2 = time)]
+firstLastDT <- firstLastDT[pairOK == "Pair end" & pairDuration < 0, 
+                           afterMidnight := difftime(time1 = time, time2 = as.hms("00:00:00"), units = c("mins"))]
+firstLastDT <- firstLastDT[, pairDurationFix := shift(toMidnight) + afterMidnight]
+firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
+                                                         pairDurationFix,
+                                                         pairDuration)]
+# Remove overly large values
+firstLastDT <- firstLastDT[pairDurationFinal < 6000]
+```
+
 
 # Note
 
@@ -174,30 +199,29 @@ Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 # Data information{#data}
 
-The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
+## Background
+
+The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
 The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
 
-Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+## Cleaning and Preperation
 
-Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.
+Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+
+The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
 Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
 
-Instances of battery state of charge being greater than 100% or less than 0% were also disregarded.
+Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
 In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
 
-```{r chargeFlagDiff}
-chargeFlagDiff <- nrow(chargeEnds) - nrow(chargeBegins)
-```
+Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. While it assumed the method by which the duration of charge was determined would accomodate this, two very large charging durations (longer than 100 hours) were calculated. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and were discarded.
 
 
-Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r chargeFlagDiff` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. While it assumed the method by which the duration of charge was determined (taking the time difference between charge ending and charge beginning by vehicle chronologically) would accomodate this anomaly, two very large charging durations (longer than 100 hours) were calculated. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and were discarded.
+## Definitions:
 
-
-# Definitions:
-The data consisted of `r nrow(dt)` data points from `r length(levels(df$DVid))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
@@ -225,7 +249,7 @@ Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand
 ```{r obsPower, fig.cap="Observed power demand distribution by day of the week and charge type where charging observed"}
 p <- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
   geom_histogram() +
-  facet_grid(. ~ chargeType, scales = "free")
+  facet_wrap(. ~ chargeType, scales = "free")
 
 # now draw the plot with any fancy extras we want
 p + labs(y = "Density",
@@ -247,7 +271,7 @@ fastQT <- quantile(chargingDT[chargeType == "Fast charging"]$charge_power_kw)
 ```{r dailyPower, fig.cap="Observed power demand distribution by day of the week and charge type"}
 p <- ggplot2::ggplot(filter(dt, chargeType == "Standard charging" | chargeType == "Fast charging"), aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
   geom_boxplot(aes(y = charge_power_kw)) +
-  facet_grid(. ~ chargeType)
+  facet_wrap(. ~ chargeType, scales= "free_y")
 
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   labs(x = "Day of week",
@@ -267,38 +291,6 @@ Fig: Histogram of charging event durations (faceted by fast vs standard)
 
 If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
 
-
-```{r calculateChargeDurations}
-# select the observations which we've flagged as first & last in a sequence of charging
-firstLastDT <- dt[chargeFlag == "first" | chargeFlag == "last"]
-
-# flag the first of a pair
-firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "first" & shift(chargeFlag == "last", type = "lead"), "Pair start", NA)]
-# flag the second of a pair
-firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "last" & shift(chargeFlag == "first"), "Pair end", pairOK)]
-
-# calculate the time diff between all obs
-firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = dateTime, time2 = shift(dateTime), units = c("mins"))]
-
-# we only want the time difference which was calculated for an obs where pairOK == "Pair end". This should also be where chargeFlag == "last" _except_ for where we have no 'first' (e.g. at start of data)
-
-# note that we will still have pairs that bridge 00:00 which will give us -ve values
-# if we have a -ve value then we need to change the calculation to add the time
-# up to midnight from the start to the time after midnight to the end
-
-firstLastDT <- firstLastDT[pairOK == "Pair start" & shift(pairDuration < 0, type = "lead"), 
-                           toMidnight := difftime(time1 = as.hms("23:59:59"), time2 = time)]
-
-firstLastDT <- firstLastDT[pairOK == "Pair end" & pairDuration < 0, 
-                           afterMidnight := difftime(time1 = time, time2 = as.hms("00:00:00"), units = c("mins"))]
-
-firstLastDT <- firstLastDT[, pairDurationFix := shift(toMidnight) + afterMidnight]
-
-firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
-                                                         pairDurationFix,
-                                                         pairDuration)]
-
-```
 
 Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for Standard Charges but this is not the case for Fast charges.
 
@@ -365,7 +357,6 @@ ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8 & pairD
 ```
 
 ## Duration by time of day
-
 
 
 ```{r durationTimeBox, fig.cap="Duration by time of charging start for sequences > 8 minutes"}
@@ -442,7 +433,7 @@ p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standa
 
 ```{r joyplot}
 ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
-  geom_joy(rel_min_height = 0.01) +        # removes tails
+  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
   scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
   labs(x="Charging power",y="Day")
 ```

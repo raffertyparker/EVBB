@@ -12,7 +12,6 @@ output:
     toc_depth: 2
     toc_float: yes
   bookdown::word_document2:
-    fig_caption: yes
     toc: yes
     toc_depth: 2
   bookdown::pdf_document2:
@@ -75,6 +74,8 @@ Under a scenario whereby 57% of the current private vehicle fleet were EVs (corr
 This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
 
 
+# Data
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
 
 This is an example of a bibtex reference to a paper: [@stephenson_smart_2017]
@@ -101,27 +102,7 @@ Compare with UK findings of 9.1 kWh.
 
 # Methods
 ## Data
-Describe it:
 
-The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's "Black Box", a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
-
-The data has been anonymised through the hashing of license plate numbers and dates. 
-
-Charging data has been broadly seperated into two seperate catagories, "slow" and "fast". Slow charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
-
-Grid peaks are more pronounced during weekdays. Because of this, the data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of grid peaks.
-
-
- * where did you get it?
- * how many vehicles, where are they and what kinds?
- * anything we need to know about the data?
- * what did you have to do to it (cleaning etc)
- * descriptive analysis, e.g.:
-   * Plot all charging with fast and slow charges differentiated
-   * Plot fast charges with weekend and weekday differentiated 
-   * Histograms of power (kW)
-
-Load the data - note the feedback readr gives you on the assumed format of the columns. You might _not_ want to remove the original dateTime :-)
 
 ```{r load data}
 df <- readr::read_csv(dFile)
@@ -456,7 +437,7 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw
 
 p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
 
-# might need to split by location as this would tell us a) about slow charge by default and b) about home vs non-home LV network impacts
+
 
 ```
 
