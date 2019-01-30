@@ -224,7 +224,7 @@ The data has been partially anonymised through the hashing of license plate numb
 
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
 For a discussion of data limitations see Section  \@ref(dataIssues).
 

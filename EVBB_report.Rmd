@@ -158,6 +158,25 @@ chargingDT <- dt[charge_power_kw > 0] # select just charging
 
 ```
 
+# Introduction
+
+New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. If poorly managed, the predicted increase in electric vehicles (EVs) may increase these daily peaks significantly, increasing the cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
+
+Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
+  
+# Background
+
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. Concurrent charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [Azadfar2015].
+
+
+The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.
+
+Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
+* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
+* If all were charged in a "smart" fashion, there would be no increase in peak demand
+
+
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
 
 # Note
 
@@ -170,23 +189,20 @@ Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 # Data information{#data}
 
-## Background
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
-The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
+The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
-The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
+Due to the possiblilty of the identity of participants being ascertainable, the remaining data is not publically available.
 
 ## Definitions:
 
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
-
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed.
-
-For a discussion of data limitations see Section  \@ref(dataIssues).
+=
 
 ## Cleaning and Preparation
 
 Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+
 
 The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
@@ -194,15 +210,15 @@ Some instances of charging power greater than 120kW were recorded. These were co
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
-In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
+In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
 
 
 ```{r establishment of chargeBegins and chargeEnds dataframes}
 chargeBegins <- chargingDT[chargingDT$chargeFlag == "first" , ]
 chargeEnds <- chargingDT[chargingDT$chargeFlag == "last", ]
 ```
-
 
 Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
 
