@@ -4,6 +4,12 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -12,12 +18,6 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::word_document2:
     fig_caption: yes
     toc: yes
@@ -34,7 +34,7 @@ library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(ggjoy)
 library(dplyr) # for filter
-library(forcats)
+library(forcats) # used to reverse days of week in joy plots
 library(knitr) # for knitting
 library(kableExtra) # for extra kable
 
@@ -174,15 +174,17 @@ This report hopes to provide further insight into the potential effects on the N
 
 # Data information{#data}
 
+## Background 
+
 The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
-The data used consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
+The data used consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(dt$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
 Due to privacy considerations, the data is not publically available.
 
 ## Initial cleaning
 
-There were `r nrow(summaryDT) - nrow(includeDT)` vehicles that had no recorded charging occur. These were immediately discarded from the data.
+There were `r nrow(summaryDT) - nrow(includeDT)` vehicles in the data provided that had no recorded charging occur. These were immediately discarded.
 
 Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@concept2018].
 
@@ -193,8 +195,6 @@ Instances of battery state of charge being greater than 100% or less than 0% wer
 Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
-
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
 In order to determine charging durations, rows were initially flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
 
@@ -417,9 +417,6 @@ kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
 plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, dateTime)]
 ```
 
-> Discuss any other patterns
-
-> What was the research question? :-)
 
 # Time of charging
 

@@ -84,7 +84,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{Last run at: 2019-02-01 13:38:11}
+    \date{Last run at: 2019-02-01 18:35:59}
 
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -108,23 +108,11 @@
 \setcounter{tocdepth}{2}
 \tableofcontents
 }
-\begin{verbatim}
-## Warning in id != c("4e48f4155c29c763ffe6d9e17a495200",
-## "01583b8a5f0344cc4aa3b3939a27af2a", : longer object length is not a
-## multiple of shorter object length
-\end{verbatim}
-
-\begin{verbatim}
-## 
-##    first charging     last     <NA> 
-##     9478   891085     9487   605583
-\end{verbatim}
-
 \section{Introduction}\label{introduction}
 
 The New Zealand government has set a target of increasing the number of
 EVs in New Zealand to 64,000 by 2021. High penetration of EVs would
-cause EV recharging to contribute a substantial potion of total
+cause EV recharging to contribute a substantial portion of total
 electricity load. A report prepared for lines companies Orion, Powerco
 and Unison by Concept Consulting Group entitled ``Driving change -
 Issues and options to maximise the opportunities from large-scale
@@ -136,54 +124,26 @@ electricity consumption of New Zealand by approximately
 41\%{[}concept\_2018{]}.
 
 New Zealand's total electricity demand varies throughout the day, with
-two distinct ``peaks''; one in the morning, and one in the evening.
-Providing the electicity to meet these demand peaks is a costly and
-inefficient process. Concurrent electric vehicle (EV) charging,
-especially in the early evening when many motorists return home, would
-have the potential to negatively impact the operation of the grid
-through drastically increasing peak loads {[}Azadfar2015{]}, leading to
-an increased cost of electricity due to the requirement of expensive
-upgrades to the electricity grid{[}@stephenson\_smart\_2017{]}.
+weekdays in particular having two distinct ``peaks''; one in the
+morning, and one in the evening. Providing the electicity to meet these
+demand peaks is a costly and inefficient process. Concurrent electric
+vehicle (EV) charging, especially in the early evening when many
+motorists return home, would have the potential to negatively impact the
+operation of the grid through drastically increasing peak loads
+{[}Azadfar2015{]}, leading to an increased cost of electricity due to
+the requirement of expensive upgrades to the electricity
+grid{[}@stephenson\_smart\_2017{]}.
 
-Our results showed that\ldots{} {[}when/where is the greatest amount of
-charging occurring? What is the power demand per vehicle/household/place
-of charging? What might this look like if 50\% of households had an EV?
-What about if it matched current ICE ownership (eventually)?{]}
-
-The Concept Consulting report considers different methods of EV
-charging. The assumption that most drivers would begin charging
-immediately after returning home is referred to as ``passive'' charging,
-while charging that is programmed (either by the driver or by an
-external entity) to occur during off-peak periods is referred to as
-``smart''. The key findings of the Concept Consulting report are as
-follows.
-
-Under a scenario whereby 57\% of the current private vehicle fleet were
-EVs (corresponding to one EV per household): * If all were charged in a
-passive fashion, New Zealand's peak electricity demand would increase by
-appproximately 3,000MW * If all were charged in a ``smart'' fashion,
-there would be no increase in peak demand
-
-This report extends the work done by Concept Consulting, but utilises
-actual data collected from electric vehicles, as opposed to using models
-based on current usage patterns of internal combustion engine (ICE)
-vehicles.
-
-\section{Note}\label{note}
-
-Based on and inspired by the
+This report hopes to provide further insight into the potential effects
+on the New Zealand electricity grid that may occur with a dramatic
+increase in EVs, so that these may be planned for and mitigated. It is
+based on and inspired by the
 \href{https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf}{UK
 DoT statistical report 2018}.
 
-Data used:
-/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student\%5Cparra358/Research
-Projects/GREEN
-Grid/externalData/flipTheFleet/safe/testData/2019\_01\_25/EVBB\_processed\_all\_v1.0\_20180125.csv
-
-Observations: 1515633 Observed charging: 915718 observations (power
-demand \textgreater{} 0)
-
 \section{Data information}\label{data}
+
+\subsection{Background}\label{background}
 
 The data used has been provided by ``Flip the Fleet'', a community
 organisation that hopes to increase uptake of electric vehicles in New
@@ -194,15 +154,27 @@ small electronic device that connects to the vehicle's internal computer
 and sends detailed data about the battery health, consumption, speed,
 etc.
 
-The data consisted of 1515633 data points from 50 vehicles over 8 months
-(April 2018 - January 2019). The recorder provided measurements at 1
-minute frequency of charging behaviour and battery charge state.
+The data used consisted of 1291881 data points from 44 vehicles over 8
+months (April 2018 - January 2019). The recorder provided measurements
+at 1 minute frequency of charging behaviour and battery charge state.
 
-Due to the possiblilty of the identity of participants being
-ascertainable, the remaining data is not publically available.
+Due to privacy considerations, the data is not publically available.
 
-\subsection{Definition, Cleaning and
-Preparation}\label{definition-cleaning-and-preparation}
+\subsection{Initial cleaning}\label{initial-cleaning}
+
+There were 6 vehicles in the data provided that had no recorded charging
+occur. These were immediately discarded.
+
+Some instances of charging power greater than 120kW were recorded. These
+were considered anomolies and discarded, as these exceed the capacity of
+the highest charging stations available in New
+Zealand{[}@concept2018{]}.
+
+Instances of battery state of charge being greater than 100\% or less
+than 0\% were also discarded.
+
+\subsection{Definitions and
+preparation}\label{definitions-and-preparation}
 
 Charging data has been broadly seperated into two seperate catagories,
 ``standard'' and ``fast''. Standard charging is when the charger is
@@ -217,17 +189,6 @@ not. This allows analysis to occur of differing charging patterns
 between weekdays and weekends, allowing for further accuracy in
 determining the effects of electric vehicles on grid peaks.
 
-Some instances of charging power greater than 120kW were recorded. These
-were considered anomolies and discarded, as these exceed the capacity of
-the highest charging stations available in New Zealand{[}concept2018{]}.
-
-Instances of battery state of charge being greater than 100\% or less
-than 0\% were also discarded.
-
-A charging event was defined as a continuous sequence of 1 minute
-observations per vehicle when \textgreater{} 0 kW of demand was
-observed.
-
 In order to determine charging durations, rows were initially flagged as
 ``charging begins'' if the charging power was greater than zero and the
 previous and following row's charging power were (respectively) equal to
@@ -236,13 +197,11 @@ ends'' if the charging power was greater than zero and the previous and
 following row's charging power were (respectively) greater than zero and
 equal to zero.
 
-Using this method we obtained 9478 instances of charge beginning, and
-9487 instances of charge ending. The additional 9 instances of the
+Using this method we obtained 7376 instances of charge beginning, and
+7385 instances of charge ending. The additional 9 instances of the
 charge ending than there are of the charge beginning may be due to the
 first instance of data collection occurring during mid-charge for some
 vehicles.
-
-Fig: Histogram of charging event durations (faceted by fast vs standard)
 
 If we assume that the first non-zero charge observation is the `start'
 and the last non-zero charge observation within the vehicle id is the
@@ -251,7 +210,7 @@ is no missing data.
 
 Figure \ref{fig:durationHist} shows the overall distribution of all
 charging sequences. Clearly there are very small and a few very large
-values for Standard Charges but this is not the case for Fast charges.
+values for Standard Charges, but this is not the case for Fast charges.
 
 \begin{figure}
 \centering
@@ -271,9 +230,9 @@ a few very large values shown in Figure \ref{fig:durationHist}.
 \hline
 chargeType & N & mean & median & min & max\\
 \hline
-Standard charging & 8586 & 101.47 & 3.43 & 0.27 & 84435.00\\
+Standard charging & 6983 & 101.24 & 3.72 & 0.27 & 1616.72\\
 \hline
-Fast charging & 593 & 13.03 & 11.88 & 0.32 & 48.78\\
+Fast charging & 392 & 38.00 & 12.48 & 0.32 & 8621.00\\
 \hline
 \end{tabular}
 \end{table}
@@ -303,9 +262,9 @@ sequences are closer to one another.
 \hline
 chargeType & N & mean & median & min & max\\
 \hline
-Standard charging & 3404 & 252.57 & 176.78 & 8.02 & 84435.00\\
+Standard charging & 2860 & 244.01 & 208.65 & 8.02 & 1616.72\\
 \hline
-Fast charging & 417 & 16.64 & 15.18 & 8.05 & 48.78\\
+Fast charging & 279 & 51.61 & 15.73 & 8.05 & 8621.00\\
 \hline
 \end{tabular}
 \end{table}
@@ -330,6 +289,9 @@ sequences with the excessively long or short events removed. As we can
 see these appear to be generally less than 3 hours in length for
 Standard Charges.
 
+All further duration-related analysis is conducted with these
+excessively long or short events removed from the data.
+
 \begin{figure}
 \centering
 \includegraphics{EVBB_report_files/figure-latex/longDuration-1.pdf}
@@ -343,8 +305,8 @@ Standard Charges.
 \tightlist
 \item
   \emph{Power supplied}: The median power supplied during a standard
-  charging was 1.78 kW. The mean was slightly lower at 2.11 kW. Fast
-  charging observations had a higher median of 23.35 kW (mean = 27.18);
+  charging was 1.78 kW. The mean was slightly lower at 2.12 kW. Fast
+  charging observations had a higher median of 30.84 kW (mean = 30.68);
 \item
   \emph{Charging duration}: Charging durations tended to fall into one
   of two groups - longer `overnight' charges with a median of XX hours
@@ -378,14 +340,10 @@ of the two.
 the week and charge type where charging observed}
 \end{figure}
 
-75\% of standard charging observations were 1.46 kW or more but the
-figure was 16.78 kW or more for fast charging
+75\% of standard charging observations were 1.47 kW or more but the
+figure was 20.28 kW or more for fast charging
 
 \section{Daily demand}\label{daily-demand}
-
-\begin{verbatim}
-## Warning: Removed 45 rows containing non-finite values (stat_boxplot).
-\end{verbatim}
 
 \begin{figure}
 \centering
@@ -424,20 +382,12 @@ time of charging start for sequences \textgreater{} 8 minutes}
 \hline
 chargeType & N & mean & median & min & max\\
 \hline
-Standard charging & 3404 & 252.57231 & 176.77500 & 8.016667 & 84435.00000\\
+Standard charging & 2860 & 244.00682 & 208.65000 & 8.016667 & 1616.717\\
 \hline
-Fast charging & 417 & 16.63513 & 15.18333 & 8.050000 & 48.78333\\
+Fast charging & 279 & 51.61231 & 15.73333 & 8.050000 & 8621.000\\
 \hline
 \end{tabular}
 \end{table}
-
-\begin{quote}
-Discuss any other patterns
-\end{quote}
-
-\begin{quote}
-What was the research question? :-)
-\end{quote}
 
 \section{Time of charging}\label{time-of-charging}
 
@@ -478,19 +428,11 @@ rate}
 
 \includegraphics{EVBB_report_files/figure-latex/joyplot-1.pdf}
 
-\begin{verbatim}
-## Warning: Removed 45 rows containing non-finite values (stat_boxplot).
-\end{verbatim}
-
 \begin{figure}
 \centering
 \includegraphics{EVBB_report_files/figure-latex/plot3-1.pdf}
 \caption{\label{fig:plot3}Boxplot of charging timing by charge rate}
 \end{figure}
-
-\begin{verbatim}
-## Warning: Removed 45 rows containing non-finite values (stat_boxplot).
-\end{verbatim}
 
 \begin{figure}
 \centering
@@ -499,7 +441,7 @@ rate}
 \end{figure}
 
 \begin{verbatim}
-## Picking joint bandwidth of 5700
+## Picking joint bandwidth of 5860
 \end{verbatim}
 
 \begin{figure}
@@ -574,18 +516,10 @@ The duration of charging events (see Section \ref{duration}) suggests
 that EVs may be `plugged in' at home (and elsewhere) for considerable
 durations.
 
-\begin{verbatim}
-## Warning: Removed 1 rows containing non-finite values (stat_bin).
-\end{verbatim}
-
 \includegraphics{EVBB_report_files/figure-latex/value of state of charge at beginning of charge-1.pdf}
 
 \begin{verbatim}
 ## Saving 6.5 x 4.5 in image
-\end{verbatim}
-
-\begin{verbatim}
-## Warning: Removed 1 rows containing non-finite values (stat_bin).
 \end{verbatim}
 
 Fig: Distribution of state of charge when evening charge event starts

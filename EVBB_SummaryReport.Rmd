@@ -4,6 +4,12 @@ subtitle: "Summary Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -12,12 +18,6 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::word_document2:
     fig_caption: yes
     toc: yes
@@ -237,16 +237,16 @@ The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
 ## Cleaning and Preparation
+_Perhaps for the summary report this entire subsection could be removed?_
+There were `r nrow(summaryDT) - nrow(includeDT)` vehicles within the provided data that had no recorded charging occur. These were immediately discarded.
 
 Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
-In order to determine charging durations, rows were flagged as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero. Similarly, rows were flagged as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero.
+Standard charge durations of less than 8 minutes were very frequently encountered near the end of a longer charging cycle, where the state of charge had reached it's maximum. These were assumed to be minor 'top-ups', and were discarded. In addition, slow charging events greater than 100 hours were discarded, as were fast charge durations greater than 10 hours. These were presumed anomolies as they exceed the battery capacity of electric vehicles commonly encountered in New Zealand.
 
-Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. While it assumed the method by which the duration of charge was determined would accomodate this, two very large charging durations (longer than 100 hours) were calculated. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and were discarded.
-
-In addition, there were many instances of very short "standard" charging events (< 8 minutes). 
+For more detailed information on the data cleaning process refer to the main report.
 
 
 # Key Findings:
@@ -307,12 +307,6 @@ Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW dema
 
 # Charging duration {#duration}
 
-Fig: Histogram of charging event durations (faceted by fast vs standard) 
-
-
-If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
-
-
 Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. As would be expected, fast charging events tend to have a much shorted duration than standard charging.
 
 ```{r durationHist, fig.cap="Duration of charging sequences"}
@@ -325,14 +319,10 @@ ggplot2::ggplot(firstLastDT[pairOK == "Pair end"],
 ```
 
 
-
-Table \@ref(tab:durationDescTableReduced) shows the same descriptive statistics but for all sequences of greater than 8 minute duration. Now we can see that the mean and median durations for Standard Charge sequences are closer at 130 - 140 minutes.
-
-
 Figure \@ref(fig:longDuration) shows the distribution of charging sequences. As we can see these appear to be generally less than 3 hours in length for Standard Charges.
 
 
-```{r longDuration, fig.cap="Duration of charging sequences > 8 minutes"}
+```{r longDuration, fig.cap="Duration of charging sequences"}
 
 ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8 & pairDurationFinal < 6000], 
                 aes(x = pairDurationFinal)) +
