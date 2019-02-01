@@ -26,7 +26,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(readr) # tidy data reading
 library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
 library(lubridate) # for data & time manip
@@ -207,6 +207,8 @@ firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal < 8 & firstLastDT$cha
 
 Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
 
+This is a summary report. A discussion into the background around the effects of EV charging in New Zealand, as well as detailed information on data limitations and data cleaning procedure is given in the full report.
+
 Data used: `r dFile`
 
 Observations: `r nrow(dt)`
@@ -218,15 +220,13 @@ Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
-The data has been partially anonymised through the hashing of license plate numbers. Due to the possiblilty of the identity of participants being ascertained through other variables, the remaining data is not publically available.
+Due to the possiblilty of the identity of participants being ascertainable, the remaining data is not publically available.
 
 ## Definitions:
 
 The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
-
-For a discussion of data limitations see Section  \@ref(dataIssues).
 
 ## Cleaning and Preparation
 
@@ -239,7 +239,6 @@ In order to determine charging durations, rows were flagged as "charging begins"
 Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. While it assumed the method by which the duration of charge was determined would accomodate this, two very large charging durations (longer than 100 hours) were calculated. As even a very high capacity vehicle using the slowest standard charger would not take this long to charge from empty, these were assumed to be anomalies and were discarded.
 
 In addition, there were many instances of very short "standard" charging events (< 8 minutes). 
-
 
 
 # Key Findings:
