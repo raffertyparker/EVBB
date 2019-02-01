@@ -4,12 +4,6 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -18,6 +12,12 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::word_document2:
     fig_caption: yes
     toc: yes
@@ -78,10 +78,6 @@ df <- rawDF # so can always re-create df without having to re-load data
 #Combine date and time columns into POSIXct datetime
 df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
 
-# This removes the vehicle IDs that had only zero charging
-# There must be a better way of doing this but this will do for now.
-df <- filter(df, id != c("4e48f4155c29c763ffe6d9e17a495200", "01583b8a5f0344cc4aa3b3939a27af2a", "0cc746a3f5ae75ee94068a8354b6be08"))
-
 # set correct order for days of the week
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
                                                    "Thursday", "Friday", "Saturday", "Sunday"))
@@ -128,17 +124,18 @@ df$SoC_percent[df$SoC_percent < 0] <- NA
 df$charge_power_kw[df$charge_power_kw > 120] <- NA
 ```
 
-```{r dataTable stuff}
+```{r dataTable stuff, results="hide"}
 dt <- as.data.table(df) # creates a data.table for fast data crunching
 
+# Remove vehicles with all-zero charging values
 summaryDT <- dt[, .(mean = mean(charge_power_kw), sd = sd(charge_power_kw), nObs = .N), keyby = .(dvID)]
 includeDT <- summaryDT[mean != 0]
 setkey(includeDT, dvID)
 setkey(dt, dvID)
 finalDT <- dt[includeDT]
-
 dt <- finalDT
 
+# Create charge flag
 dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw) == 0 & charge_power_kw > 0 & shift(charge_power_kw, type = "lead") > 0,
                                 "first", "Not charging"), by = id] 
 # the previous value was 0 but this value and the next value > 0
@@ -164,53 +161,38 @@ dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
 #dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
   
 chargingDT <- dt[charge_power_kw > 0] # select just charging
-
-
 ```
 
 # Introduction
 
-The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial potion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. 
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[concept_2018]. 
 
-New Zealand's total electricity demand varies throughout the day, with two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. Concurrent electric vehicle (EV) charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
+New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening. Providing the electicity to meet these demand peaks is a costly and inefficient process. Concurrent electric vehicle (EV) charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
 
+This report hopes to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
 
-Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
-
-The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.
-
-Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
-* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
-* If all were charged in a "smart" fashion, there would be no increase in peak demand
-
-This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
-
-# Note
-
-Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
-
-Data used: `r dFile`
-
-Observations: `r nrow(dt)`
-Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 # Data information{#data}
 
 The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
-The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
+The data used consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
-Due to the possiblilty of the identity of participants being ascertainable, the remaining data is not publically available.
+Due to privacy considerations, the data is not publically available.
 
-## Definition, Cleaning and Preparation
+## Initial cleaning
+
+There were `r nrow(summaryDT) - nrow(includeDT)` vehicles that had no recorded charging occur. These were immediately discarded from the data.
+
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@concept2018].
+
+Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
+
+## Definitions and preparation
 
 Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
-
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
-
-Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
@@ -248,13 +230,11 @@ firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
 
 ```
 
-Fig: Histogram of charging event durations (faceted by fast vs standard) 
-
 
 If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
 
 
-Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for Standard Charges but this is not the case for Fast charges.
+Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for Standard Charges, but this is not the case for Fast charges.
 
 ```{r durationHist, fig.cap="Duration of charging sequences"}
 
@@ -320,15 +300,17 @@ firstLastDT <- firstLastDT[pairDurationFinal < 6000]
 
 # Remove standard charges of duration less than 8 mins
 firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal < 8 & firstLastDT$chargeType == "Standard charging"),]
- 
-# This removes a disproportionate amount of "first" flags so renders firstLastDT useless for chargeBegin/chargeEnd related analysis. 
-# Consider removing relevent columns to ensure this doesn't happen
+
+# Remove (lone) fast charge of duration greater than 10 hours
+firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal > 600 & firstLastDT$chargeType == "Fast charging"),]
 
 # ATTN BEN rather than specify ...[pairOK == "Pair end", ] for all the following firstLastDT$pairDurationFinal plots, should we just remove all rows that are not "Pair end"?
 
 ```
 
 Figure \@ref(fig:longDuration) shows the distribution of charging sequences with the excessively long or short events removed. As we can see these appear to be generally less than 3 hours in length for Standard Charges.
+
+All further duration-related analysis is conducted with these excessively long or short events removed from the data.
 
 
 ```{r longDuration, fig.cap="Duration of charging sequences > 8 minutes"}
@@ -406,7 +388,7 @@ Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW dema
 
 ```{r durationTimeBox, fig.cap="Duration by time of charging start for sequences > 8 minutes"}
 
-ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8 & pairDurationFinal < 6000], 
+ggplot2::ggplot(firstLastDT[pairOK == "Pair end"], 
                 aes(x = qHour, y = pairDurationFinal, group = qHour)) +
   geom_boxplot() +
   facet_grid(chargeType ~ ., scales = "free") +

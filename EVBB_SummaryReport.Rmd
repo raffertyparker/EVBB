@@ -128,7 +128,15 @@ df$charge_power_kw[df$charge_power_kw > 120] <- NA
 ```{r dataTable stuff}
 dt <- as.data.table(df) # creates a data.table for fast data crunching
 
+# Remove vehicles with all-zero charging values
+summaryDT <- dt[, .(mean = mean(charge_power_kw), sd = sd(charge_power_kw), nObs = .N), keyby = .(dvID)]
+includeDT <- summaryDT[mean != 0]
+setkey(includeDT, dvID)
+setkey(dt, dvID)
+finalDT <- dt[includeDT]
+dt <- finalDT
 
+#Create charge flag
 dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw) == 0 & charge_power_kw > 0 & shift(charge_power_kw, type = "lead") > 0,
                                 "first", "Not charging"), by = id] 
 # the previous value was 0 but this value and the next value > 0
@@ -220,7 +228,7 @@ Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
 
 The data consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
 
-Due to the possiblilty of the identity of participants being ascertainable, the remaining data is not publically available.
+Due to privacy considerations, the data is not publically available.
 
 ## Definitions:
 

@@ -56,10 +56,18 @@ dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 
 
 
+The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.
 
-This is an example of a bibtex reference to a paper: [@stephenson_smart_2017]
+Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
+* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
+* If all were charged in a "smart" fashion, there would be no increase in peak demand
 
-This is an example of a reference to an R package: [@dplyr]
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
+
+
+
+Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
+
 
 # Research questions
 
