@@ -84,7 +84,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{Last run at: 2019-02-01 18:35:59}
+    \date{Last run at: 2019-02-04 10:40:58}
 
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -238,9 +238,8 @@ Fast charging & 392 & 38.00 & 12.48 & 0.32 & 8621.00\\
 \end{table}
 
 Figure \ref{fig:shortDuration} shows the distribution of very short
-charging sequences which are likely to be `top-ups' occuring towards the
-end of a longer charging period. As we can see these appear to be
-generally less than 8 minutes in length for Standard Charges.
+charging sequences. As we can see these appear to be generally less than
+8 minutes in length for Standard Charges.
 
 \begin{figure}
 \centering
@@ -305,8 +304,8 @@ excessively long or short events removed from the data.
 \tightlist
 \item
   \emph{Power supplied}: The median power supplied during a standard
-  charging was 1.78 kW. The mean was slightly lower at 2.12 kW. Fast
-  charging observations had a higher median of 30.84 kW (mean = 30.68);
+  charging was 1.78 kW. The mean was slightly higher at 2.12 kW. Fast
+  charging observations had a median of 30.84 kW (mean = 30.68);
 \item
   \emph{Charging duration}: Charging durations tended to fall into one
   of two groups - longer `overnight' charges with a median of XX hours
@@ -324,10 +323,7 @@ excessively long or short events removed from the data.
 Figure \ref{fig:obsPower} shows the distribution of observed charging kW
 demand by inferred charge type. This plot shows that fast charges are
 relatively rare in the dataset whilst standard charges are much more
-common and, partly due to our definition, are concentrated around 3 kW.
-At the present time charging at home is likely to be predominatly
-standard charging whilst charging outside the home is likely to be a mix
-of the two.
+common, and are concentrated around 1.8kW, 3kW and 6kW.
 
 \begin{verbatim}
 ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -354,7 +350,7 @@ the week and charge type}
 
 Figure \ref{fig:dailyPower} shows the distribution of observed charging
 kW demand by day of the week. We can see that fast charging varies in
-demand but standard charging is relatively constant across days.
+demand more than standard charging does across days.
 
 \section{Charging duration}\label{duration}
 
@@ -363,8 +359,7 @@ demand but standard charging is relatively constant across days.
 \begin{figure}
 \centering
 \includegraphics{EVBB_report_files/figure-latex/durationTimeBox-1.pdf}
-\caption{\label{fig:durationTimeBox}Duration by time of charging start for
-sequences \textgreater{} 8 minutes}
+\caption{\label{fig:durationTimeBox}Duration by time of charging start}
 \end{figure}
 
 \begin{figure}
@@ -416,17 +411,6 @@ with\ldots{}
 \caption{\label{fig:boxplotCharging}Boxplot of charging timing by charge
 rate}
 \end{figure}
-
-\begin{verbatim}
-## Picking joint bandwidth of 0.11
-\end{verbatim}
-
-\begin{verbatim}
-## Warning: Removed 45 rows containing non-finite values
-## (stat_density_ridges).
-\end{verbatim}
-
-\includegraphics{EVBB_report_files/figure-latex/joyplot-1.pdf}
 
 \begin{figure}
 \centering

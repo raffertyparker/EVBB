@@ -339,6 +339,26 @@ p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw
 
 p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id)
 ```
+
+
+```{r plot2, fig.cap="Boxplot of daily slow charging demand"}
+#just put this hee before deleting it from main report
+p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbbPalette) + 
+  geom_boxplot() 
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+```
+ 
+ 
+```{r joyplot}
+#just put this hee before deleting it from main report
+ggplot(df,aes(x=charge_power_kw, y=forcats::fct_rev(day_of_week))) +
+  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x="Charging power",y="Day")
+``` 
  
  
 ```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}

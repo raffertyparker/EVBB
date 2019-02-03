@@ -78,6 +78,8 @@ df <- rawDF # so can always re-create df without having to re-load data
 #Combine date and time columns into POSIXct datetime
 df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
 
+format(df$qHour,format='%Y%m%d %H:%M')
+
 
 # set correct order for days of the week
 df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
@@ -309,6 +311,20 @@ Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW dema
 
 Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. As would be expected, fast charging events tend to have a much shorted duration than standard charging.
 
+```{r durationDescTableReduced}
+t <- firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8, 
+                 .(N = .N,
+                   mean = mean(pairDurationFinal),
+                   median = median(pairDurationFinal),
+                   min = min(pairDurationFinal),
+                   max = max(pairDurationFinal)), 
+                 keyby = .(chargeType)]
+kableExtra::kable(t, 
+                  caption = "Duration of charge sequences > 8 minutes by charge type (minutes, )", digits = 2) %>%
+  kable_styling()
+```
+
+
 ```{r durationHist, fig.cap="Duration of charging sequences"}
 
 ggplot2::ggplot(firstLastDT[pairOK == "Pair end"], 
@@ -396,10 +412,9 @@ Fig: profile of median charging demand by time of day and day of the week  facet
 
 Charging demand varies somewhat by time of day and day of the week. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
 
-```{r boxplotCharging, fig.cap="Boxplot of charging timing by charge rate"}
+```{r boxplotCharging, fig.cap="Boxplot of daily standard charging demand"}
 p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
                      aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
@@ -407,25 +422,16 @@ p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
 
-```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+```{r plot3, fig.cap="Boxplot of daily fast charging demand"}
 p <- ggplot2::ggplot(subset(dt, chargeType %in% "Fast charging"), 
                      aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
-p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily fast charging demand")
-```
-
-```{r plot2, fig.cap="Boxplot of charging timing"}
-p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  guides(colour = guide_legend(title = "Vehicle:")) +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbbPalette) + 
-  geom_boxplot() 
-
 p + labs(x = "Time of Day", y = "Power (kW)")
 ```
+
+
 
 ```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
 p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
