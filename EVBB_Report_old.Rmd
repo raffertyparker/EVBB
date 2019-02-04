@@ -1,0 +1,529 @@
+---
+title: "Analysis of electric vehicle usage patterns in New Zealand"
+author: "Rafferty Parker (University of Otago)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    self_contained: no
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  bookdown::word_document2:
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+subtitle: 
+#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(readr)
+library(knitr)
+library(lubridate)
+library(hms)
+library(plyr)
+library(dplyr)
+
+# colour blind palettes for charts
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+# with grey
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# with black
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+# for Xubuntu:
+dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_07/"
+
+# for Mac
+# dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/Self_contained_Projects/2018_evChargingRafferty/data/2019_01_07/”
+
+dFile <- paste0(dPath, "EVBB_processed_founders.csv")
+
+```
+
+
+
+
+The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.
+
+Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
+* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by appproximately 3,000MW
+* If all were charged in a "smart" fashion, there would be no increase in peak demand
+
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. 
+
+
+
+Our results showed that... [when/where is the greatest amount of charging occurring? What is the power demand per vehicle/household/place of charging? What might this look like if 50% of households had an EV? What about if it matched current ICE ownership (eventually)?]
+
+
+# Research questions
+
+Need to find:
+* The median average energy supplied by domestic charging events
+Compare with UK findings og  was 7.5 kWh. If NZ findings are higher, it may be due to UK having more plug-in hybrids. 
+* The mean average energy supplied 
+Compare with UK findings of 9.1 kWh.
+* Charging duration time each day of week
+* Time of day that charging begins by day of week
+* Plot time of day charging begins and time of day charging ends (weekend/weekday?)
+* Plot average energy supplied by hour of start time (fast/slow charging)
+* plot average duration of plug-in by hour of start time (fast/slow charging)
+* Average energy use per vehicle per month
+* Average number of charging events per vehicle per day for each day of week
+* Average number of events per vehicle per w eek
+* Median/mean amount of energy supplied per day of week (may not be easy to exactly determine)
+
+
+# Methods
+## Data
+
+
+```{r load data}
+df <- readr::read_csv(dFile)
+```
+
+This is a cross-references to Table \@ref(tab:tab1).
+
+```{r tab1}
+
+t <- summary(df)
+
+knitr::kable(t, caption = "Data summary") # <- makes a pretty table
+```
+
+
+```{r create factors for the variables for which it will be useful}
+df$day_of_week <- factor(df$day_of_week, ordered = TRUE,
+                                     levels = c("Monday", "Tuesday", "Wednesday","Thursday",
+                                                "Friday", "Saturday", "Sunday")) 
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE) 
+
+df$charging_rate <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('None', 'Slow', 'Fast'))
+
+
+```
+
+```{r half hours}
+# code to half (or quarter) hours, removing seconds from formatting
+
+df$halfHour <- format(as.POSIXct(hms::trunc_hms(df$time, 30*60)), "%H:%M")
+df$quarterHour <- format(as.POSIXct(hms::trunc_hms(df$time, 15*60)), "%H:%M")
+
+```
+
+```{r rename car ids to something more user-friendly}
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+
+df$id <- factor(df$id,
+  labels = levSeqChar)
+
+df$id <- as.character(df$id)
+
+df$id <- paste("Vehicle", df$id, sep = " ")
+
+
+# It *might* be useful to do a similar thing with dayid, however it appears there is a seperate dayid per car per day (not same for different cars on same day)
+# This would be unnecessary if I get a proper datetime stamp
+
+```
+
+
+```{r removal of silly percentage values}
+df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
+df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
+```
+
+The following dataframe "chargeBegins" is constructed out of all the instances where charging becomes non-zero after previously being zero, hopefully capturing the moment the car is initially plugged in. Data is also excluded where charging has stopped due to the car being fully charged and then starts again briefly, charging is turned off or on, etc.
+Extra lag of 2 was provided due to some instances where there was only one minute where charging occurred, presumably due to regenerative braking.
+This should be useful for establishing average state of charge when arriving home. 
+Similarly, "chargeEnds" hopefully captures the time at which the vehicle becomes fully charged.
+Note that the discrepency between the number of "charge begins" events and "charge ends" events indicated that there may be a better way of defining these.
+
+```{r establishment of chargeBegins and chargeEnds dataframes}
+chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
+                         lag(charge_power_kw, 2) < 0.1)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+
+# Not sure why there are so many more instances of charge beginning than charge ending
+```
+
+
+```{r counting days in data}
+dayCount <- table(df$day_of_week)
+png(filename="~/EVBB/plots/day_count.png")
+barplot(dayCount)
+dev.off()
+
+```
+
+![Count of data by day](~/EVBB/plots/day_count.png) 
+The above figure demonstrates that that for the current data set there is a disparity in the number of data points for each day, making analysis of averages etc difficult.
+
+```{r mean and median kW demand}
+#Mean and median kW demand per day by day of the week (Bar charts, one for fast charging one for slow)
+ 
+```
+
+```{r create no charge, startcharge, mid charge, and end charge factors for df}
+
+# This entire block is garbage, will probably need deleting
+
+# perhaps best way to do this:
+# create factor where all zero charge values are NC, all non-zero are MC
+# then create factors for BC and EC using filter method from previous block
+# to overwrite beginning and end MC values
+
+
+#df$chargeFactor <- factor(df$id)
+#for (i in 3:nrow(df)){
+#  if(df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i-1] < 0.1 &
+#                         df$charge_power_kw[i-2] < 0.1){
+#  df$chargeFactor[i] <- "Charge begins"
+#  } else if (df$charge_power_kw[i] > 0.1 & df$charge_power_kw[i+1] < 0.1 &
+#             df$charge_power_kw[i+2] < 0.1){
+#  df$chargeFactor[i] <- "Charge ends"
+#  } else if (df$charge_power_kw[i] < 0.1){
+#  df$chargeFactor[i] <- "No charging"
+#  } else {
+#  df$chargeFactor[i] <- "Mid charge"
+#  }
+#}
+
+#chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+#chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+#chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+
+#df$charge_factor <- cut(df$charge_power_kw, c(-Inf, 0.01, Inf), labels = c('NC', 'MC'))
+
+
+#chargeBegins <- filter(df, charge_power_kw > 0 & lag(charge_power_kw) == 0 
+#                       & lag(charge_power_kw, 2) == 0)
+#chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+
+#chargeEnds <- filter(df, charge_power_kw < 0.1 & lag(charge_power_kw) > 1) 
+
+
+
+#if (df$charge_power_kw > 0.1 & lag(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "BC"
+#} else if (df$charge_power_kw > 0.1 & lead(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "EC"}
+
+
+
+#if (df$charge_power_kw < 0.1){
+#  df$charge_factor <- "NC"
+#} else if (df$charge_power_kw > 0.1 & lag(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "BC"
+#} else if (df$charge_power_kw > 0.1 & lead(df$charge_power_kw) < 0.1){
+#  df$charge_factor <- "EC"
+# else
+#  df$charge_factor <- "MC"
+
+
+#df$charge_factors <- filter(df)
+
+#df = data.table(df)                                       # Make df a data table
+#df$RowID = 1:nrow(df)                                     # Add a row ID column
+#d1 = data.table(df[charge_power_kw > 0])                               # Second data table, containing only the rows with non-zero charging
+
+#d1 = d1[df, on = c("id","id2",text = "text2")]             # Join the two data tables
+
+#d1 = d1[i.num==0 & i.RowID > RowID & i.RowID < RowID + 5] # Get only the candidate rows
+#dFinal = d1[,.(check = min(i.RowID-RowID)),by='RowID']    # Find which match came first
+#df = dFinal[df,on="RowID"]                                # Join the tables
+#df[num==1 & is.na(check),check:=-1]                       # Fill empty checks where num = 1 with value -1
+
+
+```
+
+```{r establish average energy use}
+#  As timestanp scrambled we would need to work out average per day and then times this by 365/12 to get monthly average
+
+
+
+```
+
+```{r value of state of charge at beginning of charge}
+p <- ggplot(data=chargeBegins, aes(chargeBegins$state_of_charge_percent)) + geom_histogram(bins = 10)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+
+```
+
+```{r bar plots of charging start times}
+startCount <- table(chargeBegins$day_of_week)
+barplot(startCount, main="Charging start times")
+
+endCount <- table(chargeEnds$day_of_week)
+barplot(endCount, main = "Charging end times")
+
+# NOTE I am skeptical of these, I think the block that constructs chargeBegins/Ends needs improving upon
+# Also the "count" on the y axis is pretty meaningless, perhaps it would be good to (for example) divide by number of vehicles and then perhaps number of months, then change the title to " Monthly average charging start times". Alternatively just remove the numbers.
+```
+
+
+Figure \@ref(fig:plot1) implies that most charging is "slow".
+
+```{r plot1, fig.cap="Density plot of charging power by car"}
+p <- ggplot2::ggplot(df, aes(x = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position="bottom") +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_density() # <- make the plot in an object first
+
+p + labs(x = "Power (kW)") + facet_grid(id ~ .) +
+    annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="yellow") +
+  annotate("rect", xmin = 7, xmax = 50, ymin = 0, ymax = 1.5,
+           alpha = .1, fill="blue") +
+  annotate("text",label="Slow", x=3.5, y=1.25, angle=0) +
+  annotate("text",label="Fast", x=(50-7)/2 + 7, y=1.25, angle=0)
+
+# Not sure the annotations are really necessary but will leave them for now
+# Also probably don't need two different colours for each car
+# Need to alter settings so that fast charges are visible
+```
+
+
+
+## Analysis
+
+Analysis was conducted using R (`r R.version.string`) and the following packages:
+
+ * ggplot2 [@ggplot2]
+ * dplyr [@dplyr]
+
+Reports were developed using knitr [@knitr] within bookdown [@bookdown].
+
+# Charging Analysis
+
+## Research question 1
+
+When does charging happen?
+
+
+This is a cross-reference to Figure \@ref(fig:plot2). Time is coded to half hours. 
+
+```{r plot2, fig.cap="Boxplot of charging timing by car"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ id)
+```
+
+
+```{r plot2, fig.cap="Boxplot of daily slow charging demand"}
+#just put this hee before deleting it from main report
+p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbbPalette) + 
+  geom_boxplot() 
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+```
+ 
+ 
+```{r joyplot}
+#just put this hee before deleting it from main report
+ggplot(df,aes(x=charge_power_kw, y=forcats::fct_rev(day_of_week))) +
+  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x="Charging power",y="Day")
+``` 
+ 
+ 
+```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(subset(df, chargeType %in% c("Standard charging", "Fast charging")), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(day_of_week ~ chargeType)
+
+# let the rhs panel have a free y axis to see the patterns - as they are scaled down by the magnitude of the fast charging. 
+```
+  
+```{r plot3a, fig.cap="Boxplot of daily fast charging"} 
+p <- ggplot2::ggplot(df %>% filter(charging_rate == "Fast"), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~day_of_week)
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+
+ggsave("~/EVBB/plots/daily_fast_charging.png")
+
+# poor scaling 
+```
+
+```{r plot3b, fig.cap="Boxplot of daily slow charging"}
+
+p <- ggplot2::ggplot(df %>% filter(charging_rate == "Slow"), 
+                     aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~day_of_week) 
+
+p + labs(x = "Time of Day", y = "Power (kW)") + coord_flip()
+
+# Not sure the coord_flip is beneficial
+
+ggsave("~/EVBB/plots/daily_slow_charging.png")
+```
+
+```{r plot3c, fig.cap="Boxplot of weekday/weekend slow charging"}
+
+p <- ggplot2::ggplot(df %>% filter(charging_rate == "Slow"), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~weekday)
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+
+ggsave("~/EVBB/plots/weekday_weekend_slow_charging.png")
+```
+```{r plot3d, fig.cap="Boxplot of weekday/weekend fast charging"}
+
+p <- ggplot2::ggplot(df %>% filter(charging_rate == "Fast"), aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  facet_grid(~weekday)
+
+p + labs(x = "Time of Day", y = "Power (kW)")
+
+ggsave("~/EVBB/plots/weekday_weekend_fast_charging.png")
+
+# Not obvious that no overnight charging occurring
+```
+
+```{r plot4, fig.cap = "Weekend and weekday charging patterns"}
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red") +
+  coord_cartesian(xlim = c(0,24),ylim=c(0,15))
+
+p + labs(x = "Time of Day", y = "Power (kW)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
+
+
+
+```
+
+```{r fastcharge only}
+p <- ggplot(df %>% filter(charging_rate == "Fast"), aes(x = charge_power_kw)) + 
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_histogram()
+ 
+p + labs(x = "Charging power (kW)", y = "Frequency of occurrence") + facet_wrap(~weekday) 
+
+```
+
+
+```{r frequency of slow charging}
+p <- ggplot(df %>% filter(charging_rate == "Slow") , aes(x = halfHour, y = charging_rate)) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_bar(stat = "identity")
+ 
+p + labs(x = "Time of day (hours)", y = "Frequency of slow charging events") + 
+  facet_wrap(~weekday) 
+  
+ggsave("~/EVBB/plots/frequency_of_slow_charging.png")
+
+```
+
+```{r frequency of fast charging}
+  
+p <- ggplot(df %>% filter(charging_rate == "Fast") , aes(x = halfHour, y = charging_rate)) + 
+  facet_wrap(~weekday) + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  geom_bar(stat = "identity")
+
+p + labs(x = "Time of day (hours)", y = "Frequency of fast charging events")
+
+ggsave("~/EVBB/plots/frequency_of_fast_charging.png")
+
+#  stat_summary(aes(group = weekday), fun.y=mean, geom="line") +
+```
+
+# State of charge patterns
+
+When analysing the potential for smart charging it is useful to understand daily patterns of the vehicle's "state of charge", in particular the percentage of energy left in the battery once the vehicle returns home. This is of particular significance when considering vehicle to grid (V2G) energy transfer. If there is a very high frequency whereby the driver only uses a particular percentage of the battery capacity in a day, there may be the ability to return electricity to the grid (or household) during grid congestion events or other occasions of very high electricity price, provided enough energy always remained in the battery for a typical day of travel.
+
+Figure \@ref(plot:charging density plot by vehicle) shows a box plot of state of charge during the day. (Note that the zero values may be false - there seem to be no values that approach zero)
+```{r charging density plot by vehicle}
+
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+p + labs(x = "Time of day", y = "State of charge (%)")
+ggsave("~/EVBB/plots/SOC_throughout_day.png")
+```
+# Density plot of half-hour values (see when data is being collected)
+
+
+
+```{r State of charge by weekend/weekday}
+
+p <- ggplot2::ggplot(df, aes(x = halfHour, group = halfHour, y = state_of_charge_percent)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  scale_colour_manual(values=cbPalette) + # use colour-blind friendly palette
+  geom_boxplot() +
+  stat_summary(aes(group = weekday), fun.y=mean, geom="line", colour = "red")
+
+p + labs(x = "Time of Day", y = "State of charge (%)") + facet_grid(~weekday) +  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) 
+```
+
+Need to get average SOC when charging begins. To do this, we will select all data whereby the charging rate is non-zero, but the previous charge rate is zero
+
+
+## Research question 2
+
+How might this affect the NZ electricity grid?
+
+# Conclusions
+
+# References
+
+

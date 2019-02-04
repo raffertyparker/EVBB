@@ -1,0 +1,373 @@
+---
+title: "Analysis of electric vehicle usage patterns in New Zealand"
+subtitle: "Summary Statistical Report"
+author: "Rafferty Parker and Ben Anderson (University of Otago)"
+date: 'Last run at: `r Sys.time()`'
+output:
+  bookdown::html_document2:
+    code_folding: hide
+    fig_caption: yes
+    number_sections: yes
+    self_contained: no
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr) # tidy data reading
+library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
+library(lubridate) # for data & time manip
+library(hms) # for hh:mm:ss if we need it
+library(ggplot2) # fancy plots
+library(dplyr) # for filter
+library(ggjoy) # for 
+library(knitr)
+library(kableExtra)
+# colour blind palettes for charts
+# http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+# with grey
+cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# with black
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# for Mac
+user <- Sys.info()[[7]]
+if(user == "ben"){
+  dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
+} else {
+  # for Xubuntu:
+  dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
+}
+
+dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
+rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
+```
+
+```{r dataPrep}
+df <- rawDF # so can always re-create df without having to re-load data
+# set correct order for days of the week
+df$day_of_week <- ordered(df$day_of_week, levels=c("Monday", "Tuesday", "Wednesday",
+                                                   "Thursday", "Friday", "Saturday", "Sunday"))
+# set charge type
+df$chargeType <- ifelse(df$charge_power_kw > 0, "Standard charge", NA) 
+df$chargeType <- ifelse(df$charge_power_kw >= 7, "Fast charge", df$chargeType)
+#table(df$chargeType, useNA = "always")
+df$chargeType <- ifelse(is.na(df$chargeType), "Not charging", df$chargeType) # not charging
+#table(df$chargeType, useNA = "always")
+# set charge type order so charts make sense from left (std) to right (fast)
+df$chargeType <- cut(df$charge_power_kw, c(-Inf, 0.01, 7, Inf), labels = c('Not charging', 'Standard charging', 'Fast charging'))
+df$chargeType <- factor(df$chargeType, ordered = TRUE)
+df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
+dt <- as.data.table(df) # creates a data.table for fast data crunching
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw == 0, 
+                                "preFirst", NA), by = id] # useful for checking
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw > 0,
+                                "first", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw > 0) & charge_power_kw > 0, 
+                                "charging", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0, type = "lead") & charge_power_kw > 0, 
+                                "last", chargeFlag), by = id]
+dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw == 0) & charge_power_kw == 0, 
+                                "apresLast", chargeFlag), by = id]
+dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("preFirst", "first", "charging",
+                                                 "last","apresLast"))
+# table(dt$chargeFlag)
+dt <- dt[ , `:=`( chargeCount = .N ) , by = chargeFlag ]
+dt <- dt[, obsDiffTime := difftime(time,shift(time)), by = id] # time since previous observation (within id)
+dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
+  
+chargingDT <- dt[charge_power_kw > 0] # select just charging
+# Rename vehicle ids to something more user-friendly
+df$id <- factor(df$id, ordered = TRUE)
+levSeq <- seq(1:length(levels(df$id)))
+levSeqChar <- as.character(levSeq)
+df$id <- factor(df$id,
+  labels = levSeqChar)
+df$id <- as.character(df$id)
+df$id <- paste("Vehicle", df$id, sep = " ")
+df$time <- hms::round_hms(df$time, 60) # Not sure this line is necessary
+# Month as ordered factor
+df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
+                                                        "Jun", "Jul", "Aug", "Sep", "Oct",
+                                                        "Nov", "Dec"))
+# Create factor for weekdays/weekends
+weekdays1 <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+df$weekday <- factor((df$day_of_week %in% weekdays1), 
+                   levels = c(TRUE, FALSE), labels = c('Weekday', 'Weekend'), ordered = TRUE)
+# removal of silly percentage values
+df$state_of_charge_percent[df$state_of_charge_percent > 100] <- NA
+df$state_of_charge_percent[df$state_of_charge_percent < 0] <- NA
+```
+
+
+```{r establishment of chargeBegins and chargeEnds dataframes}
+# See EVBB_Report for more information regarding these dataframes
+chargeBegins <- filter(df, charge_power_kw > 0.1 & lag(charge_power_kw) < 0.1 &
+                         lag(charge_power_kw, 2) < 0.1)
+chargeBegins <- filter(chargeBegins, state_of_charge_percent < 97)
+chargeEnds <- filter(df, charge_power_kw > 0.1 & lead(charge_power_kw) < 0.1 & lead(charge_power_kw, 2) < 0.1)
+chargeEnds <- filter(chargeEnds, state_of_charge_percent < 97)
+```
+
+
+# Note
+
+Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
+
+Data used: `r dFile`
+
+Observations: `r nrow(dt)`
+Observed charging: `r nrow(chargingDT)` observations (power demand > 0)
+
+# Definitions:
+The data consisted of `r nrow(dt)` data points from `r length(levels(df$id))` vehicles over M months (X - Y, 2018) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state as well as geo-location via GP.
+
+The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
+
+A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW was demand was observed. _Difficult to do accurately without date column due to charging occurring through the night when date hashes change. These hashes do not appear to have an order so we cannot distinguish the 2nd from the 3rd Thursday (for example) and so establish correct multi-day sequences._
+
+For a discussion of data limitations see Section  \@ref(dataIssues).
+
+# Key Findings:
+
+```{r keyFindings}
+stdMedian <- median(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
+stdMean <- mean(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
+  
+fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
+fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
+```
+
+ * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
+  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. _Gets truncated at midnight as not possible to determine exact sequence of days_
+  * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.
+
+# Observed demand
+
+Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common and, partly due to our definition, are concentrated around 3 kW. At the present time charging at home is likely to be predominatly standard charging whilst charging outside the home is likely to be a mix of the two.
+
+```{r obsPower, fig.cap="Observed power demand distribution by day of the week and charge type where charging observed"}
+p <- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
+  geom_histogram() +
+  facet_grid(. ~ chargeType, scales = "free")
+# now draw the plot with any fancy extras we want
+p + labs(y = "Density",
+       x = "Power (kW)") +
+  guides(fill = guide_legend(title = "Charge type:")) +
+  scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+```
+
+The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly lower/higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`).
+
+```{r stdChargeSizing}
+stdQT <- quantile(chargingDT[chargeType == "Standard charging"]$charge_power_kw)
+fastQT <- quantile(chargingDT[chargeType == "Fast charging"]$charge_power_kw)
+```
+
+75% of standard charging observations were `r round(stdQT[[2]],2)` kW or more but the figure was `r round(fastQT[[2]],2)` kW or more for fast charging
+
+# Daily demand
+
+```{r dailyPower, fig.cap="Observed power demand distribution by day of the week and charge type"}
+p <- ggplot2::ggplot(filter(dt, chargeType == "Standard charging" | chargeType == "Fast charging"), aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
+  geom_boxplot(aes(y = charge_power_kw)) +
+  facet_grid(. ~ chargeType)
+# now draw the plot with any fancy extras we want
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = "Day of week",
+       y = "Power (kW)") +
+  guides(colour = guide_legend(title = "Charge type:")) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+```
+
+Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is relatively constant across days.
+
+
+> Discuss any other patterns
+# Charging duration {#duration}
+
+Fig: Histogram of charging event durations (faceted by fast vs standard) _Can't do without true date column - see above_
+
+> This is a bit of a kludge but...
+If we assume that the first non-zero charge observation is the 'start' and the last non-zero charge observation within the vehicle id is the 'end' we can calculate the duration between the two. This assumes there is no missing data.
+
+```{r chargeFlagHistogram}
+ggplot(filter(dt, chargeFlag == "first" & chargeFlag == "last"), aes(chargeFlag)) +
+  geom_histogram(stat = "count")
+```
+This histogram shows that there are discrepencies in the number of "charge begins" and "charge ends" flags.
+
+
+```{r calculateChargeDurations}
+# select the observations which we've flagged as first & last in a sequence of charging
+firstLastDT <- dt[chargeFlag == "first" | chargeFlag == "last"]
+# flag the first of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "first" & shift(chargeFlag == "last", type = "lead"), "Pair start", NA)]
+# flag the second of a pair
+firstLastDT <- firstLastDT[, pairOK := ifelse(chargeFlag == "last" & shift(chargeFlag == "first"), "Pair end", pairOK)]
+# calculate the time diff between all obs
+firstLastDT <- firstLastDT[, pairDuration := difftime(time1 = time, time2 = shift(time), units = c("mins"))]
+# we only want the time difference which was calculated for an obs where pairOK == "Pair end". This should also be where chargeFlag == "last" _except_ for where we have no 'first' (e.g. at start of data)
+# note that we will still have pairs that bridge 00:00 which will give us -ve values
+# if we have a -ve value then we need to change the calculation to add the time
+# up to midnight from the start to the time after midnight to the end
+firstLastDT <- firstLastDT[pairOK == "Pair start" & shift(pairDuration < 0, type = "lead"), 
+                           toMidnight := difftime(time1 = as.hms("23:59:59"), time2 = time)]
+firstLastDT <- firstLastDT[pairOK == "Pair end" & pairDuration < 0, 
+                           afterMidnight := difftime(time1 = time, time2 = as.hms("00:00:00"), units = c("mins"))]
+firstLastDT <- firstLastDT[, pairDurationFix := shift(toMidnight) + afterMidnight]
+firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
+                                                         pairDurationFix,
+                                                         pairDuration)]
+t <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType)]
+```
+
+
+```{r meanDurationTable}
+kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
+```
+
+```{r meanDurationPlot, fig.cap="Mean duration by time of charging start"}
+plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, qHour)]
+```
+
+> Discuss any other patterns
+> NB: are the durations being truncated at midnight as we do not have consecutive dateTimes?
+# Time of charging
+
+```{r chargeTime, fig.cap="Count of observed charging events by type,day of week and time"}
+plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
+# make a weekend facet label
+plotDT <- plotDT[, weekEnd := "Weekend"]
+plotDT <- plotDT[day_of_week != "Saturday" & day_of_week != "Sunday", weekEnd := "Week day"]
+p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = count, colour = day_of_week)) +
+  geom_line() +
+  facet_grid(weekEnd ~  chargeType)
+  
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(x = "Time of day",
+       y = "Count") +
+  guides(colour = guide_legend(title = "Day of week:")) +
+  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
+  theme(legend.position = "bottom")
+```
+
+Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see...
+ 
+Fig: profile of median charging demand by time of day and day of the week _Difficult to do without date column_ faceted by at home vs not at home _Would need GPS data_
+
+Charging demand varies considerable by time of day, day of the week and imputed location. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
+
+```{r boxplotCharging, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
+                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily standard charging demand")
+```
+
+```{r joyplot}
+ggplot(df,aes(x=charge_power_kw, y=day_of_week)) +
+  geom_joy(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x="Charging power",y="Day") +
+  theme_minimal()
+```
+
+
+```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+p <- ggplot2::ggplot(subset(df, chargeType %in% "Fast charging"), 
+                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an object first
+p + labs(x = "Time of Day", y = "Power (kW)", caption = "Boxplot of daily fast charging demand")
+```
+
+```{r plot2, fig.cap="Boxplot of charging timing"}
+p <- ggplot2::ggplot(df, aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  guides(colour = guide_legend(title = "Vehicle:")) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
+  geom_boxplot() # <- make the plot in an daysobject first
+p + labs(x = "Time of Day", y = "Power (kW)")
+```
+
+Fig: profile of start and end of charging events by time of day and day of the week _This we can do_ faceted by at home vs not at home _Would need GPS data_
+
+
+
+```{r chargeBeginsWeekday}
+p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging start times during weekdays" )
+```
+
+```{r chargeBeginsWeekend}
+p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekend", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging start times during weekends" )
+```
+
+```{r chargeEndsWeekday}
+p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end times during weekdays" )
+```
+
+
+```{r chargeEndsWeekend}
+p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekend", ], aes(x = qHour, fill = chargeType))  +
+  scale_colour_manual(values=cbbPalette)+
+  geom_density(alpha = 0.3) +
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type", title = "Density plot of charging end times during weekends" )
+```
+
+
+
+At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
+_We can get "Slow" charging events rather than "home"_
+
+Domestic charging has a noticeably different profile to charging patterns for chargepoints at other locations. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
+
+> Discuss any other patterns
+# State of charge
+
+The duration of charging events (see Section \@ref(duration)) suggests that EVs may be 'plugged in' at home (and elsewhere) for considerable durations. 
+
+Fig: Distribution of state of charge when evening charge event starts 'at home' (histogram (or joy plot) by day of week)
+![SOC when charging begins](~/EVBB/plots/SOC_when_charging_begins.png)
+
+The figure shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
+
+
+Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week _No "at home" data with SOC_
+
+> should show the timing of 'coming home' battery state?
+Fig: Distribution of duration of charge events starting 'at home' in the evening (by day of the week) _Duration difficult to accurately determine without date due to charging occurring through the night_
+
+The figure shows that vehicles may then be available for further demand response and/or re-charging for up to XX hours from this point.
+
+> Discuss any other patterns
+# Data limitations {#dataIssues}
+  
+The GPS data used to determine location is not available for x% of observations possibly due to in-garage parking or other physical signal inhibition. Location cannot be deduced in these cases and has instead been imputed as the 'last' GPS location recorded. These errors may affect the location/'at home' coding.
