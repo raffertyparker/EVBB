@@ -472,11 +472,11 @@ p + labs(x = "Time", fill = "Charge type")
 
 ```
 
-
-Slow charging events most commonly began around 10pm during both weekdays and weekends, while fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
-
 Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
 
+Slow charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which freqently begin around 10pm.
+
+Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.  
 
 
 ```{r chargeTime, fig.cap="Count of observed charging events by type, day of week and time"}
@@ -504,9 +504,10 @@ Fig: profile of median charging demand by time of day and day of the week  facet
 
 Charging demand varies somewhat by time of day and day of the week. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
 
-```{r boxplotCharging, fig.cap="Boxplot of charging timing by charge rate"}
+```{r boxplotCharging, fig.cap="Boxplot of daily standard charging demand"}
 p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
                      aes(x = qHour, group = qHour, y = charge_power_kw)) +
+  facet_wrap(~weekday) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
@@ -522,25 +523,18 @@ p + labs(x = "Time of Day", y = "Power (kW)")
 
 
 
-```{r plot3, fig.cap="Boxplot of charging timing by charge rate"}
+```{r plot3, fig.cap="Boxplot of daily fast charging demand"}
 p <- ggplot2::ggplot(subset(dt, chargeType %in% "Fast charging"), 
                      aes(x = qHour, group = qHour, y = charge_power_kw)) +
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
+  facet_grid(~weekday) +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   geom_boxplot() # <- make the plot in an object first
 
 p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
-```{r plot2, fig.cap="Boxplot of charging timing"}
-p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  guides(colour = guide_legend(title = "Vehicle:")) +
-  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
-  scale_colour_manual(values=cbbPalette) + 
-  geom_boxplot() 
 
-p + labs(x = "Time of Day", y = "Power (kW)")
-```
 
 > Discuss any other patterns
 
