@@ -423,24 +423,6 @@ p + labs(x = "Time", fill = "Charge type")
 
 ```
 
-```{r chargeEndsWeekday, fig.cap="Density plot of charging end times during weekdays"}
-p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
-p + labs(x = "Time", fill = "Charge type" )
-
-```
-
-
-```{r chargeEndsWeekend, fig.cap="Density plot of charging end times during weekends"}
-p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekend", ], aes(x = qHour, fill = chargeType))  +
-  scale_colour_manual(values=cbbPalette)+
-  geom_density(alpha = 0.3) +
-  facet_grid(~weekday)
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-
 
 Standard charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
 

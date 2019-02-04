@@ -54,6 +54,8 @@ dFile <- paste0(dPath, "EVBB_processed_founders.csv")
 ```
 
 
+Data used: `r dFile`
+
 
 
 The Concept Consulting report considers different methods of EV charging. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.

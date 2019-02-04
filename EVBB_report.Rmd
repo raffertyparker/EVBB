@@ -288,7 +288,7 @@ kableExtra::kable(t,
 
 Manual inspection of the data showed that these short-duration charging "events" generally occurred near the end of a longer-duration charging event. It appeared that once the vehicle had reached its highest state of charge, charging would intermittantly stop and start again. This is likely due to the behaviour of the charger once the battery was almost full. As these can not be considered truly independent charging events, they have been removed from the data for the rest of the analysis.
 
-In addition to the myriad "small" charging duration values, a small amount of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were assumed to be anomalies and were discarded.
+In addition to the myriad "small" charging duration values, a small amount of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were assumed to be anomalies and are not included in the following analyses.
 
 
 ```{r removeBigAndSmallDurations}
@@ -330,10 +330,15 @@ stdMean <- mean(chargingDT[chargeType == "Standard charging"]$charge_power_kw, n
   
 fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
+
+fastDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
+standardDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
 ```
 
  * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
-  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. 
+  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'standard' charges with a median of `r round(standardDurMedian/60,2)` hours and shorter "fast" charge events with a median duration of `r round(fastDurMedian, 2)` minutes. 
   * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.
 
 # Observed demand
@@ -418,8 +423,61 @@ kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
 plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, dateTime)]
 ```
 
+# State of charge{#SoC}
 
-# Time of charging
+
+```{r SoCplot1, fig.cap= "Value of state of charge at beginning of charge"}
+p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 20)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+```
+As can be seen in Figure \@ref(fig:SoCplot1), using the originally defined "charge begins" data we have the majority of charges beginning while the state of charge is above 90%. This is likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle.
+
+Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins but with state of charge greater than 90% removed from the data. The figure shows that many vehicles arrive home with greater than 50% charge remaining. This indicates that charging may be delayed until early the following morning (during low aggregate electricity demand) while providing enough "back up" state of charge to allow for small evening trips if necessary. Alternatively, the battery may be able to transfer energy to the home during the evening grid peak as a form of demand response. 
+
+```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge (>90% values removed)"}
+tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
+p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+tmp <- NULL
+```
+
+# Time charging begins
+
+After filtering out any data whereby charging begins while the state of charge is greater than 90% to account for battery 'top-ups' (refer to \@ref(SoC)) we obtain the following figues.
+
+```{r ggjoyplotTimeChargingBegins, fig.cap="Time charging begins"}
+ggplot(chargeBegins[SoC_percent < 90],aes(x=qHour, y= forcats::fct_rev(day_of_week))) +
+  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
+  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
+  labs(x = "Hour", y = "Day") 
+# Not sure how to get time on x axis (or if I want to)
+# ATTN BEN I don't think this joy plot gives any more information than we get from the following 2 density plots. Delete this entire block if you agree.
+```
+
+```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
+p <- ggplot(chargeBegins[weekday == "Weekday" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type")
+
+```
+
+
+```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
+p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) 
+p + labs(x = "Time", fill = "Charge type")
+
+```
+
+
+Slow charging events most commonly began around 10pm during both weekdays and weekends, while fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
+
+Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
+
+
 
 ```{r chargeTime, fig.cap="Count of observed charging events by type, day of week and time"}
 plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
@@ -484,82 +542,7 @@ p <- ggplot2::ggplot(dt, aes(x = qHour, group = qHour, y = charge_power_kw)) +
 p + labs(x = "Time of Day", y = "Power (kW)")
 ```
 
-
-
-```{r ggjoyplotTimeChargingBegins, fig.cap="Time charging begins"}
-ggplot(chargeBegins,aes(x=qHour, y= forcats::fct_rev(day_of_week))) +
-  geom_density_ridges(rel_min_height = 0.01) +        # removes tails
-  scale_x_discrete(expand = c(0.01, 0)) +  # removes cutoff top
-  labs(x = "Hour", y = "Day") 
-# Not sure how to get time on x axis (or if I want to)
-# ATTN BEN I don't think this joy plot gives any more information than we get from the following 2 density plots. Delete this entire block if you agree.
-```
-
-```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
-p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
-  facet_grid(~weekday)
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
-p <- ggplot(chargeBegins[chargeBegins$weekday == "Weekend", ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-```{r chargeEndsWeekday, fig.cap="Density plot of charging end times during weekdays"}
-p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekday", ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
-p + labs(x = "Time", fill = "Charge type" )
-
-```
-
-
-```{r chargeEndsWeekend, fig.cap="Density plot of charging end times during weekends"}
-p <- ggplot(chargeEnds[chargeEnds$weekday == "Weekend", ], aes(x = qHour, fill = chargeType))  +
-  scale_colour_manual(values=cbbPalette)+
-  geom_density(alpha = 0.3) +
-  facet_grid(~weekday)
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-
-
-At home charging events tended to begin at HH:MM during weekdays and HH:MM at weekends. 
-_We can get "Slow" charging events rather than "home"_
-
-Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.
-
 > Discuss any other patterns
-
-# State of charge
-
-The duration of charging events (see Section \@ref(duration)) suggests that EVs may be 'plugged in' at home (and elsewhere) for considerable durations. 
-
-
-```{r SoCplot1, fig.cap= "Value of state of charge at beginning of charge"}
-p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging begins (%)")
-ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
-```
-As can be seen in Figure \@ref(fig:SoCplot1), using the originally defined "charge begins" data we have the majority of charges beginning while the state of charge is above 90%. This is likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle.
-
-Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins but with state of charge greater than 90% removed from the data. The figure shows that many vehicles arrive home with greater than 50% charge remaining. This indicates that charging may be delayed until early the following morning (during low aggregate electricity demand) while providing enough "back up" state of charge to allow for small evening trips if necessary. Alternatively, the battery may be able to transfer energy to the home during the evening grid peak as a form of demand response. 
-
-```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge (>90% values removed)"}
-tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
-p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging begins (%)")
-ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
-tmp <- NULL
-```
-
-
-
 
 
 Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week _No "at home" data with SOC_
