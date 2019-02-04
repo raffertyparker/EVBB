@@ -340,7 +340,7 @@ fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.r
 
 Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common, and are concentrated around 1.8kW, 3kW and 6kW. 
 
-```{r obsPower, fig.cap="Observed power demand distribution by day of the week and charge type where charging observed"}
+```{r obsPower, fig.cap="Observed power demand distribution by charge type where charging observed"}
 p <- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
   geom_histogram() +
   facet_wrap(. ~ chargeType, scales = "free")
@@ -403,6 +403,7 @@ plotDT <- firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8,
                       keyby = .(qHour, chargeType)]
 ggplot2::ggplot(plotDT, 
                 aes(x = qHour, y = meanDuration, colour = chargeType)) +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90)) +
   geom_point() +
   labs(x = "Time of Day",
        y = "Minutes")
@@ -540,19 +541,25 @@ Standard charging has a noticeably different profile to charging patterns for fa
 The duration of charging events (see Section \@ref(duration)) suggests that EVs may be 'plugged in' at home (and elsewhere) for considerable durations. 
 
 
-```{r value of state of charge at beginning of charge}
-p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 10)
+```{r SoCplot1, fig.cap= "Value of state of charge at beginning of charge"}
+p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)")
 ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
 ```
+As can be seen in Figure \@ref(fig:SoCplot1), using the originally defined "charge begins" data we have the majority of charges beginning while the state of charge is above 90%. This is likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle.
+
+Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins but with state of charge greater than 90% removed from the data. The figure shows that many vehicles arrive home with greater than 50% charge remaining. This indicates that charging may be delayed until early the following morning (during low aggregate electricity demand) while providing enough "back up" state of charge to allow for small evening trips if necessary. Alternatively, the battery may be able to transfer energy to the home during the evening grid peak as a form of demand response. 
+
+```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge (>90% values removed)"}
+tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
+p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+tmp <- NULL
+```
 
 
-Fig: Distribution of state of charge when evening charge event starts 'at home' (histogram (or joy plot) by day of week)
-![SOC when charging begins](~/EVBB/plots/SOC_when_charging_begins.png)
 
-
-
-The figure shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
 
 
 Fig: Mean state of battery charge at the first 'at home' charging observation by hour and day of the week _No "at home" data with SOC_
