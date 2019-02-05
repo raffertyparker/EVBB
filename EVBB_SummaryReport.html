@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Summary Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-02-04 15:45:05</em></h4>
+<h4 class="date"><em>Last run at: 2019-02-05 15:51:02</em></h4>
 
 </div>
 
@@ -575,27 +575,12 @@ Figure 7.4: Density plot of charging start times during weekdays
 Figure 7.5: Density plot of charging start times during weekends
 </p>
 </div>
-<div class="figure"><span id="fig:chargeEndsWeekday"></span>
-<img src="EVBB_SummaryReport_files/figure-html/chargeEndsWeekday-1.png" alt="Density plot of charging end times during weekdays" width="672" />
-<p class="caption">
-Figure 7.6: Density plot of charging end times during weekdays
-</p>
-</div>
-<div class="figure"><span id="fig:chargeEndsWeekend"></span>
-<img src="EVBB_SummaryReport_files/figure-html/chargeEndsWeekend-1.png" alt="Density plot of charging end times during weekends" width="672" />
-<p class="caption">
-Figure 7.7: Density plot of charging end times during weekends
-</p>
-</div>
-<p>Standard charging events tended to begin at HH:MM during weekdays and HH:MM at weekends.</p>
-<p>Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public chargepoints to top up during the day.</p>
-<blockquote>
-<p>Discuss any other patterns</p>
-</blockquote>
+<p>Slow charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper “off-peak” electricity times, which freqently begin around 10pm.</p>
+<p>Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.<br />
+&gt; Discuss any other patterns</p>
 </div>
 <div id="state-of-charge" class="section level1">
 <h1><span class="header-section-number">8</span> State of charge</h1>
-<p>The duration of charging events (see Section <a href="#duration">6</a>) suggests that EVs may be ‘plugged in’ at home (and elsewhere) for considerable durations.</p>
 <div class="figure"><span id="fig:SoCplot2"></span>
 <img src="EVBB_SummaryReport_files/figure-html/SoCplot2-1.png" alt="Value of state of charge at beginning of charge" width="672" />
 <p class="caption">
@@ -604,15 +589,6 @@ Figure 8.1: Value of state of charge at beginning of charge
 </div>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <p>Figure <a href="#fig:SoCplot2">8.1</a> shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response.</p>
-<p>Fig: Mean state of battery charge at the first ‘at home’ charging observation by hour and day of the week <em>No “at home” data with SOC</em></p>
-<blockquote>
-<p>should show the timing of ‘coming home’ battery state?</p>
-</blockquote>
-<p>Fig: Distribution of duration of charge events starting ‘at home’ in the evening (by day of the week) <em>Duration difficult to accurately determine without date due to charging occurring through the night</em></p>
-<p>The figure shows that vehicles may then be available for further demand response and/or re-charging for up to XX hours from this point.</p>
-<blockquote>
-<p>Discuss any other patterns</p>
-</blockquote>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
