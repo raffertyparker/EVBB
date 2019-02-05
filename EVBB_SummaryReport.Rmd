@@ -4,6 +4,10 @@ subtitle: "Summary Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
   bookdown::pdf_document2:
     fig_caption: yes
     keep_tex: yes
@@ -18,11 +22,8 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
-#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
+always_allow_html: yes
+bibliography: EVBBmendeleyrefs.bib  # make sure this exists :-)
 ---
 
 ```{r setup, include=FALSE}
@@ -226,7 +227,7 @@ Due to privacy considerations, the data is not publically available.
 
 ## Definitions:
 
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@concept2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
+The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@ConceptConsulting2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
 
 A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
 
@@ -234,7 +235,7 @@ A charging event was defined as a continuous sequence of 1 minute observations p
 _Perhaps for the summary report this entire subsection could be removed?_
 There were `r nrow(summaryDT) - nrow(includeDT)` vehicles within the provided data that had no recorded charging occur. These were immediately discarded.
 
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[concept2018].
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand [@ConceptConsulting2018].
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
@@ -436,7 +437,7 @@ Fast charging events tended to begin at 11:30am on weekdays and 1pm during weeke
 tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
 p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)")
-ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+ggsave("plots/SOC_when_charging_begins.png")
 tmp <- NULL
 ```
 
@@ -445,4 +446,6 @@ tmp <- NULL
 Figure \@ref(fig:SoCplot2) shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
 
 
+
+# References
 

@@ -4,12 +4,6 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -22,7 +16,14 @@ output:
     fig_caption: yes
     toc: yes
     toc_depth: 2
-#bibliography: EVBBmendeleyrefs.bib  # Won't knit with the bibliography for some reason. Seems to be a problem with pandoc as opposed to the .bib file.
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+always_allow_html: yes
+bibliography: EVBBmendeleyrefs.bib  # make sure this exists :-)
 ---
 
 ```{r setup, include=FALSE}
@@ -187,13 +188,13 @@ Due to privacy considerations, the data is not publically available.
 
 There were `r nrow(summaryDT) - nrow(includeDT)` vehicles in the data provided that had no recorded charging occur. These were immediately discarded.
 
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@concept2018].
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@ConceptConsulting2018].
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
 ## Definitions and preparation
 
-Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
@@ -429,7 +430,7 @@ plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFi
 ```{r SoCplot1, fig.cap= "Value of state of charge at beginning of charge"}
 p <- ggplot(data=chargeBegins, aes(chargeBegins$SoC_percent)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)")
-ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+ggsave("plots/SOC_when_charging_begins.png")
 ```
 As can be seen in Figure \@ref(fig:SoCplot1), using the originally defined "charge begins" data we have the majority of charges beginning while the state of charge is above 90%. This is likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle.
 
@@ -439,7 +440,7 @@ Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins b
 tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
 p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)")
-ggsave("~/EVBB/plots/SOC_when_charging_begins.png")
+ggsave("plots/SOC_when_charging_begins.png")
 tmp <- NULL
 ```
 
@@ -549,3 +550,4 @@ The figure shows that vehicles may then be available for further demand response
 
 > Discuss any other patterns
 
+# References
