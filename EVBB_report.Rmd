@@ -459,7 +459,8 @@ ggplot(chargeBegins[SoC_percent < 90],aes(x=qHour, y= forcats::fct_rev(day_of_we
 
 ```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
 p <- ggplot(chargeBegins[weekday == "Weekday" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
+  geom_density(alpha = 0.3) +
+  theme(legend.position = "bottom") 
   facet_grid(~weekday)
 p + labs(x = "Time", fill = "Charge type")
 
@@ -468,6 +469,7 @@ p + labs(x = "Time", fill = "Charge type")
 
 ```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
 p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
+  theme(legend.position = "bottom") +
   geom_density(alpha = 0.3) 
 p + labs(x = "Time", fill = "Charge type")
 
