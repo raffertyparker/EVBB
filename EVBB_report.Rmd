@@ -188,13 +188,13 @@ Due to privacy considerations, the data is not publically available.
 
 There were `r nrow(summaryDT) - nrow(includeDT)` vehicles in the data provided that had no recorded charging occur. These were immediately discarded.
 
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@concept2018].
+Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@ConceptConsulting2018].
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
 ## Definitions and preparation
 
-Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@concept2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
+Charging data has been broadly seperated into two seperate catagories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 The data was also catagorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
@@ -550,3 +550,4 @@ The figure shows that vehicles may then be available for further demand response
 
 > Discuss any other patterns
 
+# References
