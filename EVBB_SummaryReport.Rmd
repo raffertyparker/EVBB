@@ -23,7 +23,7 @@ output:
     toc_depth: 2
     toc_float: yes
 always_allow_html: yes
-bibliography: EVBBmendeleyrefs.bib  # make sure this exists :-)
+bibliography: EVBBmendeleyrefs.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -215,7 +215,7 @@ firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal > 840 & firstLastDT$c
 
 Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
 
-This is a summary report. A discussion into the background around the effects of EV charging in New Zealand, as well as detailed information on data limitations and data cleaning procedure is given in the full report.
+This is a summary report. A discussion into the background around the effects of EV charging on the electricity grid, as well as detailed information on data limitations and data cleaning procedure is given in the full report.
 
 # Data information{#data}
 
@@ -411,7 +411,8 @@ p + labs(x = "Time of Day", y = "Power (kW)")
 
 ```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
 p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
+  geom_density(alpha = 0.3)  +
+  theme(legend.position = "bottom") +
   facet_grid(~weekday)
 p + labs(x = "Time", fill = "Charge type")
 
@@ -419,7 +420,8 @@ p + labs(x = "Time", fill = "Charge type")
 
 ```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
 p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3) 
+  geom_density(alpha = 0.3)  +
+  theme(legend.position = "bottom") 
 p + labs(x = "Time", fill = "Charge type")
 
 ```
