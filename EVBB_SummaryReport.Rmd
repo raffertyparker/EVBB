@@ -252,11 +252,21 @@ stdMean <- mean(chargingDT[chargeType == "Standard charging"]$charge_power_kw, n
   
 fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
+
+fastDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
+standardDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
+
+fastDurMean <- mean(firstLastDT[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
+standardDurMean <- mean(firstLastDT[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
+                        na.rm = TRUE)
 ```
 
- * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a higher median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
-  * _Charging duration_: Charging durations tended to fall into one of two groups - longer 'overnight' charges with a median of XX hours and shorter events during the day both at standard and fast charge rates with a median duration of XX hours. 
-  * _Time of Day_: charging events were more frequent at specific times of the day and day of the week with more evening and over-night charging during weekdays and more day-time charging at weekends. The power demand also varied according to time of day and day of the week.
+ * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
+  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r round(standardDurMedian/60,2)` hours and a mean duration of `r round(standardDurMean/60,2)` hour. High power "fast" charge events had a median duration of `r round(fastDurMedian, 2)` minutes and a mean duration of `r round(fastDurMean, 2)` minutes. 
+  * _Time of Day_: Standard charging events tended to begin around 10pm, suggesting drivers set timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
 
 # Observed demand
 
@@ -297,7 +307,7 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "bottom")
 ```
 
-Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand but standard charging is relatively constant across days.
+Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand, with weekends having a slightly lower demand than weekdays, while standard charging is relatively constant across days. 
 
 
 # Charging duration {#duration}
@@ -327,7 +337,7 @@ ggplot2::ggplot(firstLastDT[pairOK == "Pair end"],
   labs(x = "Minutes")
 ```
 
-
+Figures \@ref(fig:durationTimeBox) and \@ref(fig:durationTimeMean) show that the duration of standard charging events by event start time drops significantly for events beginning around 9:45am. This may indicate that people are plugging in after returning home from a school run or other morning activity, even though the battery is still close to full capacity. It may also suggest that those who plug in shortly after 9:45am but do not have a high battery state of charge are only "topping up", and take the vehicle out again before charging is fully complete. Duration of fast charge events by event start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. \@ref(fig:obsPower) suggests that drivers utilize fast charging only "as necessary" to ensure they have enough battery capacity to complete their journey.
 
 ```{r durationTimeBox, fig.cap="Duration by time of charging start for sequences > 8 minutes"}
 
