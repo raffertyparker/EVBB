@@ -440,7 +440,7 @@ p + labs(x = "Time", fill = "Charge type")
 Slow charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which freqently begin around 10pm.
 
 Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.  
-> Discuss any other patterns
+
 
 # State of charge
 
