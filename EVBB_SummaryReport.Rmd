@@ -264,8 +264,8 @@ standardDurMean <- mean(firstLastDT[pairOK == "Pair end" & chargeType == "Standa
                         na.rm = TRUE)
 ```
 
- * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`);
-  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r round(standardDurMedian/60,2)` hours and a mean duration of `r round(standardDurMean/60,2)` hour. High power "fast" charge events had a median duration of `r round(fastDurMedian, 2)` minutes and a mean duration of `r round(fastDurMean, 2)` minutes. 
+ * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`kW);
+  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r round(standardDurMedian/60,2)` hours and a mean duration of `r round(standardDurMean/60,2)` hours. High power "fast" charge events had a median duration of `r round(fastDurMedian, 2)` minutes and a mean duration of `r round(fastDurMean, 2)` minutes. 
   * _Time of Day_: Standard charging events tended to begin around 10pm, suggesting drivers set timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
 
 # Observed demand
