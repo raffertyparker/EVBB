@@ -283,6 +283,7 @@ p + labs(y = "Density",
   guides(fill = guide_legend(title = "Charge type:")) +
   scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
   theme(legend.position = "bottom")
+ggsave("plots/density_of_charge_power.png")
 ```
 
 ```{r stdChargeSizing}
@@ -335,6 +336,7 @@ ggplot2::ggplot(firstLastDT[pairOK == "Pair end"],
   geom_histogram(binwidth = 5) +
   facet_wrap(chargeType ~ ., scales = "free") +
   labs(x = "Minutes")
+ggsave("plots/charge_duration_histogram.png")
 ```
 
 Figures \@ref(fig:durationTimeBox) and \@ref(fig:durationTimeMean) show that the duration of standard charging events by event start time drops significantly for events beginning around 9:45am. This may indicate that people are plugging in after returning home from a school run or other morning activity, even though the battery is still close to full capacity. It may also suggest that those who plug in shortly after 9:45am but do not have a high battery state of charge are only "topping up", and take the vehicle out again before charging is fully complete. Duration of fast charge events by event start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. \@ref(fig:obsPower) suggests that drivers utilize fast charging only "as necessary" to ensure they have enough battery capacity to complete their journey.

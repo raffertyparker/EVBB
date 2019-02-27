@@ -323,6 +323,7 @@ ggplot2::ggplot(firstLastDT[pairOK == "Pair end"],
   geom_histogram() +
   facet_wrap(chargeType ~ ., scales = "free") +
   labs(x = "Minutes")
+ggsave("plots/charge_duration_histogram_extrema_removed.png")
 ```
 
 
@@ -464,6 +465,7 @@ p <- ggplot(chargeBegins[weekday == "Weekday" & SoC_percent < 90, ], aes(x = qHo
   theme(legend.position = "bottom") 
   facet_grid(~weekday)
 p + labs(x = "Time", fill = "Charge type")
+ggsave("plots/time_charging_begins_weekday.png")
 
 ```
 
@@ -473,6 +475,7 @@ p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHo
   theme(legend.position = "bottom") +
   geom_density(alpha = 0.3) 
 p + labs(x = "Time", fill = "Charge type")
+ggsave("plots/time_charging_begins_weekend.png")
 
 ```
 
