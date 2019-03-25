@@ -165,26 +165,26 @@ dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
 chargingDT <- dt[charge_power_kw > 0] # select just charging
 ```
 
-# Key Findings:{#keyFindings}
-Based on a relatively small sample of 44 domestic electric vehicles provided by our research partner and monitored over 8 months from April 2018 to January 2019. The recorder provided measurements at 1 minute frequency of charging power and battery charge state.
-
- * _Power supplied_: The median power supplied during a standard charging event was 1.78 kW. The mean was slightly higher at 2.12 kW. Fast charging observations had a median of 30.84 kW (mean = 30.68kW);
-  * _Charging duration_:Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of 0.06 hours and a mean duration of 1.69 hours. High power “fast” charge events had a median duration of 12.47 minutes and a mean duration of 13.87 minutes.
-  * _Time of day_: Standard charging events tended to begin around 10pm, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.
-  * _State of charge_: Many drivers begin recharging with greater than 50% charge still remaining in the battery.
-  
-In concurrence with the 2018 Concept Consulting report[@ConceptConsulting2018], these findings suggest that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through "smart" charging methods. In addition, our analysis indicates that this is already occurring to some extent. 
-
-
 # Introduction
 
-The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021[@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[@ConceptConsulting2018]. 
+The New Zealand government has set a target of increasing the number of EVs in New Zealand to 64,000 by 2021[@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[@ConceptConsulting2018]. 
 
-New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening[@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process[@Kahn2018]. Concurrent electric vehicle charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
+New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening[@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process[@Kahn2018]. Concurrent electric vehicle (EV) charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
 
-The Concept Consulting report considers different methods of EV charging in its models. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The modelling undertaken in the Concept Consulting report suggests that under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household), passive charging would cause an increase of peak electricity demand of approximately 3,000MW, whereas if all were charged in a "smart" fashion, there would be no increase in peak demand.
+The Concept Consulting report considers different methods of EV charging in its models. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The key findings of the Concept Consulting report are as follows.
 
-This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on the current New Zealand transport sector. The intention of the report is to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is also inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf)[@Eyers2018].
+Under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household):
+* If all were charged in a passive fashion, New Zealand's peak electricity demand would increase by approximately 3,000MW
+* If all were charged in a "smart" fashion, there would be no increase in peak demand
+
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on current usage patterns of internal combustion engine (ICE) vehicles. The intention of the report is to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is also inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
+
+To provide these insights we focus on
+* Observed demand
+* Daily demand
+* Charging duration
+* State of charge
+* Time charging begins
 
 
 # Data information{#data}
@@ -193,13 +193,13 @@ This report extends the work done by Concept Consulting, but utilises actual dat
 
 The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
 
-The data provided was collected from 50 individual vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging power and battery charge state. It is important to note that these vehicles are driven by "early adopters" who have opted to collect their vehicle usage data, and therefore the data may not be a precise representation of the usage patterns of current or future EV drivers.
+The data used consisted of `r nrow(dt)` data points from `r  length(levels(as.factor(dt$dvID)))` vehicles over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging power and battery charge state.
 
 Due to privacy considerations, the data is not publicly available.
 
 ## Initial cleaning
 
-There were `r nrow(summaryDT) - nrow(includeDT)` vehicles in the data provided that had no recorded charging occur. These were immediately discarded leaving `r  length(levels(as.factor(dt$dvID)))` remaining vehicles, in total consisting of `r nrow(dt)` data points.
+There were `r nrow(summaryDT) - nrow(includeDT)` additional vehicles in the data provided that had no recorded charging occur. These were immediately discarded leaving `r  length(levels(as.factor(dt$dvID)))` remaining vehicles.
 
 Some instances of charging power greater than 120kW were recorded. These were considered anomalies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@ConceptConsulting2018].
 
@@ -207,7 +207,7 @@ Instances of battery state of charge being greater than 100% or less than 0% wer
 
 ## Definitions and preparation{#cleaning}
 
-Charging data has been broadly separated into two separate categories, "standard" and "fast". Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from an ordinary home charging scenario without an expensive wiring upgrade[@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built public charging stations.
+Charging data has been broadly separated into two separate categories, "standard" and "fast". Standard charging is when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from a standard home charging scenario without an expensive wiring upgrade[@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built fast charging stations.
 
 The data was also categorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
@@ -300,7 +300,9 @@ kableExtra::kable(t,
 ```
 
 
-Manual inspection of the data showed that these short-duration charging "events" generally occurred near the end of a longer-duration charging event. It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is likely due to the behaviour of the charger once the battery was almost full. In addition to the myriad "short" charging duration values, a small amount of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Sections \@ref(keyFindings) and \@ref(duration) were therefore made with these unreasonably long or short duration charge events excluded from the data.
+Manual inspection of the data showed that these short-duration charging "events" generally occurred near the end of a longer-duration charging event. It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is likely due to the behaviour of the charger once the battery was almost full. As these can not be considered truly independent charging events, they have been removed from the data for the analyses in Sections \@ref(keyFindings) and \@ref(duration).
+
+In addition to the myriad "small" charging duration values, a small amount of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were assumed to be anomalies and are not included in the analyses in Sections \@ref(keyFindings) and \@ref(duration).
 
 
 ```{r removeBigAndSmallDurations}
@@ -325,13 +327,14 @@ Figure \@ref(fig:longDuration) shows the distribution of charging sequences with
 
 ggplot2::ggplot(firstLastDTfinal[pairOK == "Pair end"], 
                 aes(x = pairDurationFinal)) +
-  geom_histogram(binwidth = 5) +
+  geom_histogram() +
   facet_wrap(chargeType ~ ., scales = "free") +
   labs(x = "Minutes")
 ggsave("plots/charge_duration_histogram_extrema_removed.png")
 ```
 
 
+# Key Findings:{#keyFindings}
 
 ```{r keyFindings}
 stdMedian <- median(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
@@ -351,6 +354,9 @@ standardDurMean <- mean(firstLastDTfinal[pairOK == "Pair end" & chargeType == "S
                         na.rm = TRUE)
 ```
 
+ * _Power supplied_: The median power supplied during a standard charging event was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`kW);
+  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r round(standardDurMedian/60,2)` hours and a mean duration of `r round(standardDurMean/60,2)` hours. High power "fast" charge events had a median duration of `r round(fastDurMedian, 2)` minutes and a mean duration of `r round(fastDurMean, 2)` minutes. 
+  * _Time of Day_: Standard charging events tended to begin around 10pm, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
 
 # Observed demand
 
