@@ -4,6 +4,10 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
   bookdown::pdf_document2:
     fig_caption: yes
     keep_tex: yes
@@ -18,12 +22,8 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
 always_allow_html: yes
-#bibliography: EVBBmendeleyrefs.bib  
+bibliography: EVBBmendeleyrefs.bib  
 ---
 
 ```{r setup, include=FALSE}
@@ -38,6 +38,7 @@ library(dplyr) # for filter
 library(forcats) # used to reverse days of week in joy plots
 library(knitr) # for knitting
 library(kableExtra) # for extra kable
+library(skimr) # for skim (data description)
 
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
@@ -173,18 +174,18 @@ Based on a relatively small sample of 44 domestic electric vehicles provided by 
   * _Time of day_: Standard charging events tended to begin around 10pm, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.
   * _State of charge_: Many drivers begin recharging with greater than 50% charge still remaining in the battery.
   
-In concurrence with the 2018 Concept Consulting report[@ConceptConsulting2018], these findings suggest that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through "smart" charging methods. In addition, our analysis indicates that this is already occurring to some extent. 
+In concurrence with the 2018 Concept Consulting report [@ConceptConsulting2018], these findings suggest that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through "smart" charging methods. In addition, our analysis indicates that this is already occurring to some extent. 
 
 
 # Introduction
 
-The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021[@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41%[@ConceptConsulting2018]. 
+The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021 [@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41% [@ConceptConsulting2018]. 
 
-New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening[@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process[@Kahn2018]. Concurrent electric vehicle charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid[@stephenson_smart_2017].
+New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening [@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process [@Khan2018]. Concurrent electric vehicle charging, especially in the early evening when many motorists return home, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid [@Stephenson2017].
 
 The Concept Consulting report considers different methods of EV charging in its models. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The modelling undertaken in the Concept Consulting report suggests that under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household), passive charging would cause an increase of peak electricity demand of approximately 3,000MW, whereas if all were charged in a "smart" fashion, there would be no increase in peak demand.
 
-This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on the current New Zealand transport sector. The intention of the report is to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is also inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf)[@Eyers2018].
+This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on the current New Zealand transport sector. The intention of the report is to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is also inspired by the [UK Department of Transport 2018 statistical report ](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf)[@Eyers2018].
 
 
 # Data information{#data}
@@ -201,13 +202,13 @@ Due to privacy considerations, the data is not publicly available.
 
 There were `r nrow(summaryDT) - nrow(includeDT)` vehicles in the data provided that had no recorded charging occur. These were immediately discarded leaving `r  length(levels(as.factor(dt$dvID)))` remaining vehicles, in total consisting of `r nrow(dt)` data points.
 
-Some instances of charging power greater than 120kW were recorded. These were considered anomalies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand[@ConceptConsulting2018].
+Some instances of charging power greater than 120kW were recorded. These were considered anomalies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand [@ConceptConsulting2018].
 
 Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
 
 ## Definitions and preparation{#cleaning}
 
-Charging data has been broadly separated into two separate categories, "standard" and "fast". Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from an ordinary home charging scenario without an expensive wiring upgrade[@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built public charging stations.
+Charging data has been broadly separated into two separate categories, "standard" and "fast". Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of what can be obtained from an ordinary home charging scenario without an expensive wiring upgrade [@ConceptConsulting2018]. Fast charging is all charging above 7kW, and would likely occur at designated and purpose-built public charging stations.
 
 The data was also categorised according to whether it was a weekday or not. This allows analysis to occur of differing charging patterns between weekdays and weekends, allowing for further accuracy in determining the effects of electric vehicles on grid peaks.
 
@@ -219,7 +220,7 @@ chargeBegins <- chargingDT[chargingDT$chargeFlag == "first" , ]
 chargeEnds <- chargingDT[chargingDT$chargeFlag == "last", ]
 ```
 
-Using this method we obtained `r nrow(chargeBegins)` instances of charge beginning, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
+Using this method we obtained `r nrow(chargeBegins)` instances of charging starting, and `r nrow(chargeEnds)` instances of charge ending. The additional `r nrow(chargeEnds) - nrow(chargeBegins)` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
 
 ```{r calculateChargeDurations}
 # select the observations which we've flagged as first & last in a sequence of charging
@@ -427,18 +428,19 @@ tmp <- NULL
 
 # Time charging begins
 
-After filtering out any data whereby charging begins while the state of charge is greater than 90% to account for battery 'top-ups' (refer to Section \@ref(SoC)) we obtain the following figues.
+If EV users were starting to charge their vehicles as they arrived home then we would expect a surge in charging observations betweem 16:00 and 18:00 on weekdays. To exclude battery 'top-ups' (refer to Section \@ref(SoC)) we filter out any data where a charging observation begins while the state of charge is greater than 90%. Having done so, Figure \@ref(fig:chargeBeginsWeekday) represents the number of charging events that begin at different times of the day on weekdays for standard and fast charging.
 
 ```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
 p <- ggplot(chargeBegins[weekday == "Weekday" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
   geom_density(alpha = 0.3) +
-  theme(legend.position = "bottom") 
+  theme(legend.position = "bottom") +
   facet_grid(~weekday)
 p + labs(x = "Time", fill = "Charge type")
 ggsave("plots/time_charging_begins_weekday.png")
 
 ```
 
+Figure \@ref(fig:chargeBeginsWeekend) repeats this analysis but for charging events that start at weekends.
 
 ```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
 p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
@@ -449,16 +451,17 @@ ggsave("plots/time_charging_begins_weekend.png")
 
 ```
 
-Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public charge points to top up during the day.
+As we can see, standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public charge points to top up during the day.
 
-Standard charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which frequently begin around 10pm.
+Standard charging events were most likely to begin around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which frequently begin around 10pm.
 
-Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.  
+Fast charging events were most likely to begin at 11:30am on weekdays and 1pm during weekends.  
 
+These patterns are to some extent repeated in Figure \@ref(fig:chargeTime) which shows the distribution of observed charging events by time of day and day of the week. 
 
 ```{r chargeTime, fig.cap="Count of observed charging events by type, day of week and time"}
 
-plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, day_of_week)]
+plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, day_of_week, chargeType)]
 
 # make a weekend facet label
 plotDT <- plotDT[, weekEnd := "Weekend"]
@@ -466,7 +469,7 @@ plotDT <- plotDT[day_of_week != "Saturday" & day_of_week != "Sunday", weekEnd :=
 
 p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = count, colour = day_of_week)) +
   geom_line() +
-  facet_grid(~weekEnd, scales = "free_y")
+  facet_grid(chargeType~weekEnd, scales = "free_y")
   
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   labs(x = "Time of day",
@@ -476,12 +479,22 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "bottom")
 ```
 
-Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. This figure indicates greatest charging occurance between the hours of 8pm and 8am, with very low occurrences of charging during morning and evening grid peaks.
+This figure indicates the greatest standard charging occurance between the hours of 8pm and 8am, with very low occurrences of charging during morning and evening grid peaks. Fast charging on the other hand is a day-time activityon both weekdays and weekends.
 
 # Summary
 
 In the data provided for this study, most charging occurs at home using either a 1.8kw or 3kW charger, and commonly occurs through the night as opposed to during current grid peaks. In addition, many vehicles begin charging with significant battery capacity remaining, providing them with the ability to provide vehicle to grid energy transfer should that technology become widely available. 
 
 If later adopters of electric vehicles can be induced to follow the same "smart" charging patterns as those displayed in our data sample, we propose the effects that electric vehicles have on the electricity grid may not be particularly negative.
+
+# Statistical Annex
+
+## Flip The Fleet data description
+
+Data description for original data supplied (before processing or filtering).
+
+```{r ftfDataSkim}
+skimr::skim(rawDF)
+```
 
 # References
