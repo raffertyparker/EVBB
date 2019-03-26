@@ -166,8 +166,8 @@ dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
 chargingDT <- dt[charge_power_kw > 0] # select just charging
 ```
 
-# Key Findings:{#keyFindings}
-Based on a relatively small sample of 44 domestic electric vehicles provided by our research partner and monitored over 8 months from April 2018 to January 2019. The recorder provided measurements at 1 minute frequency of charging power and battery charge state.
+# Key Findings {#keyFindings}
+Based on a relatively small sample of `r data.table::uniqueN(dt$dvID)` domestic electric vehicles provided by our research partner [FlipTheFleet](https://flipthefleet.org/) and monitored over 8 months from `r format(min(df$date), format = "%B %Y")` to `r format(max(df$date), format = "%B %Y")`. The recorder provided measurements at 1 minute frequency of charging power and battery charge state.
 
  * _Power supplied_: The median power supplied during a standard charging event was 1.78 kW. The mean was slightly higher at 2.12 kW. Fast charging observations had a median of 30.84 kW (mean = 30.68kW);
   * _Charging duration_:Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of 0.06 hours and a mean duration of 1.69 hours. High power “fast” charge events had a median duration of 12.47 minutes and a mean duration of 13.87 minutes.
