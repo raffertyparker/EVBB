@@ -1,7 +1,7 @@
 ---
 title: "Analysis of electric vehicle usage patterns in New Zealand"
 subtitle: "Statistical Report"
-author: "Rafferty Parker and Ben Anderson (University of Otago)"
+author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago"
 date: 'Last run at: `r Sys.time()`'
 output:
   bookdown::html_document2:
@@ -23,7 +23,7 @@ output:
     toc: yes
     toc_depth: 2
 always_allow_html: yes
-bibliography: EVBBmendeleyrefs.bib  
+bibliography: "../../EVBBmendeleyrefs.bib"  
 ---
 
 ```{r setup, include=FALSE}
