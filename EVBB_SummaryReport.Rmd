@@ -1,13 +1,9 @@
 ---
 title: "Analysis of electric vehicle usage patterns in New Zealand"
-subtitle: "Summary Statistical Report"
+subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (University of Otago)"
 date: 'Last run at: `r Sys.time()`'
 output:
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
   bookdown::pdf_document2:
     fig_caption: yes
     keep_tex: yes
@@ -22,8 +18,12 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
 always_allow_html: yes
-bibliography: EVBBmendeleyrefs.bib
+#bibliography: EVBBmendeleyrefs.bib  
 ---
 
 ```{r setup, include=FALSE}
@@ -35,7 +35,7 @@ library(hms) # for hh:mm:ss if we need it
 library(ggplot2) # fancy plots
 library(ggjoy)
 library(dplyr) # for filter
-library(forcats)
+library(forcats) # used to reverse days of week in joy plots
 library(knitr) # for knitting
 library(kableExtra) # for extra kable
 
@@ -103,6 +103,7 @@ df$dvID <- paste("Vehicle", df$dvID, sep = " ")
 names(df)[names(df) == 'state_of_charge_percent'] <- 'SoC_percent'
 
 df$qHour <- hms::trunc_hms(df$time, 15*60) # truncate to previous 15 min
+#df$qHour <- format(as.POSIXct(hms::trunc_hms(df$time, 15*60)), "%H:%M")
 
 # Month as ordered factor
 df$month <- factor(df$month, ordered = TRUE, levels = c("Jan", "Feb", "Mar", "Apr", "May",
@@ -136,7 +137,7 @@ setkey(dt, dvID)
 finalDT <- dt[includeDT]
 dt <- finalDT
 
-#Create charge flag
+# Create charge flag
 dt <- dt[, chargeFlag := ifelse(shift(charge_power_kw) == 0 & charge_power_kw > 0 & shift(charge_power_kw, type = "lead") > 0,
                                 "first", "Not charging"), by = id] 
 # the previous value was 0 but this value and the next value > 0
@@ -162,15 +163,33 @@ dt$chargeFlag <- ordered(dt$chargeFlag, levels=c("first", "charging", "last"))
 #dt <- dt[, obsDiffSecs := as.numeric(obsDiffTime)] # seconds since previous observation (within id) - could include reset to 0 after midnight
   
 chargingDT <- dt[charge_power_kw > 0] # select just charging
-
-
 ```
 
+# Key Findings:{#keyFindings}
+Based on a relatively small sample of 44 domestic electric vehicles provided by our research partner and monitored over 8 months from April 2018 to January 2019. The recorder provided measurements at 1 minute frequency of charging power and battery charge state.
+
+ * _Power supplied_: The median power supplied during a standard charging event was 1.78 kW. The mean was slightly higher at 2.12 kW. Fast charging observations had a median of 30.84 kW (mean = 30.68kW);
+  * _Charging duration_:Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of 0.06 hours and a mean duration of 1.69 hours. High power “fast” charge events had a median duration of 12.47 minutes and a mean duration of 13.87 minutes.
+  * _Time of day_: Standard charging events tended to begin around 10pm, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.
+  * _State of charge_: Many drivers begin recharging with greater than 50% charge still remaining in the battery.
+  
+In concurrence with the 2018 Concept Consulting report[@ConceptConsulting2018], these findings suggest that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through "smart" charging methods. In addition, our analysis indicates that this is already occurring to some extent. 
+
+# Data information{#data}
+
+## Background 
+
+The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, collected using Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, consumption, speed, etc.
+
+The data used was collected from `r  length(levels(as.factor(dt$dvID)))` vehicles, in total consisting of `r nrow(dt)` data points, over 8 months (April 2018 - January 2019). The recorder provided measurements at 1 minute frequency of charging power and battery charge state. It is important to note that these vehicles are driven by "early adopters" who have opted to collect their vehicle usage data, and therefore the data may not be a precise representation of the usage patterns of current or future EV drivers.
+
+Due to privacy considerations, the data is not publicly available.
 
 ```{r establishment of chargeBegins and chargeEnds dataframes}
 chargeBegins <- chargingDT[chargingDT$chargeFlag == "first" , ]
 chargeEnds <- chargingDT[chargingDT$chargeFlag == "last", ]
 ```
+
 
 ```{r calculateChargeDurations}
 # select the observations which we've flagged as first & last in a sequence of charging
@@ -194,57 +213,38 @@ firstLastDT <- firstLastDT[, pairDurationFinal := ifelse(pairDuration <0,
                                                          pairDurationFix,
                                                          pairDuration)]
 
+```
 
+
+```{r removeBigAndSmallDurations}
 # Remove overly large values
-firstLastDT <- firstLastDT[pairDurationFinal < 6000]
+firstLastDTfinal <- firstLastDT[pairDurationFinal < 6000]
 
 # ATTN BEN do we do the following here or disply the plots below that depend on the small values and then remove them for further analysis?
 
 # Remove standard charges of duration less than 8 mins
-firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal < 8 & firstLastDT$chargeType == "Standard charging"),]
+firstLastDTfinal <- firstLastDTfinal[!(firstLastDTfinal$pairDurationFinal < 8 & firstLastDTfinal$chargeType == "Standard charging"),]
 
 # Remove (lone) fast charge of duration greater than 10 hours
-firstLastDT <- firstLastDT[!(firstLastDT$pairDurationFinal > 840 & firstLastDT$chargeType == "Fast charging"),]
+firstLastDTfinal <- firstLastDTfinal[!(firstLastDTfinal$pairDurationFinal > 840 & firstLastDTfinal$chargeType == "Fast charging"),]
 
 # ATTN BEN rather than specify ...[pairOK == "Pair end", ] for all the following firstLastDT$pairDurationFinal plots, should we just remove all rows that are not "Pair end"?
 
 ```
 
+Figure \@ref(fig:longDuration) shows the charging durations.  
 
-# Note
+```{r longDuration, fig.cap="Duration of charging sequences with unreasonably long or short values removed"}
 
-Based on and inspired by the [UK DoT statistical report 2018](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf).
-
-This is a summary report. A discussion into the background around the effects of EV charging on the electricity grid, as well as detailed information on data limitations and data cleaning procedure is given in the full report.
-
-# Data information{#data}
-
-## Background
-
-The data consisted of `r nrow(dt)` data points (of which `r nrow(chargingDT)` were charging (power demand > 0)) from `r  length(levels(as.factor(df$dvID)))` vehicles over 8 months (April 2018 - January 2019) derived from FlipTheFleet's [blackbox recorder](https://flipthefleet.org/ev-black-box/). The recorder provided measurements at 1 minute frequency of charging behaviour and battery charge state.
-
-Due to privacy considerations, the data is not publically available.
-
-## Definitions:
-
-The capacity of most domestic charging is between 1.8kW to 7kW, whereas charging power above 7kW is available at purpose-built charging stations[@ConceptConsulting2018]. Each charging event was therefore seperated into "Fast" (> = 7kW) and "Standard" (below 7kW). 
-
-A charging event was defined as a continuous sequence of 1 minute observations per vehicle when > 0 kW of demand was observed.
-
-## Cleaning and Preparation
-_Perhaps for the summary report this entire subsection could be removed?_
-There were `r nrow(summaryDT) - nrow(includeDT)` vehicles within the provided data that had no recorded charging occur. These were immediately discarded.
-
-Some instances of charging power greater than 120kW were recorded. These were considered anomolies and discarded, as these exceed the capacity of the highest charging stations available in New Zealand [@ConceptConsulting2018].
-
-Instances of battery state of charge being greater than 100% or less than 0% were also discarded.
-
-Standard charge durations of less than 8 minutes were frequently encountered near the end of a longer charging cycle, where the state of charge had reached it's maximum. These were assumed to be minor 'top-ups', and were discarded. In addition, slow charging events greater than 100 hours were discarded, as were fast charge durations greater than 14 hours. These were presumed anomolies as they exceed the battery capacity of electric vehicles commonly encountered in New Zealand.
-
-For more detailed information on the data cleaning process refer to the main report.
+ggplot2::ggplot(firstLastDTfinal[pairOK == "Pair end"], 
+                aes(x = pairDurationFinal)) +
+  geom_histogram(binwidth = 5) +
+  facet_wrap(chargeType ~ ., scales = "free") +
+  labs(x = "Minutes")
+ggsave("plots/charge_duration_histogram_extrema_removed.png")
+```
 
 
-# Key Findings:
 
 ```{r keyFindings}
 stdMedian <- median(chargingDT[chargeType == "Standard charging"]$charge_power_kw, na.rm = TRUE)
@@ -253,37 +253,31 @@ stdMean <- mean(chargingDT[chargeType == "Standard charging"]$charge_power_kw, n
 fastMedian <- median(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 fastMean <- mean(chargingDT[chargeType == "Fast charging"]$charge_power_kw, na.rm = TRUE)
 
-fastDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
+fastDurMedian <- median(firstLastDTfinal[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
                         na.rm = TRUE)
-standardDurMedian <- median(firstLastDT[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
+standardDurMedian <- median(firstLastDTfinal[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
                         na.rm = TRUE)
 
-fastDurMean <- mean(firstLastDT[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
+fastDurMean <- mean(firstLastDTfinal[pairOK == "Pair end" & chargeType == "Fast charging"]$pairDurationFinal, 
                         na.rm = TRUE)
-standardDurMean <- mean(firstLastDT[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
+standardDurMean <- mean(firstLastDTfinal[pairOK == "Pair end" & chargeType == "Standard charging"]$pairDurationFinal, 
                         na.rm = TRUE)
 ```
 
- * _Power supplied_: The median power supplied during a standard charging was `r round(stdMedian,2)`  kW. The mean was slightly higher at `r round(stdMean,2)` kW. Fast charging observations had a median of `r round(fastMedian,2)` kW (mean = `r round(fastMean,2)`kW);
-  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r round(standardDurMedian/60,2)` hours and a mean duration of `r round(standardDurMean/60,2)` hours. High power "fast" charge events had a median duration of `r round(fastDurMedian, 2)` minutes and a mean duration of `r round(fastDurMean, 2)` minutes. 
-  * _Time of Day_: Standard charging events tended to begin around 10pm, suggesting drivers set timers to take advantage of off-peak electricity. Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends. 
 
 # Observed demand
 
-Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common, and are concentrated around 1.8kW, 3kW and 6kW. 
+Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common, and are mostly concentrated around 1.8kW and 3kW, with a smaller concentration around 6kW.
 
-```{r obsPower, fig.cap="Observed power demand distribution by charge type"}
+```{r obsPower, fig.cap="Observed power demand distribution by charge type where charging observed"}
 p <- ggplot2::ggplot(chargingDT, aes(x = charge_power_kw, fill = chargeType, binwidth = 0.1)) +
   geom_histogram() +
   facet_wrap(. ~ chargeType, scales = "free")
-
-# now draw the plot with any fancy extras we want
 p + labs(y = "Density",
        x = "Power (kW)") +
   guides(fill = guide_legend(title = "Charge type:")) +
   scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
   theme(legend.position = "bottom")
-ggsave("plots/density_of_charge_power.png")
 ```
 
 ```{r stdChargeSizing}
@@ -293,74 +287,22 @@ fastQT <- quantile(chargingDT[chargeType == "Fast charging"]$charge_power_kw)
 
 75% of standard charging observations were `r round(stdQT[[2]],2)` kW or more but the figure was `r round(fastQT[[2]],2)` kW or more for fast charging
 
-# Daily demand
-
-```{r dailyPower, fig.cap="Observed power demand distribution by day of the week and charge type"}
-p <- ggplot2::ggplot(filter(dt, chargeType == "Standard charging" | chargeType == "Fast charging"), aes(x = day_of_week, colour = chargeType, group = day_of_week)) +
-  geom_boxplot(aes(y = charge_power_kw)) +
-  facet_wrap(. ~ chargeType, scales= "free_y")
-
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  labs(x = "Day of week",
-       y = "Power (kW)") +
-  guides(colour = guide_legend(title = "Charge type:")) +
-  scale_colour_manual(values=cbgPalette) + # use colour-blind friendly palette
-  theme(legend.position = "bottom")
-```
-
-Figure \@ref(fig:dailyPower) shows the distribution of observed charging kW demand by day of the week. We can see that fast charging varies in demand, with weekends having a slightly lower demand than weekdays, while standard charging is relatively constant across days. 
-
-
 # Charging duration {#duration}
 
-Figure \@ref(fig:durationHist) shows the overall distribution of charging sequences. As would be expected, fast charging events tend to have a much shorted duration than standard charging.
-
-```{r durationDescTableReduced}
-t <- firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8, 
-                 .(N = .N,
-                   mean = mean(pairDurationFinal),
-                   median = median(pairDurationFinal),
-                   min = min(pairDurationFinal),
-                   max = max(pairDurationFinal)), 
-                 keyby = .(chargeType)]
-kableExtra::kable(t, 
-                  caption = "Duration (minutes) of charge sequences by charge type", digits = 2) %>%
-  kable_styling()
-```
+Figure \@ref(fig:durationTimeMean) show that the duration of standard charging events by event end time drops significantly for events ending around 9:45am. This may indicate that people are plugging in after returning home from a school run or other morning activity, even though the battery is still close to full capacity. It may also suggest that those who plug in shortly after 9:45am but do not have a high battery state of charge are only "topping up", and take the vehicle out again before charging is fully complete. Duration of fast charge events by event end time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. \@ref(fig:obsPower) suggests that drivers utilize fast charging only "as necessary" to ensure they have enough battery capacity to complete their journey.
 
 
-```{r durationHist, fig.cap="Duration of charging sequences"}
+```{r durationTimeMean, fig.cap="Mean duration (within quarter hours) by time of charging end"}
 
-ggplot2::ggplot(firstLastDT[pairOK == "Pair end"], 
-                aes(x = pairDurationFinal)) +
-  geom_histogram(binwidth = 5) +
-  facet_wrap(chargeType ~ ., scales = "free") +
-  labs(x = "Minutes")
-ggsave("plots/charge_duration_histogram.png")
-```
-
-Figures \@ref(fig:durationTimeBox) and \@ref(fig:durationTimeMean) show that the duration of standard charging events by event start time drops significantly for events beginning around 9:45am. This may indicate that people are plugging in after returning home from a school run or other morning activity, even though the battery is still close to full capacity. It may also suggest that those who plug in shortly after 9:45am but do not have a high battery state of charge are only "topping up", and take the vehicle out again before charging is fully complete. Duration of fast charge events by event start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. \@ref(fig:obsPower) suggests that drivers utilize fast charging only "as necessary" to ensure they have enough battery capacity to complete their journey.
-
-```{r durationTimeBox, fig.cap="Duration by time of charging start for sequences > 8 minutes"}
-
-ggplot2::ggplot(firstLastDT[pairOK == "Pair end" & pairDurationFinal > 8 & pairDurationFinal < 6000], 
-                aes(x = qHour, y = pairDurationFinal, group = qHour)) +
-  geom_boxplot() +
-  facet_grid(chargeType ~ ., scales = "free") +
-  labs(x = "Time of Day",
-       y = "Minutes")
-```
-
-```{r durationTimeMean, fig.cap="Mean duration (within quarter hours) by time of charging start for sequences > 8 minutes"}
-
-plotDT <- firstLastDT[pairOK == "Pair end",
+plotDT <- firstLastDTfinal[pairOK == "Pair end" & pairDurationFinal > 8,
                       .(meanDuration = mean(pairDurationFinal)),
                       keyby = .(qHour, chargeType)]
 ggplot2::ggplot(plotDT, 
                 aes(x = qHour, y = meanDuration, colour = chargeType)) +
+  theme(legend.position = "bottom", axis.text.x = element_text()) +
   geom_point() +
   labs(x = "Time of Day",
-       y = "Minutes")
+       y = "Minutes", col = "")
 ```
 
 
@@ -369,14 +311,63 @@ kableExtra::kable(t, caption = "Mean duration of charge events by charge type")
 ```
 
 ```{r meanDurationPlot, fig.cap="Mean duration by time of charging start"}
-plotDT <- firstLastDT[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, dateTime)]
+plotDT <- firstLastDTfinal[pairOK == "Pair end", .(meanDuration = mean(pairDurationFinal, na.rm = TRUE)), keyby = .(chargeType, dateTime)]
+```
+
+# State of charge{#SoC}
+
+The state of charge is the percentage of energy still available to be used in the battery. In future, electric vehicles may be able to discharge any remaining battery charge as electricity into the grid, a process known as vehicle to grid (V2G) energy transfer. This may allow electric vehicles to have a net beneficial effect on the grid, reducing the evening peaks by providing electricity to the home during this period, and then recharging later in the evening or early the next morning when peak demand has diminished.
+
+This section provides an indication of the state of charge of electric vehicles upon charging, so that the potential of V2G technology can be assessed.
+
+
+
+Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining.
+
+```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge (>90% values removed)"}
+tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
+p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
+p + labs(x = "State of charge when charging begins (%)")
+ggsave("plots/SOC_when_charging_begins.png")
+tmp <- NULL
 ```
 
 
-# Time of charging
+# Time charging begins
+
+Figures \@ref(fig:chargeBeginsWeekday and \@ref(fig:chargeBeginsWeekday) show a distribution plot of charging start times.
+
+
+```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
+p <- ggplot(chargeBegins[weekday == "Weekday" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
+  geom_density(alpha = 0.3) +
+  theme(legend.position = "bottom") 
+  facet_grid(~weekday)
+p + labs(x = "Time", fill = "Charge type")
+ggsave("plots/time_charging_begins_weekday.png")
+
+```
+
+
+```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
+p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
+  theme(legend.position = "bottom") +
+  geom_density(alpha = 0.3) 
+p + labs(x = "Time", fill = "Charge type")
+ggsave("plots/time_charging_begins_weekend.png")
+
+```
+
+Standard charging has a noticeably different profile to charging patterns for fast charges. It suggests that it is common for plug-in vehicle owners to charge overnight at home, and perhaps use the more powerful public charge points to top up during the day.
+
+Standard charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which frequently begin around 10pm.
+
+Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.  
+
 
 ```{r chargeTime, fig.cap="Count of observed charging events by type, day of week and time"}
-plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
+
+plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, day_of_week)]
 
 # make a weekend facet label
 plotDT <- plotDT[, weekEnd := "Weekend"]
@@ -384,7 +375,7 @@ plotDT <- plotDT[day_of_week != "Saturday" & day_of_week != "Sunday", weekEnd :=
 
 p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = count, colour = day_of_week)) +
   geom_line() +
-  facet_grid(weekEnd ~  chargeType, scales = "free_y")
+  facet_grid(~weekEnd, scales = "free_y")
   
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   labs(x = "Time of day",
@@ -394,72 +385,12 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "bottom")
 ```
 
-Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. Aggregating counts in this way emphasises the times at which charging most commonly occurs and we can see...
- 
-Fig: profile of median charging demand by time of day and day of the week  faceted by at home vs not at home
+Figure \@ref(fig:chargeTime) shows the distribution of observed charging by time of day and day of the week. This figure indicates greatest charging occurance between the hours of 8pm and 8am, with very low occurrences of charging during morning and evening grid peaks.
 
-Charging demand varies somewhat by time of day and day of the week. Weekdays show ... whilst weekends show. Saturdays and Sundays vary with... 
+# Summary
 
-```{r boxplotCharging, fig.cap="Boxplot of daily standard charging demand"}
-p <- ggplot2::ggplot(subset(df, chargeType %in% "Standard charging"), 
-                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
-  geom_boxplot() # <- make the plot in an object first
+In the data provided for this study, most charging occurs at home using either a 1.8kw or 3kW charger, and commonly occurs through the night as opposed to during current grid peaks. In addition, many vehicles begin charging with significant battery capacity remaining, providing them with the ability to provide vehicle to grid energy transfer should that technology become widely available. 
 
-p + labs(x = "Time of Day", y = "Power (kW)")
-```
-
-
-```{r plot3, fig.cap="Boxplot of daily fast charging demand"}
-p <- ggplot2::ggplot(subset(dt, chargeType %in% "Fast charging"), 
-                     aes(x = qHour, group = qHour, y = charge_power_kw)) +
-  scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
-  geom_boxplot() # <- make the plot in an object first
-
-p + labs(x = "Time of Day", y = "Power (kW)")
-```
-
-
-
-```{r chargeBeginsWeekday, fig.cap="Density plot of charging start times during weekdays"}
-p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3)  +
-  theme(legend.position = "bottom") +
-  facet_grid(~weekday)
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-```{r chargeBeginsWeekend, fig.cap="Density plot of charging start times during weekends"}
-p <- ggplot(chargeBegins[weekday == "Weekend" & SoC_percent < 90, ], aes(x = qHour, fill = chargeType)) +
-  geom_density(alpha = 0.3)  +
-  theme(legend.position = "bottom") 
-p + labs(x = "Time", fill = "Charge type")
-
-```
-
-
-Slow charging events most commonly began around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper "off-peak" electricity times, which freqently begin around 10pm.
-
-Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends.  
-
-
-# State of charge
-
-
-```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge"}
-tmp <- chargeBegins[chargeBegins$SoC_percent < 90, ]
-p <- ggplot(data=tmp, aes(tmp$SoC)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging begins (%)")
-ggsave("plots/SOC_when_charging_begins.png")
-tmp <- NULL
-```
-
-
-
-Figure \@ref(fig:SoCplot2) shows that many vehicles arrive home with greater than 50% charge remaining and would therefore be able to transfer energy to the home during the evening grid peak as a form of demand response. 
-
-
+If later adopters of electric vehicles can be induced to follow the same "smart" charging patterns as those displayed in our data sample, we propose the effects that electric vehicles have on the electricity grid may not be particularly negative.
 
 # References
-

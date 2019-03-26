@@ -501,7 +501,10 @@ Fast charging events tended to begin at 11:30am on weekdays and 1pm during weeke
 
 
 ```{r chargeTime, fig.cap="Count of observed charging events by type, day of week and time"}
-##########################CONSIDER DELETING##########################################
+####################################################################
+# This plot is very close to showing timing of charging (by count, not weighted by kW)
+# Probably gives a good indicator of the shape of the demand curve.
+####################################################################
 
 plotDT <- chargingDT[, .(count = .N), keyby = .(qHour, chargeType, day_of_week)]
 
