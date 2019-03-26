@@ -14,20 +14,20 @@
 
 <title>Analysis of electric vehicle usage patterns in New Zealand</title>
 
-<script src="EVBB_Report_files/jquery-1.11.3/jquery.min.js"></script>
+<script src="EVBB_report_files/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="EVBB_Report_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
-<script src="EVBB_Report_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="EVBB_Report_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="EVBB_Report_files/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="EVBB_Report_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="EVBB_Report_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="EVBB_Report_files/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="EVBB_Report_files/navigation-1.1/tabsets.js"></script>
-<script src="EVBB_Report_files/navigation-1.1/codefolding.js"></script>
-<link href="EVBB_Report_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
-<script src="EVBB_Report_files/highlightjs-9.12.0/highlight.js"></script>
-<script src="EVBB_Report_files/kePrint-0.0.1/kePrint.js"></script>
+<link href="EVBB_report_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="EVBB_report_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="EVBB_report_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="EVBB_report_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="EVBB_report_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="EVBB_report_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="EVBB_report_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="EVBB_report_files/navigation-1.1/tabsets.js"></script>
+<script src="EVBB_report_files/navigation-1.1/codefolding.js"></script>
+<link href="EVBB_report_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="EVBB_report_files/highlightjs-9.12.0/highlight.js"></script>
+<script src="EVBB_report_files/kePrint-0.0.1/kePrint.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (University of Otago)</em></h4>
-<h4 class="date"><em>Last run at: 2019-03-27 00:36:29</em></h4>
+<h4 class="date"><em>Last run at: 2019-03-27 00:40:18</em></h4>
 
 </div>
 
@@ -349,7 +349,7 @@ div.tocify {
 <p>The charge duration was then calculated as being the time duration between each pair of “charge begins” and “charge ends” flags.</p>
 <p>Figure <a href="#fig:durationHist">3.1</a> shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for both charging types.</p>
 <div class="figure"><span id="fig:durationHist"></span>
-<img src="EVBB_Report_files/figure-html/durationHist-1.png" alt="Duration of charging sequences" width="672" />
+<img src="EVBB_report_files/figure-html/durationHist-1.png" alt="Duration of charging sequences" width="672" />
 <p class="caption">
 Figure 3.1: Duration of charging sequences
 </p>
@@ -426,7 +426,7 @@ Fast charging
 </table>
 <p>Figure <a href="#fig:shortDuration">3.2</a> shows the distribution of very short charging sequences. As we can see these appear to be generally less than 8 minutes in length for Standard Charges.</p>
 <div class="figure"><span id="fig:shortDuration"></span>
-<img src="EVBB_Report_files/figure-html/shortDuration-1.png" alt="Duration of charging sequences &lt; 10 minutes" width="672" />
+<img src="EVBB_report_files/figure-html/shortDuration-1.png" alt="Duration of charging sequences &lt; 10 minutes" width="672" />
 <p class="caption">
 Figure 3.2: Duration of charging sequences &lt; 10 minutes
 </p>
@@ -504,7 +504,7 @@ Fast charging
 <p>Manual inspection of the data showed that these short-duration charging “events” generally occurred near the end of a longer-duration charging event. It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is likely due to the behaviour of the charger once the battery was almost full. In addition to the myriad “short” charging duration values, a small amount of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Sections <a href="#keyFindings">1</a> and <a href="#duration">5</a> were therefore made with these unreasonably long or short duration charge events excluded from the data.</p>
 <p>Figure <a href="#fig:longDuration">3.3</a> shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and charging powers.</p>
 <div class="figure"><span id="fig:longDuration"></span>
-<img src="EVBB_Report_files/figure-html/longDuration-1.png" alt="Duration of charging sequences with unreasonably long or short values removed" width="672" />
+<img src="EVBB_report_files/figure-html/longDuration-1.png" alt="Duration of charging sequences with unreasonably long or short values removed" width="672" />
 <p class="caption">
 Figure 3.3: Duration of charging sequences with unreasonably long or short values removed
 </p>
@@ -517,7 +517,7 @@ Figure 3.3: Duration of charging sequences with unreasonably long or short value
 <p>Figure <a href="#fig:obsPower">4.1</a> shows the distribution of observed charging kW demand by inferred charge type. This plot shows that fast charges are relatively rare in the dataset whilst standard charges are much more common, and are mostly concentrated around 1.8kW and 3kW, with a smaller concentration around 6kW.</p>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <div class="figure"><span id="fig:obsPower"></span>
-<img src="EVBB_Report_files/figure-html/obsPower-1.png" alt="Observed power demand distribution by charge type where charging observed" width="672" />
+<img src="EVBB_report_files/figure-html/obsPower-1.png" alt="Observed power demand distribution by charge type where charging observed" width="672" />
 <p class="caption">
 Figure 4.1: Observed power demand distribution by charge type where charging observed
 </p>
@@ -528,7 +528,7 @@ Figure 4.1: Observed power demand distribution by charge type where charging obs
 <h1><span class="header-section-number">5</span> Charging duration</h1>
 <p>Figure <a href="#fig:durationTimeMean">5.1</a> show that the duration of standard charging events by event end time drops significantly for events ending around 9:45am. This may indicate that people are plugging in after returning home from a school run or other morning activity, even though the battery is still close to full capacity. It may also suggest that those who plug in shortly after 9:45am but do not have a high battery state of charge are only “topping up”, and take the vehicle out again before charging is fully complete. Duration of fast charge events by event end time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. <a href="#fig:obsPower">4.1</a> suggests that drivers utilize fast charging only “as necessary” to ensure they have enough battery capacity to complete their journey.</p>
 <div class="figure"><span id="fig:durationTimeMean"></span>
-<img src="EVBB_Report_files/figure-html/durationTimeMean-1.png" alt="Mean duration (within quarter hours) by time of charging end" width="672" />
+<img src="EVBB_report_files/figure-html/durationTimeMean-1.png" alt="Mean duration (within quarter hours) by time of charging end" width="672" />
 <p class="caption">
 Figure 5.1: Mean duration (within quarter hours) by time of charging end
 </p>
@@ -608,7 +608,7 @@ Fast charging
 <p>The state of charge is the percentage of energy still available to be used in the battery. In future, electric vehicles may be able to discharge any remaining battery charge as electricity into the grid, a process known as vehicle to grid (V2G) energy transfer. This may allow electric vehicles to have a net beneficial effect on the grid, reducing the evening peaks by providing electricity to the home during this period, and then recharging later in the evening or early the next morning when peak demand has diminished.</p>
 <p>This section provides an indication of the state of charge of electric vehicles upon charging, so that the potential of V2G technology can be assessed.</p>
 <div class="figure"><span id="fig:SoCplot1"></span>
-<img src="EVBB_Report_files/figure-html/SoCplot1-1.png" alt="Value of state of charge at beginning of charge" width="672" />
+<img src="EVBB_report_files/figure-html/SoCplot1-1.png" alt="Value of state of charge at beginning of charge" width="672" />
 <p class="caption">
 Figure 6.1: Value of state of charge at beginning of charge
 </p>
@@ -617,7 +617,7 @@ Figure 6.1: Value of state of charge at beginning of charge
 <p>As can be seen in Figure <a href="#fig:SoCplot1">6.1</a>, using the originally defined “charge begins” data we have the majority of charges beginning while the state of charge is above 90%. This is likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle as described in Section <a href="#cleaning">3.3</a>.</p>
 <p>Figure <a href="#fig:SoCplot2">6.2</a> shows the state of charge values when charge begins but with state of charge greater than 90% removed from the data for clarity. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining.</p>
 <div class="figure"><span id="fig:SoCplot2"></span>
-<img src="EVBB_Report_files/figure-html/SoCplot2-1.png" alt="Value of state of charge at beginning of charge (&gt;90% values removed)" width="672" />
+<img src="EVBB_report_files/figure-html/SoCplot2-1.png" alt="Value of state of charge at beginning of charge (&gt;90% values removed)" width="672" />
 <p class="caption">
 Figure 6.2: Value of state of charge at beginning of charge (&gt;90% values removed)
 </p>
@@ -628,7 +628,7 @@ Figure 6.2: Value of state of charge at beginning of charge (&gt;90% values remo
 <h1><span class="header-section-number">7</span> Time charging begins</h1>
 <p>If EV users were starting to charge their vehicles as they arrived home then we would expect a surge in charging observations betweem 16:00 and 18:00 on weekdays. To exclude battery ‘top-ups’ (refer to Section <a href="#SoC">6</a>) we filter out any data where a charging observation begins while the state of charge is greater than 90%. Having done so, Figure <a href="#fig:chargeBeginsWeekday">7.1</a> represents the number of charging events that begin at different times of the day on weekdays for standard and fast charging.</p>
 <div class="figure"><span id="fig:chargeBeginsWeekday"></span>
-<img src="EVBB_Report_files/figure-html/chargeBeginsWeekday-1.png" alt="Density plot of charging start times during weekdays" width="672" />
+<img src="EVBB_report_files/figure-html/chargeBeginsWeekday-1.png" alt="Density plot of charging start times during weekdays" width="672" />
 <p class="caption">
 Figure 7.1: Density plot of charging start times during weekdays
 </p>
@@ -636,7 +636,7 @@ Figure 7.1: Density plot of charging start times during weekdays
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <p>Figure <a href="#fig:chargeBeginsWeekend">7.2</a> repeats this analysis but for charging events that start at weekends.</p>
 <div class="figure"><span id="fig:chargeBeginsWeekend"></span>
-<img src="EVBB_Report_files/figure-html/chargeBeginsWeekend-1.png" alt="Density plot of charging start times during weekends" width="672" />
+<img src="EVBB_report_files/figure-html/chargeBeginsWeekend-1.png" alt="Density plot of charging start times during weekends" width="672" />
 <p class="caption">
 Figure 7.2: Density plot of charging start times during weekends
 </p>
@@ -647,7 +647,7 @@ Figure 7.2: Density plot of charging start times during weekends
 <p>Fast charging events were most likely to begin at 11:30am on weekdays and 1pm during weekends.</p>
 <p>These patterns are to some extent repeated in Figure <a href="#fig:chargeTime">7.3</a> which shows the distribution of observed charging events by time of day and day of the week.</p>
 <div class="figure"><span id="fig:chargeTime"></span>
-<img src="EVBB_Report_files/figure-html/chargeTime-1.png" alt="Count of observed charging events by type, day of week and time" width="672" />
+<img src="EVBB_report_files/figure-html/chargeTime-1.png" alt="Count of observed charging events by type, day of week and time" width="672" />
 <p class="caption">
 Figure 7.3: Count of observed charging events by type, day of week and time
 </p>
