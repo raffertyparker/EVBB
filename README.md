@@ -4,6 +4,7 @@ Code used to analyse various EV performance & power flow datasets.
 
 ## Structure
 
+
  * plots -> saved plots (not the ones found in reports)
  * R -> various R scripts and useful code
  * reports -> analytic reports
