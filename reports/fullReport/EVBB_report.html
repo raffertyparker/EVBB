@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-03-27 19:03:48</em></h4>
+<h4 class="date"><em>Last run at: 2019-03-27 19:15:10</em></h4>
 
 </div>
 
@@ -855,7 +855,7 @@ Fast charging
 <div id="patterns-of-power-demand" class="section level1">
 <h1><span class="header-section-number">4</span> Patterns of power demand</h1>
 <p>Overall 75% of standard charging observations were 1.47 kW or more but the figure was 20.28 kW or more for fast charging.</p>
-<p>Figure <a href="#fig:meanChargeByTime"><strong>??</strong></a> shows the mean power demand for charging observations by time of day and weekdays vs weekends for the charging data collected after September 2018 to ensure maximim sample size (see Section @ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.</p>
+<p>Figure <a href="#fig:meanChargeByTimeStd">4.1</a> shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after September 2018 to ensure maximim sample size (see Section @ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.</p>
 <div class="figure"><span id="fig:meanChargeByTimeStd"></span>
 <img src="EVBB_report_files/figure-html/meanChargeByTimeStd-1.png" alt="Mean charging power demand (kW) by time of day" width="672" />
 <p class="caption">
@@ -869,7 +869,7 @@ Figure 4.1: Mean charging power demand (kW) by time of day
 Figure 4.2: Mean charging power demand (kW) by time of day
 </p>
 </div>
-<p>It seems likely that the ‘standard charge’ day-time peak is skewed by mis-classified short low power ‘fast charge’ observations (see Section @ref(#chargeType)). Figure <a href="#fig:medianChargeByTime">4.3</a> attempts to allow for this misclassification by plotting the median. The plot more clearly shows the 11:00 weekday spike which, if we assume that the mis-classified ‘fast charges’ will be skewing the standard charge mean value upwards, is almost certainly due to mis-classified ‘fast charging’. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from <a href="#fig:meanChargeByTime"><strong>??</strong></a>.</p>
+<p>It seems likely that the ‘standard charge’ day-time peak is skewed by mis-classified short low power ‘fast charge’ observations (see Section @ref(#chargeType)). Figure <a href="#fig:medianChargeByTime">4.3</a> attempts to allow for this misclassification by plotting the median. The plot more clearly shows the 11:00 weekday spike which, if we assume that the mis-classified ‘fast charges’ will be skewing the standard charge mean value upwards, is almost certainly due to mis-classified ‘fast charging’. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from <a href="#fig:meanChargeByTimeStd">4.1</a>.</p>
 <div class="figure"><span id="fig:medianChargeByTime"></span>
 <img src="EVBB_report_files/figure-html/medianChargeByTime-1.png" alt="Median charging power demand (kW) by time of day" width="672" />
 <p class="caption">

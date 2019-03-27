@@ -459,7 +459,7 @@ plotDT <- tmpDT[, .(meankW = mean(charge_power_kw),
                  nObs = .N), keyby = .(weekday, qHour, chargeType)]
 ```
 
-Figure \@ref(fig:meanChargeByTime) shows the mean power demand for charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximim sample size (see Section \@ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.
+Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximim sample size (see Section \@ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.
 
 ```{r meanChargeByTimeStd, fig.cap="Mean charging power demand (kW) by time of day"}
 amPeakStart <- hms::as.hms("07:00:00")
@@ -521,7 +521,7 @@ yMax <- max(plotDT[chargeType %like% "Fast"]$meankW)
 addPeaks(p)
 ```
 
-It seems likely that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(#chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median. The plot more clearly shows the 11:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is almost certainly due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTime).  
+It seems likely that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(#chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median. The plot more clearly shows the 11:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is almost certainly due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTimeStd).  
 
 ```{r medianChargeByTime, fig.cap="Median charging power demand (kW) by time of day"}
 p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, colour = weekday, alpha = nEVs)) +
