@@ -459,7 +459,7 @@ plotDT <- tmpDT[, .(meankW = mean(charge_power_kw),
                  nObs = .N), keyby = .(weekday, qHour, chargeType)]
 ```
 
-Figure \@ref(fig:meanChargeByTime) shows the mean power demand for charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximim sample size (see Section \@ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.
+Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximim sample size (see Section \@ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00.
 
 ```{r meanChargeByTimeStd, fig.cap="Mean charging power demand (kW) by time of day"}
 amPeakStart <- hms::as.hms("07:00:00")
