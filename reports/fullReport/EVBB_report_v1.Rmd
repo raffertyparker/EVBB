@@ -4,6 +4,16 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -12,16 +22,6 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
 always_allow_html: yes
 bibliography: "../../EVBBmendeleyrefs.bib"  
 ---
