@@ -511,7 +511,7 @@ plotDT <- tmpDT[, .(meankW = mean(charge_power_kw),
                  nObs = .N), keyby = .(weekday, qHour, chargeType)]
 ```
 
-Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximum sample size (see Section \@ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
+Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(tmpDT$date), format = "%B %Y")` to ensure maximum sample size (see Section \@ref(cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
 
 This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to startlaterin the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
 
@@ -639,7 +639,7 @@ t <- tmpDT[, .(mean = mean(pairDuration),
                min = round(min(pairDuration),2),
                max = round(max(pairDuration),2),
                sd = round(sd(pairDuration),2)), keyby = .(chargeType)]
-kableExtra::kable(t, caption = "Mean duration of charge events by charge type (all data)", digits = 2) %>%
+kableExtra::kable(t, caption = "Mean duration of charge events by charge type (filtered data)", digits = 2) %>%
   kable_styling()
 ```
 
