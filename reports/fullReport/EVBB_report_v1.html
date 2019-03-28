@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-03-28 16:51:16</em></h4>
+<h4 class="date"><em>Last run at: 2019-03-28 17:03:13</em></h4>
 
 </div>
 
@@ -883,7 +883,7 @@ Figure 4.2: Count of observed charging events by type, day of week and time
 <h1><span class="header-section-number">5</span> Patterns of power demand</h1>
 <p>Given this distribution of charging events, it is important to understand their magnitude to understand the potential effect on the electricity network. Although we are hampered by the lack of ‘no charge’ data when the EV is not connected to the charger and switched off, this section analyses the patterns of power demand where charging is observed. Clearly this does not provide overall sample mean power demand which would include charging, non-charging <em>and</em> non-use observations.</p>
 <p>Overall 75% of standard charging observations were 1.47 kW or more but the figure was 20.28 kW or more for fast charging.</p>
-<p>Figure <a href="#fig:meanChargeByTimeStd">5.1</a> shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after September 2018 to ensure maximum sample size (see Section @ref(#cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section <a href="#background">3.1</a>, this indicates patterns which are generally shared across more EVs.</p>
+<p>Figure <a href="#fig:meanChargeByTimeStd">5.1</a> shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after September 2018 to ensure maximum sample size (see Section <a href="#cleaning">3.2</a>). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section <a href="#background">3.1</a>, this indicates patterns which are generally shared across more EVs.</p>
 <p>This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to startlaterin the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods.</p>
 <div class="figure"><span id="fig:meanChargeByTimeStd"></span>
 <img src="EVBB_report_v1_files/figure-html/meanChargeByTimeStd-1.png" alt="Mean charging power demand (kW) by time of day" width="672" />
@@ -922,7 +922,7 @@ Figure 5.4: Median charging power demand (kW) by time of day
 <p>This section analyses the duration of observed charging events to understand when longer charging sequences are likely to occur. Table <a href="#tab:meanDurationTable">6.1</a> shows the mean durations for all all charging events by event start time for standard charging durations greater than 8 minutes (see Section <a href="#setDurations">3.3.2</a>) and all fast charging events for observations collected after 01 September 2018.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:meanDurationTable">Table 6.1: </span>Mean duration of charge events by charge type (all data)
+<span id="tab:meanDurationTable">Table 6.1: </span>Mean duration of charge events by charge type (filtered data)
 </caption>
 <thead>
 <tr>
