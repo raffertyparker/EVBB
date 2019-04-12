@@ -4,6 +4,16 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago"
 date: 'Last run at: `r Sys.time()`'
 output:
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -12,16 +22,6 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
 always_allow_html: yes
 bibliography: "../../EVBBmendeleyrefs.bib"  
 ---
@@ -992,9 +992,7 @@ ggsave("plots/SOC_Time_when_charging_begins.png")
 
 Finally, Figure \@ref(fig:SoCplotTiming) shows the mean % charge by time of first charging observation in a sequence using the cleaned and corrected inferred start/end of charging sequence data. The plot suggests that this capacity may be relatively stable throughout the day albiet with slightly higher mean capacity around the morning peak as we would expect given over-night charging. It is unlikely that this early morning capacity would be willingly made available for V2G since the EV may be used in the near future although this may not always be the case. However it is interesting to note that mean capacity at start of charge in the evening peak period is still roughly 50% indicating relatively substantial power availability.
 
-# Summary
-
-# Key Findings {#keyFindings}
+# Summary {#summary}
 Based on a relatively small and probably non-representative sample of `r data.table::uniqueN(cleanDT$dvID)` domestic electric vehicles provided by our research partner [FlipTheFleet](https://flipthefleet.org/) and which were monitored from `r format(min(rawDT$date), format = "%B %Y")` to `r format(max(rawDT$date), format = "%B %Y")` we have found that:
 
 ```{r keyFindingsDuration}
