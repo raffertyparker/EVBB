@@ -4,16 +4,6 @@ subtitle: "Statistical Report"
 author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago"
 date: 'Last run at: `r Sys.time()`'
 output:
-  bookdown::word_document2:
-    fig_caption: yes
-    toc: yes
-    toc_depth: 2
-  bookdown::pdf_document2:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
   bookdown::html_document2:
     code_folding: hide
     fig_caption: yes
@@ -22,6 +12,16 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: yes
+  bookdown::pdf_document2:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+  bookdown::word_document2:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 2
 always_allow_html: yes
 bibliography: "../../EVBBmendeleyrefs.bib"  
 ---
@@ -296,7 +296,7 @@ This report extends the work done by Concept Consulting, but utilises actual dat
 
 ## Background{#background}
 
-The data used has been provided by "Flip the Fleet", a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, via Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, power demand, charging rate, speed and other performance information to a secure database.
+The data used has been provided by 'Flip the Fleet', a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, via Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, power demand, charging rate, speed and other performance information to a secure database.
 
 The subset of this data provided to the University of Otago was collected from `r data.table::uniqueN(rawDT$id)` domestic electric vehicles monitored from `r format(min(rawDT$date), format = "%B %Y")` to `r format(max(rawDT$date), format = "%B %Y")`. The data consisted of `r prettyNum(nrow(rawDT), big.mark = ",")` 1 minute interval observations of timestamped odometer readings (in km) together with measurements of charging power (kW) and battery charge state (% charged) linked to a unique anonymised vehicle identifier.
 
@@ -304,7 +304,7 @@ There are a number of important limitations to this data:
 
  * measurement of observations only occurs when the car is switched on and/or plugged in and charging. As a result no data will be collected when the EV is switched off. This means that there are large non-erroneous 'gaps' in the data which represent 'no charging' (and also 'no driving') but which are not included as '0 power demand' in the analyses since to do so would require imputation of a very large number of missing time stamps for each vehicle. This means we are only really able to analyse power demand profiles for vehicles that were charging, _not for all vehicles in all time periods_;
  * data upload relied on mobile 3G data signal and the extent to which gaps in the data are due to data upload errors rather than vehicle non-use (as above) is currently unclear;
- * these vehicles are driven by "early adopters" who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers [@rezvani_advances_2015,@li_review_2017].
+ * these vehicles are driven by 'early adopters' who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers [@rezvani_advances_2015,@li_review_2017].
 
 Even though the use of an anonymised vehicle identifier should prevent the identification of the vehicles in the sample, the fine-grained temporal nature of the data and the relatively small population of EV owners from whom the sample is drawn (Flip The Fleet members) means that the data cannot be publicly released.
 
@@ -360,7 +360,7 @@ Further, as Table \@ref(fig:initialDataChecksPlot) also indicates, there were se
 
 We then discarded:
 
- * `r nrow(rawDT[charge_power_kw > 120])` instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand [@ConceptConsulting2018];
+ * `r nrow(rawDT[ charge_power_kw > 120])` instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand [@ConceptConsulting2018];
  * `r nrow(rawDT[SoC_percent > 100])` instances of battery state of charge observations of greater than 100%.
 
 This left `r data.table::uniqueN(cleanDT$dvID)` remaining vehicles, and `r prettyNum(nrow(cleanDT), big.mark = ",")` observations as shown in Table \@ref(tab:finalTable).
@@ -378,7 +378,7 @@ kableExtra::kable(t,
 
 ### Charge type{#chargeType}
 
-Charging data has been broadly separated into two separate categories, "standard" and "fast". Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of ordinary home charging without an expensive wiring upgrade [@ConceptConsulting2018]. Fast charging is all charging equal to or greater than 7kW, and would likely occur at designated and purpose-built public charging stations.
+Charging data has been broadly separated into two separate categories, 'Standard' and 'Fast'. Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of ordinary home charging without an expensive wiring upgrade [@ConceptConsulting2018]. Fast charging is all charging equal to or greater than 7kW, and would likely occur at designated and purpose-built public charging stations.
 
 > It should be noted that this method is not always accurate since we can identify apparent sequences of charging which start at > 7kW and decline to < 7kW over a relatively short period. In this circumstance the first observation will be correctly classified as 'Fast' but the lower observations, which we assume are lower power trickle 'top-up' at the end of a fast charge will be incorrectly classified as 'Standard' (see \@ref(processedCheck)). This is clarified in Section \@ref(duration) where we use the first observation in a sequence to denote fast/standard but has yet to be resolved in other sections. As a result we may currently be _under-estimating_ the number of fast charge observations and _over-estimating_ the mean power demand of standard charges. Future work will resolve this potential misclassification error.
 
@@ -588,7 +588,7 @@ standardDurMean <- mean(dt$pairDuration, na.rm = TRUE)
 
 # Time of charging
 
-It has been suggested that EV charging is more likely to occur in the early evening [@langbroek_when_2017]. Figure \@ref(fig:chargeBeginsTime) uses a density plot to represent the proportion of charging and non-charging observations at different times of day be weekday vs weekends. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for fast charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
+It has been suggested that EV charging is more likely to occur in the early evening when drivers return from daily commutes or school pick-ups [@langbroek_when_2017]. Figure \@ref(fig:chargeBeginsTime) uses a density plot to represent the proportion of charging and non-charging observations at different times of day by weekday vs weekends. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for fast charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
 
 ```{r chargeTime, fig.cap="Density plot of charging start times during weekdays"}
 plotDT <- cleanDT
@@ -702,7 +702,7 @@ plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
 
 Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(dataDT$date), format = "%B %Y")` to ensure maximum sample size (see Section \@ref(cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
 
-This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to startlaterin the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
+This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to start later in the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
 
 ```{r meanChargeByTimeStd, fig.cap="Mean charging power demand (kW) by time of day"}
 amPeakStart <- hms::as.hms("07:00:00")
@@ -778,7 +778,7 @@ yMax <- max(plotDT[chargeType %like% "Fast"]$meankW)
 addPeaks(p)
 ```
 
-It seems likely that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(#chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is likely to be due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTimeStd).  
+It is possible that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(#chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is likely to be due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTimeStd).  
 
 ```{r medianChargeByTime, fig.cap="Median charging power demand (kW) by time of day"}
 
@@ -963,7 +963,7 @@ p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
 ggsave("plots/SOC_when_charging_begins_firstCleanDT.png")
 ```
 
-Figure \@ref(fig:SoCplot3) repeats this but using the cleaned and corrected inferred start/end of charging sequence data. These show very similar disatirbutions to the previous plot (Figure \@ref(fig:SoCplot2)) which used all observations and conforms that sequences of stabdnard chargin in particualr most frequently start with battery state of charge over 50%. 
+Figure \@ref(fig:SoCplot3) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
 
 ```{r SoCplotTiming, fig.cap= "Mean state of charge at beginning of charge (values > 90% removed)"}
 
@@ -1014,13 +1014,13 @@ medianPowerFast <- round(median(cleanDT[chargeType %like% "Fast", charge_power_k
 ```
 
   * _Power supplied_: The median power supplied during a charging event coded as 'standard' was `r medianPowerStd` kW. The mean was slightly higher at `r meanPowerStd` kW. Charging observations coded as 'Fast' had a median of `r medianPowerStd` kW (mean = `r meanPowerStd` kW). Mean power when charging showed a complex temporal profile for weekday standard charging (Figure \@ref(fig:meanChargeByTimeStd)) with a peak of ~ 2.5kw at 10:00 and a second of the same value at around 18:00 with further peaks just after midnight. The inverse is seen on weekends with a charge peak during the middle of the day;
-  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of `r medianDurationStd` minutes and a mean duration of `r meanDurationStd` minutes High power “fast” charge events had a median duration of `r medianDurationFast` minutes and a mean duration of `r medianDurationFast` minutes;
+  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r medianDurationStd` minutes and a mean duration of `r meanDurationStd` minutes High power 'Fast' charge events had a median duration of `r medianDurationFast` minutes and a mean duration of `r medianDurationFast` minutes;
   * _Time of day_: Standard charging events tended to be the most frequent around 22:00 on both weekdays and weekends, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity although this is not universal with a substantial proportion of charging events starting earlier in the day and potentially at higher power levels (see above). Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends;
   * _State of charge_: As has been previously shown [@speidel_driving_2014], any drivers begin recharging with greater than 50% charge still remaining in the battery for both standard and fast charge events. This has clear implications both for the management of battery life and also for the potential for vehicle-to-grid power flows during peak demand periods where vehciles may be at or arriving home with substantial available charge.
   
 In the data provided for this study, most charging occurs at home using either a 1.8kw or 3kW charger, and commonly occurs both in the evening peak period and through the night. In addition, many vehicles begin charging with significant battery capacity remaining, providing them with the ability to provide vehicle to grid energy transfer should that technology become widely available. 
 
-These preliminary findings support recent modelling work [@ConceptConsulting2018] that suggests that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through "smart" charging methods. In addition, our analysis indicates that this may already be occurring to some extent in this sample of EV owners. If later adopters of electric vehicles can be induced to follow the same "smart" charging patterns as those displayed in some of our data sample, it is likely that the effects that electric vehicles are otherwise likely to have on the electricity grid may be mitigated.
+These preliminary findings support recent modelling work [@ConceptConsulting2018] that suggests that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through 'smart' charging methods. In addition, our analysis indicates that this may already be occurring to some extent in this sample of EV owners. If later adopters of electric vehicles can be induced to follow the same 'smart' charging patterns as those displayed in some of our data sample, it is likely that the effects that electric vehicles are otherwise likely to have on the electricity grid may be mitigated.
 
 # Statistical Annex
 
