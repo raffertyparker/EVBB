@@ -278,6 +278,8 @@ firstLastDT <- setkey(firstLastDT, dvID, dateTime)
 # difftime(timeEnd, timeStart, units='mins')
 firstLastDT <- firstLastDT[, pairDuration :=  difftime(shift(dateTime, type = "lead"), dateTime, units='mins'), by = id] # set all within id
 firstLastDT <- firstLastDT[chargeFlag %like% "Last", pairDuration := NA] # removes for last
+
+
 ```
 
 
@@ -561,6 +563,8 @@ t <- firstCleanDT[chargeFlag %like% "First",
 kableExtra::kable(t, 
                   caption = "Duration of charge sequences, final duration data (minutes)", digits = 2) %>%
   kable_styling()
+
+
 ```
 
 
@@ -1014,7 +1018,7 @@ medianPowerFast <- round(median(cleanDT[chargeType %like% "Fast", charge_power_k
 ```
 
   * _Power supplied_: The median power supplied during a charging event coded as 'standard' was `r medianPowerStd` kW. The mean was slightly higher at `r meanPowerStd` kW. Charging observations coded as 'Fast' had a median of `r medianPowerStd` kW (mean = `r meanPowerStd` kW). Mean power when charging showed a complex temporal profile for weekday standard charging (Figure \@ref(fig:meanChargeByTimeStd)) with a peak of ~ 2.5kw at 10:00 and a second of the same value at around 18:00 with further peaks just after midnight. The inverse is seen on weekends with a charge peak during the middle of the day;
-  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r medianDurationStd` minutes and a mean duration of `r meanDurationStd` minutes High power 'Fast' charge events had a median duration of `r medianDurationFast` minutes and a mean duration of `r medianDurationFast` minutes;
+  * _Charging duration_: Charging durations tended to fall into one of two groups. Longer 'standard' charges had a median duration of `r medianDurationStd` minutes and a mean duration of `r meanDurationStd` minutes. High power 'Fast' charge events had a median duration of `r medianDurationFast` minutes and a mean duration of `r medianDurationFast` minutes;
   * _Time of day_: Standard charging events tended to be the most frequent around 22:00 on both weekdays and weekends, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity although this is not universal with a substantial proportion of charging events starting earlier in the day and potentially at higher power levels (see above). Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends;
   * _State of charge_: As has been previously shown [@speidel_driving_2014], any drivers begin recharging with greater than 50% charge still remaining in the battery for both standard and fast charge events. This has clear implications both for the management of battery life and also for the potential for vehicle-to-grid power flows during peak demand periods where vehciles may be at or arriving home with substantial available charge.
   
@@ -1052,7 +1056,7 @@ skimr::skim(firstCleanDT)
 
 This is used to identify observations that form part of a sequence. The logic is given in Section \@ref(codeSequences). Here we show the results of applying an additional 120 second rule. In this case a sequence only exists where we have charging observations which have less than 120 seconds between them.
 
-```{r checkChargeFlag}
+```{r checkChargeFlagMethods}
 
 kableExtra::kable(sequenceMethod1_T, caption = "Charge sequence flags (120 second rule)") %>%
   kable_styling()
@@ -1067,59 +1071,143 @@ As we can see, applying the 120 second rule reduces the number of observations c
 
 For now we therefore do not use the 120 second rule.
 
-#### Check charge type
-
-chargeType is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this.
-
-```{r checkChargeType}
-# Check chargeFlag ----
-message("chargeType is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications:")
-
-table(firstLastDT$chargeType, firstLastDT$chargeTypeError, useNA = "always")
-
-nError <- nrow(firstLastDT[chargeTypeError %like% "Error"])
-nErrorEVs <- uniqueN(firstLastDT[chargeTypeError %like% "Error"]$dvID)  
-message("There are ", nError, " pairs (out of a total of ", nrow(firstLastDT)/2,") from ", nErrorEVs ," EVs where charge type doesn't match.")
-
-# Create previous/next dateTime var for error checks ----
-dt <- dt[, dateTimeBefore := shift(dateTime, type = "lag"), by = id]
-dt <- dt[, dateTimeAfter := shift(dateTime, type = "lead"), by = id]
-
-t <- head(dt[is.na(chargeFlag)])
-
-# should = n EVs
-message("N observations where previous dateTime unknown (should match to n EVs)")
-nrow(dt[is.na(dateTimeBefore)])
-message("N observations where next dateTime unknown (should match to n EVs)")
-nrow(dt[is.na(dateTimeAfter)])
-message("N observations where chargeFlag is unknown")
-nrow(dt[is.na(chargeFlag)])
-message("These seem to occur when charging is detected but the dateTime before/after is unkown due to data truncation")
-```
-
-Check charge flags:
-
 ```{r checkChargeFlags}
 # Check chargeFlag ----
 message("chargeFlag is used to classify charging events - check against charge type:")
 
-table(dt$chargeFlag, dt$chargeType, useNA = "always")
+t <- table(cleanDT$chargeFlag, cleanDT$chargeType, useNA = "always")
+kableExtra::kable(t, caption = "chargeFlag errors (clean data)") %>%
+  kable_styling()
 message("There are a few observations that have chargeFlag = NA but are charging... why?")
+```
 
-# Create previous/next dateTime var for error checks ----
-dt <- dt[, dateTimeBefore := shift(dateTime, type = "lag"), by = id]
-dt <- dt[, dateTimeAfter := shift(dateTime, type = "lead"), by = id]
+We also test the patterns of charging that this classification produces. We do this first for 'standard' charging sequences and then for 'fast' charging sequences.
 
-t <- head(dt[is.na(chargeFlag)])
+```{r debugSequences}
+# debug sequences visually ----
 
-# should = n EVs
-message("N observations where previous dateTime unknown (should match to n EVs)")
-nrow(dt[is.na(dateTimeBefore)])
-message("N observations where next dateTime unknown (should match to n EVs)")
-nrow(dt[is.na(dateTimeAfter)])
-message("N observations where chargeFlag is unknown")
-nrow(dt[is.na(chargeFlag)])
-message("These seem to occur when charging is detected but the dateTime before/after is unkown due to data truncation")
+# set start and end time in hms ----
+firstLastDT <- firstLastDT[, startTime := as.hms(dateTime)]
+firstLastDT <- firstLastDT[, endTime := as.hms(shift(dateTime, type = "lead"))]
+
+# start & end charge rate ----
+firstLastDT <- firstLastDT[, startChargekW := charge_power_kw]
+firstLastDT <- firstLastDT[, endChargekW := shift(charge_power_kw, type = "lead")]
+
+# start & end batter state
+firstLastDT <- firstLastDT[, startSoC_pc := SoC_percent]
+firstLastDT <- firstLastDT[, endSoC_pc := shift(SoC_percent, type = "lead")]
+
+# calc duration so we can decide what to do where it is -ve - i.e. event spanned midnight ----
+firstLastDT <- firstLastDT[, notDuration := difftime(endTime, startTime, units='mins'), by = id] # set all within id, if this is -ve then it spanned midnight
+# fix # 1
+firstLastDT <- firstLastDT[, endTimeTrunc := ifelse(notDuration < 0, 
+                                                   hms::as.hms("23:59:00"),
+                                                   endTime)] # this truncates charge periods that span midnight and ends then at midnight for clarity. Of course this makes a hash of early morning charging patterns... 
+
+# charge rate & state of charge deltas ----
+firstLastDT <- firstLastDT[, chargePowerDelta := endChargekW - charge_power_kw] # should be -ve where we start high and end low
+firstLastDT <- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be -ve where we start high and end low
+
+```
+
+
+```{r checkStdSequences}
+
+# plotting function
+makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
+  p <- ggplot2::ggplot(dt) +
+    geom_segment(aes(x = as.POSIXct(startTime), 
+                     xend = as.POSIXct(endTime), 
+                     y = get(y), 
+                     yend = get(yend), colour = get(colour))) +
+    labs(x = "Sequence start time") + 
+    theme(legend.position = "bottom") +
+    scale_x_datetime(date_labels = "%H:%M", date_breaks = "4 hours") +
+    facet_wrap(. ~ dvID)
+  return(p)
+}
+
+dt <- firstLastDT[chargeTypeFixed %like% "Standard" & 
+                    #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (they could also be mis-coded 'fast' charging)
+                    chargeFlag %like% "First" ,
+                  .(startTime, endTime, endTimeTrunc, chargeTypeFixed,startChargekW, endChargekW,
+                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+
+p <- makeSeqChargePlot(dt, y = "startChargekW", 
+                       yend = "endChargekW", 
+                       colour =  "chargePowerDelta") 
+p <- p + 
+  labs(y = "Charging rate (kW)",
+       caption = "Standard charging (fixed) \n Pairs spanning midnight excluded") +
+  guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
+  scale_color_continuous(low = "green", high = "red") # highlight ones that went up
+
+ggsave("plots/standardChargePairs_kW_LineSegments.png", p, height = 10)
+
+#dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
+p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
+                       yend = "endSoC_pc", 
+                       colour =  "SoC_pcDelta")
+p <- p + 
+  labs(y = "State of charge (%)",
+       caption = "Standard charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
+  guides(colour = guide_legend(title = "State of charge delta (%)")) +
+  scale_color_continuous(low = "red", high = "green") # highlight ones that went down
+
+ggsave("plots/standardChargePairs_SoC_LineSegments.png", p, height = 10)
+
+```
+
+
+```{r checkFastSequences}
+dt <- firstLastDT[chargeTypeFixed %like% "Fast" & 
+                    #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (or they might be 'fast' charging too)
+                    chargeFlag %like% "First",
+                  .(startTime, endTime, endTimeTrunc, chargeTypeFixed,startChargekW, endChargekW,
+                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+
+p <- makeSeqChargePlot(dt, y = "startChargekW", 
+                       yend = "endChargekW", 
+                       colour =  "chargePowerDelta") 
+p <- p + 
+  labs(y = "Charging rate (kW)",
+       caption = "Fast charging (fixed) \n Pairs spanning midnight excluded") +
+  guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
+  scale_color_continuous(low = "green", high = "red") # highlight ones that went up
+
+ggsave("plots/fastChargePairs_kW_LineSegments.png", p, height = 10)
+
+#dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
+p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
+                       yend = "endSoC_pc", 
+                       colour =  "SoC_pcDelta")
+p <- p + 
+  labs(y = "State of charge (%)",
+       caption = "Fast charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
+  guides(colour = guide_legend(title = "State of charge delta (%)")) +
+  scale_color_continuous(low = "red", high = "green") # highlight ones that went down
+
+ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
+```
+
+
+
+#### Check charge type
+
+`chargeType` is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have fixed it in some sections above using the start/end pairs.
+
+```{r checkChargeType}
+# Check chargeType ----
+
+t <- table(firstLastDT$chargeTypeError, firstLastDT$chargeType, useNA = "always")
+
+kableExtra::kable(t, caption = "chargeType errors detected") %>%
+  kable_styling()
+
+nError <- nrow(firstLastDT[chargeTypeError %like% "Error"])
+nErrorEVs <- uniqueN(firstLastDT[chargeTypeError %like% "Error"]$dvID)  
+message("There are ", nError, " pairs (out of a total of ", nrow(firstLastDT)/2,") from ", nErrorEVs ," EVs where charge type doesn't match.")
 ```
 
 
