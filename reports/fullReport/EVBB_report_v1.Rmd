@@ -28,6 +28,9 @@ bibliography: "../../EVBBmendeleyrefs.bib"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE) # for final tidy run
+knitr::opts_chunk$set(message = FALSE) # for final tidy run
+
 library(readr) # tidy data reading
 library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
 library(lubridate) # for data & time manip
@@ -896,7 +899,7 @@ p <- ggplot2::ggplot(plotDT,
   geom_smooth() +
   geom_point() +
   facet_grid(weekdays ~ .) +
-  labs(x = "Time of day charging event started",
+  labs(x = "Time of day charging sequence started",
        y = "Mean duration of charge (mins)", col = "",
        caption = genCap)
 
@@ -950,6 +953,8 @@ p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
 
 ```
 
+Figure \@ref(fig:SoCplot3) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
+
 ```{r SoCplot3, fig.cap= "Value of state of charge at beginning of charging sequence (chargeType corrected, values > 90% removed)"}
 plotDT <- firstCleanDT[SoC_percent < 90]
 
@@ -965,7 +970,6 @@ p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
 
 ```
 
-Figure \@ref(fig:SoCplot3) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
 
 ```{r SoCplotTiming, fig.cap= "Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values > 90% removed)"}
 
@@ -1026,6 +1030,13 @@ In the data provided for this study, most charging occurs at home using either a
 These preliminary findings support recent modelling work [@ConceptConsulting2018] that suggests that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through 'smart' charging methods. In addition, our analysis indicates that this may already be occurring to some extent in this sample of EV owners. If later adopters of electric vehicles can be induced to follow the same 'smart' charging patterns as those displayed in some of our data sample, it is likely that the effects that electric vehicles are otherwise likely to have on the electricity grid may be mitigated.
 
 # Statistical Annex
+
+```{r resetOptions}
+# turn these back on for annex
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = TRUE) # for final tidy run
+knitr::opts_chunk$set(message = TRUE) # for final tidy run
+```
 
 ## Flip The Fleet data description
 
