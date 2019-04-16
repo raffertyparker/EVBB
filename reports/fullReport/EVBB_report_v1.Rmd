@@ -1052,7 +1052,9 @@ Data description for cleaned data (first observations in a charging sequence).
 skimr::skim(firstCleanDT)
 ```
 
-#### Charge flag {#chargeFlagTest}
+## Coding checks
+
+### Charge flag {#chargeFlagTest}
 
 This is used to identify observations that form part of a sequence. The logic is given in Section \@ref(codeSequences). Here we show the results of applying an additional 120 second rule. In this case a sequence only exists where we have charging observations which have less than 120 seconds between them.
 
@@ -1111,8 +1113,9 @@ firstLastDT <- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be
 
 ```
 
+Figure \@ref(fig:checkStdSequences-kw) plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (fixed) 'standard' charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the charge rate increased.
 
-```{r checkStdSequences}
+```{r checkStdSequences-kw}
 
 # plotting function
 makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
@@ -1142,9 +1145,13 @@ p <- p +
        caption = "Standard charging (fixed) \n Pairs spanning midnight excluded") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
-
+p
 ggsave("plots/standardChargePairs_kW_LineSegments.png", p, height = 10)
+```
 
+Figure \@ref(fig:checkStdSequences-soc) uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the battery state of charge decreased.
+
+```{r checkStdSequences-soc}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 
@@ -1154,13 +1161,14 @@ p <- p +
        caption = "Standard charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
-
+p
 ggsave("plots/standardChargePairs_SoC_LineSegments.png", p, height = 10)
 
 ```
 
+Figure \@ref(fig:checkFastSequences-kw) and Figure \@ref(fig:checkFastSequences-soc) repeat these plots but for (fixed) 'fast' charge events.
 
-```{r checkFastSequences}
+```{r checkFastSequences-kw}
 dt <- firstLastDT[chargeTypeFixed %like% "Fast" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (or they might be 'fast' charging too)
                     chargeFlag %like% "First",
@@ -1175,9 +1183,12 @@ p <- p +
        caption = "Fast charging (fixed) \n Pairs spanning midnight excluded") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
-
+p
 ggsave("plots/fastChargePairs_kW_LineSegments.png", p, height = 10)
+```
 
+
+```{r checkFastSequences-soc}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 
@@ -1187,13 +1198,13 @@ p <- p +
        caption = "Fast charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
-
+p
 ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
 ```
 
 
 
-#### Check charge type
+### Charge type
 
 `chargeType` is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have fixed it in some sections above using the start/end pairs.
 
