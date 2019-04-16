@@ -1152,7 +1152,7 @@ p <- makeSeqChargePlot(dt, y = "startChargekW",
                        colour =  "chargePowerDelta") 
 p <- p + 
   labs(y = "Charging rate (kW)",
-       caption = "Standard charging (corrected) \n Pairs spanning midnight excluded") +
+       caption = "Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
 p

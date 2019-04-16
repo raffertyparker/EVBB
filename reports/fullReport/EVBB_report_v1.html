@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-04-16 15:21:06</em></h4>
+<h4 class="date"><em>Last run at: 2019-04-16 15:25:07</em></h4>
 
 </div>
 
@@ -1971,7 +1971,7 @@ p &lt;- makeSeqChargePlot(dt, y = &quot;startChargekW&quot;,
                        colour =  &quot;chargePowerDelta&quot;) 
 p &lt;- p + 
   labs(y = &quot;Charging rate (kW)&quot;,
-       caption = &quot;Standard charging (corrected) \n Pairs spanning midnight excluded&quot;) +
+       caption = &quot;Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
   guides(colour = guide_legend(title = &quot;Charge rate delta (kW)&quot;)) +
   scale_color_continuous(low = &quot;green&quot;, high = &quot;red&quot;) # highlight ones that went up
 p</code></pre>
