@@ -156,6 +156,23 @@ setkey(cleanDT, id, dateTime)
 
 # calculate time diff from 1 obs to the next ----
 cleanDT <- cleanDT[, dateTimeDiff := dateTime - shift(dateTime), by = id]
+
+# locate in peak/not peak
+amPeakStart <- hms::as.hms("07:00:00")
+amPeakEnd <- hms::as.hms("09:00:00")
+pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
+pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
+
+cleanDT <- cleanDT[, peakPeriod := "Not peak"]
+cleanDT <- cleanDT[, startTime := hms::as.hms(dateTime)]
+cleanDT <- cleanDT[, peakPeriod := ifelse(startTime >= amPeakStart & 
+                                  startTime <= amPeakEnd,
+                                "Morning peak",
+                                peakPeriod)]
+cleanDT <- cleanDT[, peakPeriod := ifelse(startTime >= pmPeakStart & 
+                                  startTime <= pmPeakEnd,
+                                "Evening peak",
+                                peakPeriod)]
 ```
 
 ```{r createChargeSequenceFlag, include=FALSE}
@@ -231,9 +248,12 @@ cleanDT <- clean2DT # use no threshold data
 # but they might not be if our threshold method gets it wrong - e.g. the first (or last) appears fast but then it 
 # trickles (or vice versa)
 
-# Select first & last to get pairs (also used for durations) ----
+# Select first & last to get pairs ----
 
 firstLastDT <- cleanDT[chargeFlag %like% "First" | chargeFlag %like% "Last"]
+
+# set end time in hms ----
+firstLastDT <- firstLastDT[, endTime := as.hms(shift(dateTime, type = "lead"))]
 
 # set endType to type of the next observation for all
 # don't subset as it will just use the next 'First' which is not what we want
@@ -705,6 +725,7 @@ plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
                  nEVs = uniqueN(dvID),
                  nDays = uniqueN(date),
                  nObs = .N), keyby = .(weekdays, qHour, chargeType)]
+
 ```
 
 Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(dataDT$date), format = "%B %Y")` to ensure maximum sample size (see Section \@ref(cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
@@ -712,10 +733,6 @@ Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard c
 This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to start later in the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
 
 ```{r meanChargeByTimeStd, fig.cap="Mean charging power demand (kW) by time of day"}
-amPeakStart <- hms::as.hms("07:00:00")
-amPeakEnd <- hms::as.hms("09:00:00")
-pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
-pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
 
 rectAlpha <- 0.1
 vLineAlpha <- 0.4
@@ -727,12 +744,12 @@ addPeaks <- function(p){
   # assumes you've set yMin & yMax already
   # breaks with facet_grid, scales = "free" so you have to build seperate plots if you want to do that
   # there is a complex solution (https://stackoverflow.com/questions/27898651/get-scales-range-of-facets-scales-free) but...
-  p <- p + annotate("rect", xmin = amPeakStart,
-             xmax = amPeakEnd, 
+  p <- p + annotate("rect", xmin = amPeakStart, # set earlier
+             xmax = amPeakEnd, # set earlier
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, fill = vLineCol)
-  p <- p + annotate("rect", xmin = pmPeakStart,
-             xmax = pmPeakEnd, 
+  p <- p + annotate("rect", xmin = pmPeakStart, # set earlier
+             xmax = pmPeakEnd, # set earlier
              ymin = yMin, ymax = yMax, 
              alpha = rectAlpha, fill = vLineCol)
   return(p)
@@ -813,7 +830,7 @@ addPeaks(p)
 
 Figure \@ref(fig:meanChargeByTimeMonth) repeats the median power-based analysis for 'Standard charging' but shows the results by month. While the sample size is probably too small to draw robust conclusions there appear to be differences between months with December showing few discernable peaks and September and January showing much lower daytime weekday charging. In addition, weekdays and weekends are much more similar in November and December.
 
-```{r meanChargeByTimeMonth, fig.cap="Median charging power demand (kW) by time of day", fig.height=6}
+```{r meanChargeByTimeMonth, fig.cap="Median charging power demand (kW) by time of day and month", fig.height=6}
 dataDT <- cleanDT[charge_power_kw > 0 & date > as.Date("2018-09-01")]
 
 plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
@@ -823,9 +840,9 @@ plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
                  nDays = uniqueN(date),
                  nObs = .N), keyby = .(weekdays, qHour, chargeType, month)]
 
-genCap <- paste0("Data source: Flip The Fleet",                  "All standard charging observations",
-                 "\n n EVs: ", uniqueN(dataDT$dvID),
-                 "\n n observations: ", nrow(dataDT),
+genCap <- paste0("Data source: Flip The Fleet",
+                 "\n All standard charging observations",
+                 "\n n EVs: ", uniqueN(dataDT$dvID), ", n observations: ", nrow(dataDT),
                  "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
                  "\n Peak periods shaded"
 )
@@ -1098,10 +1115,6 @@ We also test the patterns of charging that this classification produces. We do t
 ```{r debugSequences}
 # debug sequences visually ----
 
-# set start and end time in hms ----
-firstLastDT <- firstLastDT[, startTime := as.hms(dateTime)]
-firstLastDT <- firstLastDT[, endTime := as.hms(shift(dateTime, type = "lead"))]
-
 # start & end charge rate ----
 firstLastDT <- firstLastDT[, startChargekW := charge_power_kw]
 firstLastDT <- firstLastDT[, endChargekW := shift(charge_power_kw, type = "lead")]
@@ -1114,7 +1127,7 @@ firstLastDT <- firstLastDT[, endSoC_pc := shift(SoC_percent, type = "lead")]
 firstLastDT <- firstLastDT[, notDuration := difftime(endTime, startTime, units='mins'), by = id] # set all within id, if this is -ve then it spanned midnight
 # fix # 1
 firstLastDT <- firstLastDT[, endTimeTrunc := ifelse(notDuration < 0, 
-                                                   hms::as.hms("23:59:00"),
+                                                   hms::parse_hm("23:59"),
                                                    endTime)] # this truncates charge periods that span midnight and ends then at midnight for clarity. Of course this makes a hash of early morning charging patterns... 
 
 # charge rate & state of charge deltas ----
@@ -1127,37 +1140,54 @@ Figure \@ref(fig:checkStdSequenceskW) plots the first and last charge observatio
 
 ```{r checkStdSequenceskW, fig.height=10, fig.cap="Standard charging (corrected) - rate of charge"}
 
+# format labels function
+# https://stackoverflow.com/questions/53804629/how-to-format-difftime-as-hhmm-in-ggplot2
+format_hm <- function(sec) stringr::str_sub(format(sec), end = -4L)
 # plotting function
 makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
   p <- ggplot2::ggplot(dt) +
-    geom_segment(aes(x = as.POSIXct(startTime), 
-                     xend = as.POSIXct(endTime), 
-                     y = get(y), 
-                     yend = get(yend), colour = get(colour))) +
-    labs(x = "Sequence start time") + 
+    geom_segment(aes(x = hms::as.hms(startTime), # start x value
+                     xend = hms::as.hms(endTimeTrunc), # end x value
+                     y = get(y), # start y value
+                     yend = get(yend), # end y value
+                     colour = get(colour))) + # colour to highlight some value
+    labs(x = "Sequence start and end time") + 
     theme(legend.position = "bottom") +
-    scale_x_datetime(date_labels = "%H:%M", date_breaks = "4 hours") +
+    scale_x_time(labels = format_hm) +
     facet_wrap(. ~ dvID)
   return(p)
 }
 
 dt <- firstLastDT[chargeTypeCorrected %like% "Standard" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (they could also be mis-coded 'fast' charging)
-                    chargeFlag %like% "First" ,
-                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
-                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+                    chargeFlag %like% "First"]
 
 p <- makeSeqChargePlot(dt, y = "startChargekW", 
                        yend = "endChargekW", 
                        colour =  "chargePowerDelta") 
 p <- p + 
   labs(y = "Charging rate (kW)",
-       caption = "Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
+       caption = "Standard charging (corrected) \n 
+       Pairs spanning midnight truncated at 23:59 \n
+       Peak periods shaded") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
-p
+yMin <- min(dt$startChargekW) # might not quite work if end is higher...
+yMax <- max(dt$startChargekW) # might not quite work if end is higher...
+addPeaks(p)
 #ggsave("plots/standardChargePairs_kW_LineSegments.png", p, height = 10)
 ```
+
+Figure \@ref(fig:stdPowerDeltaDensity) shows the distribution of charge power deltas by peak/not peak period (of start time) for 'standard' charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the 'evening' and 'not peak' period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.
+
+```{r stdPowerDeltaDensity, fig.cap="Histogram of charge power deltas by peak/not peak period"}
+p <- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
+  geom_density(alpha = 0.5) +
+  guides(colour = guide_legend(title = "Peak period:")) +
+  labs(x = "Change in power from start to end (kW)")
+p
+```
+
 
 Figure \@ref(fig:checkStdSequencesSoC) uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the battery state of charge decreased.
 
@@ -1171,19 +1201,20 @@ p <- p +
        caption = "Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
-p
+yMin <- min(dt$startSoC_pc) # might not quite work if end is higher...
+yMax <- max(dt$startSoC_pc) # might not quite work if end is higher...
+addPeaks(p)
 #ggsave("plots/standardChargePairs_SoC_LineSegments.png", p, height = 10)
 
 ```
+
 
 Figure \@ref(fig:checkFastSequenceskW) and Figure \@ref(fig:checkFastSequencesSoC) repeat these plots but for (corrected) 'fast' charge events.
 
 ```{r checkFastSequenceskW, fig.height=10, fig.cap="Fast charging (corrected) - rate of charge"}
 dt <- firstLastDT[chargeTypeCorrected %like% "Fast" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (or they might be 'fast' charging too)
-                    chargeFlag %like% "First",
-                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
-                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+                    chargeFlag %like% "First"]
 
 p <- makeSeqChargePlot(dt, y = "startChargekW", 
                        yend = "endChargekW", 
@@ -1193,7 +1224,9 @@ p <- p +
        caption = "Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
-p
+yMin <- min(dt$startChargekW) # might not quite work if end is higher...
+yMax <- max(dt$startChargekW) # might not quite work if end is higher...
+addPeaks(p)
 #ggsave("plots/fastChargePairs_kW_LineSegments.png", p, height = 10)
 ```
 
@@ -1208,10 +1241,22 @@ p <- p +
        caption = "Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
-p
+yMin <- min(dt$startSoC_pc) # might not quite work if end is higher...
+yMax <- max(dt$startSoC_pc) # might not quite work if end is higher...
+addPeaks(p)
+
 #ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
 ```
 
+Figure \@ref(fig:fastPowerDeltaDensity) shows the distribution of charge power deltas by peak/not peak period (of start time) for 'fast' charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the 'evening' and 'not peak' period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.
+
+```{r fastPowerDeltaDensity, fig.cap="Histogram of state of charge deltas by peak/not peak period"}
+p <- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
+  geom_histogram(alpha = 0.5) +
+  guides(colour = guide_legend(title = "Peak period:")) +
+  labs(x = "Change in power from start to end (kW)")
+p
+```
 
 ### Charge type
 

@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-04-16 15:25:07</em></h4>
+<h4 class="date"><em>Last run at: 2019-04-16 23:16:06</em></h4>
 
 </div>
 
@@ -1119,9 +1119,9 @@ Figure 4.3: Median charging power demand (kW) by time of day
 </div>
 <p>Figure <a href="#fig:meanChargeByTimeMonth">4.4</a> repeats the median power-based analysis for ‘Standard charging’ but shows the results by month. While the sample size is probably too small to draw robust conclusions there appear to be differences between months with December showing few discernable peaks and September and January showing much lower daytime weekday charging. In addition, weekdays and weekends are much more similar in November and December.</p>
 <div class="figure"><span id="fig:meanChargeByTimeMonth"></span>
-<img src="EVBB_report_v1_files/figure-html/meanChargeByTimeMonth-1.png" alt="Median charging power demand (kW) by time of day" width="672" />
+<img src="EVBB_report_v1_files/figure-html/meanChargeByTimeMonth-1.png" alt="Median charging power demand (kW) by time of day and month" width="672" />
 <p class="caption">
-Figure 4.4: Median charging power demand (kW) by time of day
+Figure 4.4: Median charging power demand (kW) by time of day and month
 </p>
 </div>
 <p>On face value the results suggest that EVs could be placing additional power demand on local and national networks during well-known periods of peak demand although this appears to vary by month for this small sample of EV owners.</p>
@@ -1362,23 +1362,23 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  n obs: 1515812 
 ##  n variables: 8 
 ## 
-## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
 ##     variable missing complete       n min max empty n_unique
 ##  day_of_week       0  1515812 1515812   6   9     0        7
 ##           id       0  1515812 1515812  32  32     0       50
 ##        month       0  1515812 1515812   3   3     0       10
 ## 
-## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n        min        max     median
 ##      date       0  1515812 1515812 2018-04-05 2019-01-25 2018-11-09
 ##  n_unique
 ##       293
 ## 
-## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n    min        max     median n_unique
 ##      time       0  1515812 1515812 0 secs 86399 secs 44827 secs    86400
 ## 
-## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
 ##                 variable missing complete       n    mean      sd     p0
 ##          charge_power_kw       0  1515812 1515812    1.73   71         0
 ##              odometer_km 1000156   515656 1515812 7290.5  7954.38 -62920
@@ -1394,33 +1394,36 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <pre class="r"><code>skimr::skim(cleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1291881 
-##  n variables: 15 
+##  n variables: 17 
 ## 
-## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete       n min max empty n_unique
 ##  chargeFlag      12  1291869 1291881  17  25     0        5
 ##  chargeType       0  1291881 1291881  12  17     0        3
 ##        dvID       0  1291881 1291881   9  10     0       44
 ##          id       0  1291881 1291881  32  32     0       44
+##  peakPeriod       0  1291881 1291881   8  12     0        3
 ##    weekdays       0  1291881 1291881   8   8     0        2
 ## 
-## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n        min        max     median
 ##      date       0  1291881 1291881 2018-05-12 2019-01-25 2018-11-13
 ##  n_unique
 ##       249
 ## 
-## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
 ##      variable missing complete       n    min          max   median
 ##  dateTimeDiff      44  1291837 1291881 0 secs 4912664 secs  50 secs
 ##         qHour       0  1291881 1291881 0 secs   85500 secs 11:45:00
+##     startTime       0  1291881 1291881 0 secs   86399 secs 12:24:49
 ##          time       0  1291881 1291881 0 secs   86399 secs 11:50:53
 ##  n_unique
 ##     13443
 ##        96
 ##     86400
+##     86400
 ## 
-## ── Variable type:factor ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────
 ##     variable missing complete       n n_unique
 ##  day_of_week       0  1291881 1291881        7
 ##        month       0  1291881 1291881        9
@@ -1428,7 +1431,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  Fri: 206422, Wed: 206292, Thu: 205166, Mon: 190389    TRUE
 ##  Nov: 298332, Oct: 280869, Dec: 272272, Jan: 188498   FALSE
 ## 
-## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete       n    mean      sd     p0     p25
 ##  charge_power_kw       0  1291881 1291881    1.48    2.89      0    0   
 ##      odometer_km  857152   434729 1291881 6801.77 7943.05 -62920 1698   
@@ -1438,7 +1441,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  4123    8816    69394    ▁▁▁▇▇▂▁▁
 ##    69.73   82.26    98.1  ▁▁▂▃▆▇▇▇
 ## 
-## ── Variable type:POSIXct ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n        min        max     median
 ##  dateTime       0  1291881 1291881 2018-05-12 2019-01-25 2018-11-13
 ##  n_unique
@@ -1447,9 +1450,9 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <pre class="r"><code>skimr::skim(firstCleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 3299 
-##  n variables: 19 
+##  n variables: 22 
 ## 
-## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n min max empty n_unique
 ##       chargeFlag       0     3299 3299  25  25     0        1
 ##       chargeType       0     3299 3299  13  17     0        2
@@ -1457,25 +1460,30 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##             dvID       0     3299 3299   9  10     0       43
 ##          endType       0     3299 3299  13  17     0        2
 ##               id       0     3299 3299  32  32     0       43
+##       peakPeriod       0     3299 3299   8  12     0        3
 ##         weekdays       0     3299 3299   8   8     0        2
 ## 
-## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
 ##      date       0     3299 3299 2018-05-12 2019-01-17 2018-11-09      201
 ## 
-## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
 ##      variable missing complete    n                   min
 ##  dateTimeDiff       0     3299 3299  0 secs              
+##       endTime       0     3299 3299  1 secs              
 ##  pairDuration       0     3299 3299       0.01666667 mins
 ##         qHour       0     3299 3299  0 secs              
+##     startTime       0     3299 3299 31 secs              
 ##          time       0     3299 3299 40 secs              
 ##                   max             median n_unique
 ##  230025 secs          305 secs               1804
+##   86395 secs          13:06:27               3215
 ##         1616.717 mins      178.8167 mins     3024
 ##   85500 secs          15:15:00                 96
+##   86392 secs          10:15:44               3170
 ##   86246 secs          15:22:14               3167
 ## 
-## ── Variable type:factor ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────
 ##             variable missing complete    n n_unique
 ##  chargeTypeCorrected       0     3299 3299        2
 ##          day_of_week       0     3299 3299        7
@@ -1485,7 +1493,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  Fri: 524, Wed: 502, Thu: 490, Mon: 489    TRUE
 ##  Nov: 791, Oct: 743, Dec: 702, Sep: 458   FALSE
 ## 
-## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n    mean      sd        p0     p25
 ##  charge_power_kw       0     3299 3299    7.31   12.68      0.5     1.62
 ##      odometer_km    2555      744 3299 5649.15 7459.93 -52352    1289.25
@@ -1495,7 +1503,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  3435    7345.75 54443    ▁▁▁▂▇▁▁▁
 ##    48.41   59.63    98.1  ▁▃▆▇▇▃▂▂
 ## 
-## ── Variable type:POSIXct ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
 ##  dateTime       0     3299 3299 2018-05-12 2019-01-17 2018-11-09     3299</code></pre>
 </div>
@@ -1923,10 +1931,6 @@ NA
 <p>We also test the patterns of charging that this classification produces. We do this first for ‘standard’ charging sequences and then for ‘fast’ charging sequences.</p>
 <pre class="r"><code># debug sequences visually ----
 
-# set start and end time in hms ----
-firstLastDT &lt;- firstLastDT[, startTime := as.hms(dateTime)]
-firstLastDT &lt;- firstLastDT[, endTime := as.hms(shift(dateTime, type = &quot;lead&quot;))]
-
 # start &amp; end charge rate ----
 firstLastDT &lt;- firstLastDT[, startChargekW := charge_power_kw]
 firstLastDT &lt;- firstLastDT[, endChargekW := shift(charge_power_kw, type = &quot;lead&quot;)]
@@ -1939,42 +1943,48 @@ firstLastDT &lt;- firstLastDT[, endSoC_pc := shift(SoC_percent, type = &quot;lea
 firstLastDT &lt;- firstLastDT[, notDuration := difftime(endTime, startTime, units=&#39;mins&#39;), by = id] # set all within id, if this is -ve then it spanned midnight
 # fix # 1
 firstLastDT &lt;- firstLastDT[, endTimeTrunc := ifelse(notDuration &lt; 0, 
-                                                   hms::as.hms(&quot;23:59:00&quot;),
+                                                   hms::parse_hm(&quot;23:59&quot;),
                                                    endTime)] # this truncates charge periods that span midnight and ends then at midnight for clarity. Of course this makes a hash of early morning charging patterns... 
 
 # charge rate &amp; state of charge deltas ----
 firstLastDT &lt;- firstLastDT[, chargePowerDelta := endChargekW - charge_power_kw] # should be -ve where we start high and end low
 firstLastDT &lt;- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be -ve where we start high and end low</code></pre>
 <p>Figure <a href="#fig:checkStdSequenceskW">8.1</a> plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) ‘standard’ charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the charge rate increased.</p>
-<pre class="r"><code># plotting function
+<pre class="r"><code># format labels function
+# https://stackoverflow.com/questions/53804629/how-to-format-difftime-as-hhmm-in-ggplot2
+format_hm &lt;- function(sec) stringr::str_sub(format(sec), end = -4L)
+# plotting function
 makeSeqChargePlot &lt;- function(dt, y = y, yend = yend, colour = colour){
   p &lt;- ggplot2::ggplot(dt) +
-    geom_segment(aes(x = as.POSIXct(startTime), 
-                     xend = as.POSIXct(endTime), 
-                     y = get(y), 
-                     yend = get(yend), colour = get(colour))) +
-    labs(x = &quot;Sequence start time&quot;) + 
+    geom_segment(aes(x = hms::as.hms(startTime), # start x value
+                     xend = hms::as.hms(endTimeTrunc), # end x value
+                     y = get(y), # start y value
+                     yend = get(yend), # end y value
+                     colour = get(colour))) + # colour to highlight some value
+    labs(x = &quot;Sequence start and end time&quot;) + 
     theme(legend.position = &quot;bottom&quot;) +
-    scale_x_datetime(date_labels = &quot;%H:%M&quot;, date_breaks = &quot;4 hours&quot;) +
+    scale_x_time(labels = format_hm) +
     facet_wrap(. ~ dvID)
   return(p)
 }
 
 dt &lt;- firstLastDT[chargeTypeCorrected %like% &quot;Standard&quot; &amp; 
                     #startChargekW &lt; 5 &amp; #use this to filter out the few that seem to have 6kW chargers (they could also be mis-coded &#39;fast&#39; charging)
-                    chargeFlag %like% &quot;First&quot; ,
-                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
-                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+                    chargeFlag %like% &quot;First&quot;]
 
 p &lt;- makeSeqChargePlot(dt, y = &quot;startChargekW&quot;, 
                        yend = &quot;endChargekW&quot;, 
                        colour =  &quot;chargePowerDelta&quot;) 
 p &lt;- p + 
   labs(y = &quot;Charging rate (kW)&quot;,
-       caption = &quot;Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
+       caption = &quot;Standard charging (corrected) \n 
+       Pairs spanning midnight truncated at 23:59 \n
+       Peak periods shaded&quot;) +
   guides(colour = guide_legend(title = &quot;Charge rate delta (kW)&quot;)) +
   scale_color_continuous(low = &quot;green&quot;, high = &quot;red&quot;) # highlight ones that went up
-p</code></pre>
+yMin &lt;- min(dt$startChargekW) # might not quite work if end is higher...
+yMax &lt;- max(dt$startChargekW) # might not quite work if end is higher...
+addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkStdSequenceskW"></span>
 <img src="EVBB_report_v1_files/figure-html/checkStdSequenceskW-1.png" alt="Standard charging (corrected) - rate of charge" width="672" />
 <p class="caption">
@@ -1982,7 +1992,19 @@ Figure 8.1: Standard charging (corrected) - rate of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:checkStdSequencesSoC">8.2</a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
+<p>Figure <a href="#fig:stdPowerDeltaDensity">8.2</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘standard’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
+  geom_density(alpha = 0.5) +
+  guides(colour = guide_legend(title = &quot;Peak period:&quot;)) +
+  labs(x = &quot;Change in power from start to end (kW)&quot;)
+p</code></pre>
+<div class="figure"><span id="fig:stdPowerDeltaDensity"></span>
+<img src="EVBB_report_v1_files/figure-html/stdPowerDeltaDensity-1.png" alt="Histogram of charge power deltas by peak/not peak period" width="672" />
+<p class="caption">
+Figure 8.2: Histogram of charge power deltas by peak/not peak period
+</p>
+</div>
+<p>Figure <a href="#fig:checkStdSequencesSoC">8.3</a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
 <pre class="r"><code>#dt &lt;- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p &lt;- makeSeqChargePlot(dt, y = &quot;startSoC_pc&quot;, 
                        yend = &quot;endSoC_pc&quot;, 
@@ -1992,20 +2014,20 @@ p &lt;- p +
        caption = &quot;Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
   guides(colour = guide_legend(title = &quot;State of charge delta (%)&quot;)) +
   scale_color_continuous(low = &quot;red&quot;, high = &quot;green&quot;) # highlight ones that went down
-p</code></pre>
+yMin &lt;- min(dt$startSoC_pc) # might not quite work if end is higher...
+yMax &lt;- max(dt$startSoC_pc) # might not quite work if end is higher...
+addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkStdSequencesSoC"></span>
 <img src="EVBB_report_v1_files/figure-html/checkStdSequencesSoC-1.png" alt="Standard charging (corrected) - state of charge" width="672" />
 <p class="caption">
-Figure 8.2: Standard charging (corrected) - state of charge
+Figure 8.3: Standard charging (corrected) - state of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:checkFastSequenceskW">8.3</a> and Figure <a href="#fig:checkFastSequencesSoC">8.4</a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
+<p>Figure <a href="#fig:checkFastSequenceskW">8.4</a> and Figure <a href="#fig:checkFastSequencesSoC">8.5</a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
 <pre class="r"><code>dt &lt;- firstLastDT[chargeTypeCorrected %like% &quot;Fast&quot; &amp; 
                     #startChargekW &lt; 5 &amp; #use this to filter out the few that seem to have 6kW chargers (or they might be &#39;fast&#39; charging too)
-                    chargeFlag %like% &quot;First&quot;,
-                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
-                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+                    chargeFlag %like% &quot;First&quot;]
 
 p &lt;- makeSeqChargePlot(dt, y = &quot;startChargekW&quot;, 
                        yend = &quot;endChargekW&quot;, 
@@ -2015,11 +2037,13 @@ p &lt;- p +
        caption = &quot;Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
   guides(colour = guide_legend(title = &quot;Charge rate delta (kW)&quot;)) +
   scale_color_continuous(low = &quot;green&quot;, high = &quot;red&quot;) # highlight ones that went up
-p</code></pre>
+yMin &lt;- min(dt$startChargekW) # might not quite work if end is higher...
+yMax &lt;- max(dt$startChargekW) # might not quite work if end is higher...
+addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkFastSequenceskW"></span>
 <img src="EVBB_report_v1_files/figure-html/checkFastSequenceskW-1.png" alt="Fast charging (corrected) - rate of charge" width="672" />
 <p class="caption">
-Figure 8.3: Fast charging (corrected) - rate of charge
+Figure 8.4: Fast charging (corrected) - rate of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
@@ -2032,14 +2056,29 @@ p &lt;- p +
        caption = &quot;Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
   guides(colour = guide_legend(title = &quot;State of charge delta (%)&quot;)) +
   scale_color_continuous(low = &quot;red&quot;, high = &quot;green&quot;) # highlight ones that went down
-p</code></pre>
+yMin &lt;- min(dt$startSoC_pc) # might not quite work if end is higher...
+yMax &lt;- max(dt$startSoC_pc) # might not quite work if end is higher...
+addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkFastSequencesSoC"></span>
 <img src="EVBB_report_v1_files/figure-html/checkFastSequencesSoC-1.png" alt="Fast charging (corrected) - state of charge" width="672" />
 <p class="caption">
-Figure 8.4: Fast charging (corrected) - state of charge
+Figure 8.5: Fast charging (corrected) - state of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
+<p>Figure <a href="#fig:fastPowerDeltaDensity">8.6</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘fast’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
+<pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
+  geom_histogram(alpha = 0.5) +
+  guides(colour = guide_legend(title = &quot;Peak period:&quot;)) +
+  labs(x = &quot;Change in power from start to end (kW)&quot;)
+p</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<div class="figure"><span id="fig:fastPowerDeltaDensity"></span>
+<img src="EVBB_report_v1_files/figure-html/fastPowerDeltaDensity-1.png" alt="Histogram of state of charge deltas by peak/not peak period" width="672" />
+<p class="caption">
+Figure 8.6: Histogram of state of charge deltas by peak/not peak period
+</p>
+</div>
 </div>
 <div id="charge-type" class="section level3">
 <h3><span class="header-section-number">8.2.2</span> Charge type</h3>
