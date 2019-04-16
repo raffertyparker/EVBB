@@ -1125,7 +1125,7 @@ firstLastDT <- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be
 
 Figure \@ref(fig:checkStdSequenceskW) plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) 'standard' charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the charge rate increased.
 
-```{r checkStdSequenceskW, fig.height=10}
+```{r checkStdSequenceskW, fig.height=10, fig.cap="Standard charging (corrected) - rate of charge"}
 
 # plotting function
 makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
@@ -1161,7 +1161,7 @@ p
 
 Figure \@ref(fig:checkStdSequencesSoC) uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the battery state of charge decreased.
 
-```{r checkStdSequencesSoC, fig.height=10}
+```{r checkStdSequencesSoC, fig.height=10, fig.cap="Standard charging (corrected) - state of charge"}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 
@@ -1176,9 +1176,9 @@ p
 
 ```
 
-Figure \@ref(fig:checkFastSequenceskW) and Figure \@ref(fig:checkFastSequences-soc) repeat these plots but for (corrected) 'fast' charge events.
+Figure \@ref(fig:checkFastSequenceskW) and Figure \@ref(fig:checkFastSequencesSoC) repeat these plots but for (corrected) 'fast' charge events.
 
-```{r checkFastSequenceskW, fig.height=10}
+```{r checkFastSequenceskW, fig.height=10, fig.cap="Fast charging (corrected) - rate of charge"}
 dt <- firstLastDT[chargeTypeCorrected %like% "Fast" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (or they might be 'fast' charging too)
                     chargeFlag %like% "First",
@@ -1190,7 +1190,7 @@ p <- makeSeqChargePlot(dt, y = "startChargekW",
                        colour =  "chargePowerDelta") 
 p <- p + 
   labs(y = "Charging rate (kW)",
-       caption = "Fast charging (corrected) \n Pairs spanning midnight excluded") +
+       caption = "Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
 p
@@ -1198,7 +1198,7 @@ p
 ```
 
 
-```{r checkFastSequencesSoC, fig.height=10}
+```{r checkFastSequencesSoC, fig.height=10, fig.cap="Fast charging (corrected) - state of charge"}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 

@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-04-16 14:59:59</em></h4>
+<h4 class="date"><em>Last run at: 2019-04-16 15:21:06</em></h4>
 
 </div>
 
@@ -825,8 +825,6 @@ Sum
 <p>Using this method we obtained 7,588 instances of charging starting, and 7,598 instances of charge ending. The additional 10 instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles.</p>
 <p>The charge duration was then calculated as being the time duration between each pair of “first charge” and “last charge” observations</p>
 <p>Figure <a href="#fig:durationHist">2.3</a> shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for both charging types.</p>
-<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
-<pre><code>## Warning: Removed 1 rows containing non-finite values (stat_bin).</code></pre>
 <div class="figure"><span id="fig:durationHist"></span>
 <img src="EVBB_report_v1_files/figure-html/durationHist-1.png" alt="Duration of charging sequences" width="672" />
 <p class="caption">
@@ -904,7 +902,6 @@ Fast charging
 </tbody>
 </table>
 <p>Figure <a href="#fig:shortDuration">2.4</a> shows the distribution of very short charging sequences. As we can see these appear to be generally less than 8 minutes in length for Standard Charges.</p>
-<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
 <div class="figure"><span id="fig:shortDuration"></span>
 <img src="EVBB_report_v1_files/figure-html/shortDuration-1.png" alt="Duration of charging sequences &lt; 15 minutes" width="672" />
 <p class="caption">
@@ -988,7 +985,6 @@ Fast charging
 <li>duration &gt; 840 minutes for fast charging (3 observations)</li>
 </ul>
 <p>Figure <a href="#fig:longDuration">2.5</a> and <a href="#tab:longDuration">2.6</a> shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and charging powers.</p>
-<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
 <div class="figure"><span id="fig:longDuration"></span>
 <img src="EVBB_report_v1_files/figure-html/longDuration-1.png" alt="Duration of charging sequences with unreasonably long or short values removed" width="672" />
 <p class="caption">
@@ -1302,8 +1298,6 @@ Weekends
 <p>Figure <a href="#fig:durationTimeMean">5.1</a> plots the mean duration by time of day and weekday vs weekend and charge type. As before we use transparency to indicate the number of unique EVs contributing to the mean values and we have removed a small number of very large duration outliers (mean duration &gt; 540 minutes or 9 hours) which appears to be based on just 1 or 2 EVs (see Table @ref:(tab:makeDurationTimeMean)).</p>
 <p>As we would expect, the plot shows that for standard charging mean ‘forward’ duration generally decreases from midnight, presumably as batteries are becoming fully charged through to 06:00 and then increases as the time of starting to charge increases through the day before trending downwards before midnight. Again, this confirms that charge events starting in or just after the evening peak demand period on both weekdays and weekends are likely to be longer, possibly reflecting the lower state of charge at this time of day (following use).</p>
 <p>Duration of fast charge events by start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. <a href="#fig:obsPower">2.2</a> suggests that drivers utilize fast charging only “as necessary” to ensure they have enough battery capacity to complete their journey or when ‘at work’ or conducting some other mobility related task such as shopping.</p>
-<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
-<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
 <div class="figure"><span id="fig:durationTimeMean"></span>
 <img src="EVBB_report_v1_files/figure-html/durationTimeMean-1.png" alt="Mean duration (within quarter hours) by time of charging start" width="672" />
 <p class="caption">
@@ -1336,7 +1330,6 @@ Figure 6.2: Value of state of charge (values &gt; 90% removed)
 Figure 6.3: Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)
 </p>
 </div>
-<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
 <div class="figure"><span id="fig:SoCplotTiming"></span>
 <img src="EVBB_report_v1_files/figure-html/SoCplotTiming-1.png" alt="Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values &gt; 90% removed)" width="672" />
 <p class="caption">
@@ -1364,6 +1357,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <div id="raw-data" class="section level3">
 <h3><span class="header-section-number">8.1.1</span> Raw data</h3>
 <p>Data description for original data supplied (before processing or filtering).</p>
+<pre class="r"><code>skimr::skim(rawDF)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1515812 
 ##  n variables: 8 
@@ -1397,6 +1391,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <div id="processedCheck" class="section level3">
 <h3><span class="header-section-number">8.1.2</span> Processed and cleaned data</h3>
 <p>Data description for cleaned data (all observations).</p>
+<pre class="r"><code>skimr::skim(cleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1291881 
 ##  n variables: 15 
@@ -1449,6 +1444,7 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##  n_unique
 ##   1230977</code></pre>
 <p>Data description for cleaned data (first observations in a charging sequence).</p>
+<pre class="r"><code>skimr::skim(firstCleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 3299 
 ##  n variables: 19 
@@ -1509,6 +1505,8 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <div id="chargeFlagTest" class="section level3">
 <h3><span class="header-section-number">8.2.1</span> Charge flag</h3>
 <p>This is used to identify observations that form part of a sequence. The logic is given in Section <a href="#codeSequences">2.3.2</a>. Here we show the results of applying an additional 120 second rule. In this case a sequence only exists where we have charging observations which have less than 120 seconds between them.</p>
+<pre class="r"><code>kableExtra::kable(sequenceMethod1_T, caption = &quot;Charge sequence flags (120 second rule)&quot;) %&gt;%
+  kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:checkChargeFlagMethods">Table 8.1: </span>Charge sequence flags (120 second rule)
@@ -1653,6 +1651,8 @@ NA
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>kableExtra::kable(sequenceMethod2_T, caption = &quot;Charge sequence flags (no 120 second rule)&quot;) %&gt;%
+  kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:checkChargeFlagMethods">Table 8.1: </span>Charge sequence flags (no 120 second rule)
@@ -1785,7 +1785,12 @@ NA
 <li>charge -&gt; gap of &gt; 120 secs -&gt; charge <gap of > 120 secs -&gt; charge</li>
 </ul>
 <p>For now we therefore do not use the 120 second rule.</p>
+<pre class="r"><code># Check chargeFlag ----
+message(&quot;chargeFlag is used to classify charging events - check against charge type:&quot;)</code></pre>
 <pre><code>## chargeFlag is used to classify charging events - check against charge type:</code></pre>
+<pre class="r"><code>t &lt;- table(cleanDT$chargeFlag, cleanDT$chargeType, useNA = &quot;always&quot;)
+kableExtra::kable(t, caption = &quot;chargeFlag errors (clean data)&quot;) %&gt;%
+  kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:checkChargeFlags">Table 8.2: </span>chargeFlag errors (clean data)
@@ -1913,19 +1918,138 @@ NA
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>message(&quot;There are a few observations that have chargeFlag = NA but are charging... why?&quot;)</code></pre>
 <pre><code>## There are a few observations that have chargeFlag = NA but are charging... why?</code></pre>
 <p>We also test the patterns of charging that this classification produces. We do this first for ‘standard’ charging sequences and then for ‘fast’ charging sequences.</p>
-<p>Figure <a href="#fig:checkStdSequenceskW"><strong>??</strong></a> plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) ‘standard’ charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the charge rate increased.</p>
-<p><img src="EVBB_report_v1_files/figure-html/checkStdSequenceskW-1.png" width="672" /></p>
-<p>Figure <a href="#fig:checkStdSequencesSoC"><strong>??</strong></a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
-<p><img src="EVBB_report_v1_files/figure-html/checkStdSequencesSoC-1.png" width="672" /></p>
-<p>Figure <a href="#fig:checkFastSequenceskW"><strong>??</strong></a> and Figure <a href="#fig:checkFastSequences-soc"><strong>??</strong></a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
-<p><img src="EVBB_report_v1_files/figure-html/checkFastSequenceskW-1.png" width="672" /></p>
-<p><img src="EVBB_report_v1_files/figure-html/checkFastSequencesSoC-1.png" width="672" /></p>
+<pre class="r"><code># debug sequences visually ----
+
+# set start and end time in hms ----
+firstLastDT &lt;- firstLastDT[, startTime := as.hms(dateTime)]
+firstLastDT &lt;- firstLastDT[, endTime := as.hms(shift(dateTime, type = &quot;lead&quot;))]
+
+# start &amp; end charge rate ----
+firstLastDT &lt;- firstLastDT[, startChargekW := charge_power_kw]
+firstLastDT &lt;- firstLastDT[, endChargekW := shift(charge_power_kw, type = &quot;lead&quot;)]
+
+# start &amp; end batter state
+firstLastDT &lt;- firstLastDT[, startSoC_pc := SoC_percent]
+firstLastDT &lt;- firstLastDT[, endSoC_pc := shift(SoC_percent, type = &quot;lead&quot;)]
+
+# calc duration so we can decide what to do where it is -ve - i.e. event spanned midnight ----
+firstLastDT &lt;- firstLastDT[, notDuration := difftime(endTime, startTime, units=&#39;mins&#39;), by = id] # set all within id, if this is -ve then it spanned midnight
+# fix # 1
+firstLastDT &lt;- firstLastDT[, endTimeTrunc := ifelse(notDuration &lt; 0, 
+                                                   hms::as.hms(&quot;23:59:00&quot;),
+                                                   endTime)] # this truncates charge periods that span midnight and ends then at midnight for clarity. Of course this makes a hash of early morning charging patterns... 
+
+# charge rate &amp; state of charge deltas ----
+firstLastDT &lt;- firstLastDT[, chargePowerDelta := endChargekW - charge_power_kw] # should be -ve where we start high and end low
+firstLastDT &lt;- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be -ve where we start high and end low</code></pre>
+<p>Figure <a href="#fig:checkStdSequenceskW">8.1</a> plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) ‘standard’ charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the charge rate increased.</p>
+<pre class="r"><code># plotting function
+makeSeqChargePlot &lt;- function(dt, y = y, yend = yend, colour = colour){
+  p &lt;- ggplot2::ggplot(dt) +
+    geom_segment(aes(x = as.POSIXct(startTime), 
+                     xend = as.POSIXct(endTime), 
+                     y = get(y), 
+                     yend = get(yend), colour = get(colour))) +
+    labs(x = &quot;Sequence start time&quot;) + 
+    theme(legend.position = &quot;bottom&quot;) +
+    scale_x_datetime(date_labels = &quot;%H:%M&quot;, date_breaks = &quot;4 hours&quot;) +
+    facet_wrap(. ~ dvID)
+  return(p)
+}
+
+dt &lt;- firstLastDT[chargeTypeCorrected %like% &quot;Standard&quot; &amp; 
+                    #startChargekW &lt; 5 &amp; #use this to filter out the few that seem to have 6kW chargers (they could also be mis-coded &#39;fast&#39; charging)
+                    chargeFlag %like% &quot;First&quot; ,
+                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
+                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+
+p &lt;- makeSeqChargePlot(dt, y = &quot;startChargekW&quot;, 
+                       yend = &quot;endChargekW&quot;, 
+                       colour =  &quot;chargePowerDelta&quot;) 
+p &lt;- p + 
+  labs(y = &quot;Charging rate (kW)&quot;,
+       caption = &quot;Standard charging (corrected) \n Pairs spanning midnight excluded&quot;) +
+  guides(colour = guide_legend(title = &quot;Charge rate delta (kW)&quot;)) +
+  scale_color_continuous(low = &quot;green&quot;, high = &quot;red&quot;) # highlight ones that went up
+p</code></pre>
+<div class="figure"><span id="fig:checkStdSequenceskW"></span>
+<img src="EVBB_report_v1_files/figure-html/checkStdSequenceskW-1.png" alt="Standard charging (corrected) - rate of charge" width="672" />
+<p class="caption">
+Figure 8.1: Standard charging (corrected) - rate of charge
+</p>
+</div>
+<pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
+<p>Figure <a href="#fig:checkStdSequencesSoC">8.2</a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
+<pre class="r"><code>#dt &lt;- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
+p &lt;- makeSeqChargePlot(dt, y = &quot;startSoC_pc&quot;, 
+                       yend = &quot;endSoC_pc&quot;, 
+                       colour =  &quot;SoC_pcDelta&quot;)
+p &lt;- p + 
+  labs(y = &quot;State of charge (%)&quot;,
+       caption = &quot;Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
+  guides(colour = guide_legend(title = &quot;State of charge delta (%)&quot;)) +
+  scale_color_continuous(low = &quot;red&quot;, high = &quot;green&quot;) # highlight ones that went down
+p</code></pre>
+<div class="figure"><span id="fig:checkStdSequencesSoC"></span>
+<img src="EVBB_report_v1_files/figure-html/checkStdSequencesSoC-1.png" alt="Standard charging (corrected) - state of charge" width="672" />
+<p class="caption">
+Figure 8.2: Standard charging (corrected) - state of charge
+</p>
+</div>
+<pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
+<p>Figure <a href="#fig:checkFastSequenceskW">8.3</a> and Figure <a href="#fig:checkFastSequencesSoC">8.4</a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
+<pre class="r"><code>dt &lt;- firstLastDT[chargeTypeCorrected %like% &quot;Fast&quot; &amp; 
+                    #startChargekW &lt; 5 &amp; #use this to filter out the few that seem to have 6kW chargers (or they might be &#39;fast&#39; charging too)
+                    chargeFlag %like% &quot;First&quot;,
+                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
+                    notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
+
+p &lt;- makeSeqChargePlot(dt, y = &quot;startChargekW&quot;, 
+                       yend = &quot;endChargekW&quot;, 
+                       colour =  &quot;chargePowerDelta&quot;) 
+p &lt;- p + 
+  labs(y = &quot;Charging rate (kW)&quot;,
+       caption = &quot;Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
+  guides(colour = guide_legend(title = &quot;Charge rate delta (kW)&quot;)) +
+  scale_color_continuous(low = &quot;green&quot;, high = &quot;red&quot;) # highlight ones that went up
+p</code></pre>
+<div class="figure"><span id="fig:checkFastSequenceskW"></span>
+<img src="EVBB_report_v1_files/figure-html/checkFastSequenceskW-1.png" alt="Fast charging (corrected) - rate of charge" width="672" />
+<p class="caption">
+Figure 8.3: Fast charging (corrected) - rate of charge
+</p>
+</div>
+<pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
+<pre class="r"><code>#dt &lt;- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
+p &lt;- makeSeqChargePlot(dt, y = &quot;startSoC_pc&quot;, 
+                       yend = &quot;endSoC_pc&quot;, 
+                       colour =  &quot;SoC_pcDelta&quot;)
+p &lt;- p + 
+  labs(y = &quot;State of charge (%)&quot;,
+       caption = &quot;Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59&quot;) +
+  guides(colour = guide_legend(title = &quot;State of charge delta (%)&quot;)) +
+  scale_color_continuous(low = &quot;red&quot;, high = &quot;green&quot;) # highlight ones that went down
+p</code></pre>
+<div class="figure"><span id="fig:checkFastSequencesSoC"></span>
+<img src="EVBB_report_v1_files/figure-html/checkFastSequencesSoC-1.png" alt="Fast charging (corrected) - state of charge" width="672" />
+<p class="caption">
+Figure 8.4: Fast charging (corrected) - state of charge
+</p>
+</div>
+<pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
 </div>
 <div id="charge-type" class="section level3">
 <h3><span class="header-section-number">8.2.2</span> Charge type</h3>
 <p><code>chargeType</code> is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have corrected it in some sections above using the start/end pairs.</p>
+<pre class="r"><code># Check chargeType ----
+
+t &lt;- table(firstLastDT$chargeTypeError, firstLastDT$chargeType, useNA = &quot;always&quot;)
+
+kableExtra::kable(t, caption = &quot;chargeType errors detected&quot;) %&gt;%
+  kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:checkChargeType">Table 8.3: </span>chargeType errors detected
@@ -2018,6 +2142,9 @@ NA
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>nError &lt;- nrow(firstLastDT[chargeTypeError %like% &quot;Error&quot;])
+nErrorEVs &lt;- uniqueN(firstLastDT[chargeTypeError %like% &quot;Error&quot;]$dvID)  
+message(&quot;There are &quot;, nError, &quot; pairs (out of a total of &quot;, nrow(firstLastDT)/2,&quot;) from &quot;, nErrorEVs ,&quot; EVs where charge type doesn&#39;t match.&quot;)</code></pre>
 <pre><code>## There are 105 pairs (out of a total of 7593) from 26 EVs where charge type doesn&#39;t match.</code></pre>
 </div>
 </div>
