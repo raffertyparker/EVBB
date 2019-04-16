@@ -8,7 +8,7 @@ output:
     code_folding: hide
     fig_caption: yes
     number_sections: yes
-    self_contained: yes
+    self_contained: no
     toc: yes
     toc_depth: 2
     toc_float: yes
@@ -256,21 +256,21 @@ firstLastDT <- firstLastDT[, chargeTypeError := ifelse(chargeType %like% "Standa
 # check just using the first of the pairs ('Last' will be set to NA)
 with(firstLastDT[chargeFlag %like% "First"], table(chargeTypeError, chargeType, useNA = "always"))
 
-# default fixed ----
-firstLastDT <- firstLastDT[, chargeTypeFixed := chargeType]
+# default corrected ----
+firstLastDT <- firstLastDT[, chargeTypeCorrected := chargeType]
 
 # If any of them are fast, change
-firstLastDT <- firstLastDT[, chargeTypeFixed := ifelse(chargeTypeError == "Error: first = Standard, last = Fast" |
+firstLastDT <- firstLastDT[, chargeTypeCorrected := ifelse(chargeTypeError == "Error: first = Standard, last = Fast" |
                                                          chargeTypeError == "Error: first = Fast, last = Standard",
                                                        "Fast charging",
                                                        chargeType)]
 
-firstLastDT <- firstLastDT[, chargeTypeFixed := factor(chargeTypeFixed, levels = c('Not charging', 
+firstLastDT <- firstLastDT[, chargeTypeCorrected := factor(chargeTypeCorrected, levels = c('Not charging', 
                                                   'Standard charging', 
                                                   'Fast charging'))] # auto-sets the order
 
 # test
-with(firstLastDT[chargeFlag %like% "First"], table(chargeTypeFixed, chargeType, useNA = "always"))
+with(firstLastDT[chargeFlag %like% "First"], table(chargeTypeCorrected, chargeType, useNA = "always"))
 
 # re-calculate the duration as it was done using the sequence not the first & last ----
 # relies on correct order
@@ -455,7 +455,7 @@ genCap <- paste0("Data source: Flip The Fleet",
 ggplot2::ggplot(plotDT, 
                 aes(x = pairDuration)) +
   geom_histogram(binwidth = 10) +
-  facet_wrap(chargeTypeFixed ~ ., scales = "free") +
+  facet_wrap(chargeTypeCorrected ~ ., scales = "free") +
     labs(x = "Minutes", 
        caption = genCap)
 ```
@@ -469,7 +469,7 @@ t <- firstLastDT[chargeFlag %like% "First" & !is.na(pairDuration),
                    median = median(pairDuration),
                    min = min(pairDuration),
                    max = max(pairDuration)), 
-                 keyby = .(chargeTypeFixed)]
+                 keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, 
                   caption = "Duration of all charge sequences by charge type", digits = 2) %>%
   kable_styling()
@@ -489,7 +489,7 @@ genCap <- paste0("Data source: Flip The Fleet",
 ggplot2::ggplot(plotDT, 
                 aes(x = pairDuration)) +
   geom_histogram(binwidth = 1) +
-  facet_grid(chargeTypeFixed ~ ., scales = "free") +
+  facet_grid(chargeTypeCorrected ~ ., scales = "free") +
   labs(x = "Minutes", 
        caption = genCap
        )
@@ -504,7 +504,7 @@ t <- firstLastDT[chargeFlag %like% "First" & pairDuration > 8,
                    median = median(pairDuration),
                    min = min(pairDuration),
                    max = max(pairDuration)), 
-                 keyby = .(chargeTypeFixed)]
+                 keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, 
                   caption = "Duration of charge sequences > 8 minutes by charge type (minutes)", digits = 2) %>%
   kable_styling()
@@ -515,8 +515,8 @@ Manual inspection of the data showed that these short-duration charging "events"
 In addition to the myriad "short" charging duration values, a small number of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Section \@ref(duration) below was therefore made with the following charge events excluded from the data:
 
  * duration > 6000 minutes (`r nrow(firstLastDT[pairDuration > 6000])` observations)
- * duration < 8 minutes for standard charging (`r nrow(firstLastDT[pairDuration < 8 & chargeTypeFixed %like% "Standard"])` observations - noting that some of these may be short low power 'fast charge' events as discussed in Section \@ref(#chargeType))
- * duration > 840 minutes for fast charging (`r nrow(firstLastDT[pairDuration > 840 & chargeTypeFixed %like% "Fast"])` observations)
+ * duration < 8 minutes for standard charging (`r nrow(firstLastDT[pairDuration < 8 & chargeTypeCorrected %like% "Standard"])` observations - noting that some of these may be short low power 'fast charge' events as discussed in Section \@ref(#chargeType))
+ * duration > 840 minutes for fast charging (`r nrow(firstLastDT[pairDuration > 840 & chargeTypeCorrected %like% "Fast"])` observations)
 
 
 ```{r removeBigAndSmallDurations}
@@ -529,11 +529,11 @@ firstCleanDT <- firstLastDT[pairDuration < 6000] # Last have pairDuration of NA 
 
 # Remove standard charges of duration less than 8 mins
 firstCleanDT <- firstCleanDT[!(firstCleanDT$pairDuration < 8 & 
-                                         firstCleanDT$chargeTypeFixed %like% "Standard")]
+                                         firstCleanDT$chargeTypeCorrected %like% "Standard")]
 
 # Remove fast charge of duration greater than 14 hours
 firstCleanDT <- firstCleanDT[!(firstCleanDT$pairDuration > 840 & 
-                                         firstCleanDT$chargeTypeFixed %like% "Fast charging")]
+                                         firstCleanDT$chargeTypeCorrected %like% "Fast charging")]
 ```
 
 Figure \@ref(fig:longDuration) and \@ref(tab:longDuration) shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and charging powers. 
@@ -549,9 +549,9 @@ genCap <- paste0("Data source: Flip The Fleet",
 ggplot2::ggplot(firstCleanDT, 
                 aes(x = pairDuration)) +
   geom_histogram(binwidth = 5) +
-  facet_wrap(chargeTypeFixed ~ ., scales = "free") +
+  facet_wrap(chargeTypeCorrected ~ ., scales = "free") +
   labs(x = "Minutes", caption = genCap)
-ggsave("plots/charge_duration_histogram_extremes_removed.png")
+#ggsave("plots/charge_duration_histogram_extremes_removed.png")
 
 t <- firstCleanDT[chargeFlag %like% "First", 
                  .(N = .N,
@@ -559,7 +559,7 @@ t <- firstCleanDT[chargeFlag %like% "First",
                    median = median(pairDuration),
                    min = min(pairDuration),
                    max = max(pairDuration)), 
-                 keyby = .(chargeTypeFixed)]
+                 keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, 
                   caption = "Duration of charge sequences, final duration data (minutes)", digits = 2) %>%
   kable_styling()
@@ -580,11 +580,11 @@ fastMedian <- median(dt$charge_power_kw, na.rm = TRUE)
 fastMean <- mean(dt$charge_power_kw, na.rm = TRUE)
 
 # these do use the corrected chargeType
-dt <- firstCleanDT[chargeTypeFixed %like% "Fast"]
+dt <- firstCleanDT[chargeTypeCorrected %like% "Fast"]
 fastDurMedian <- median(dt$pairDuration, na.rm = TRUE)
 fastDurMean <- mean(dt$pairDuration, na.rm = TRUE)
 
-dt <- firstCleanDT[chargeTypeFixed %like% "Standard"]
+dt <- firstCleanDT[chargeTypeCorrected %like% "Standard"]
 standardDurMedian <- median(dt$pairDuration, na.rm = TRUE)
 standardDurMean <- mean(dt$pairDuration, na.rm = TRUE)
 ```
@@ -613,7 +613,7 @@ p + labs(x = "Time", fill = "Charge type",
   scale_x_datetime(date_labels = "%H:%M", date_breaks = "2 hours")
 
 # can't add peak demand period annotations very easily to a density plot (need ymax/ymin)
-ggsave("plots/charge_time_weekday.png")
+#ggsave("plots/charge_time_weekday.png")
 
 ```
 
@@ -664,7 +664,7 @@ genCap <- paste0("Data source: Flip The Fleet",
                         "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
 )
 
-p <- ggplot(plotDT, aes(x = as.POSIXct(qHour), fill = chargeTypeFixed)) + # we have to force as.POSIXct if we want to use date_labels
+p <- ggplot(plotDT, aes(x = as.POSIXct(qHour), fill = chargeTypeCorrected)) + # we have to force as.POSIXct if we want to use date_labels
   geom_density(alpha = 0.3) +
   theme(legend.position = "bottom") +
   facet_grid(weekdays ~ .)
@@ -673,7 +673,7 @@ p + labs(x = "Time", fill = "Charge type", caption = genCap) +
   scale_x_datetime(date_labels = "%H:%M", date_breaks = "2 hours")
 
 # can't add peak demand period annotations very easily to a density plot (need ymax/ymin)
-ggsave("plots/time_charging_begins_weekday.png")
+#ggsave("plots/time_charging_begins_weekday.png")
 
 ```
 
@@ -743,8 +743,8 @@ genCap <- paste0("Data source: Flip The Fleet",
                  "\n Peak periods shaded"
 )
 
-p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, colour = weekdays, alpha = nEVs)) +
-  geom_point(aes(y = meankW)) +
+p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, y = meankW, colour = weekdays, alpha = nEVs)) +
+  geom_point() +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   #facet_grid(chargeType ~ ., scales = "free") + # 
   labs(x = "Time of day",
@@ -853,7 +853,7 @@ t <- firstCleanDT[date >= as.Date("2018-09-01"), .(mean = mean(pairDuration),
                median = median(pairDuration),
                min = round(min(pairDuration),2),
                max = round(max(pairDuration),2),
-               sd = round(sd(pairDuration),2)), keyby = .(chargeTypeFixed)]
+               sd = round(sd(pairDuration),2)), keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, caption = "Mean duration of charge events by charge type (filtered data, corrected charge type)", digits = 2) %>%
   kable_styling()
 ```
@@ -865,7 +865,7 @@ dataDT <- firstCleanDT[date >= as.Date("2018-09-01")]
 plotDT <- dataDT[,
                       .(meanDuration = mean(pairDuration),
                         nEVs = uniqueN(dvID)),
-                      keyby = .(qHour, chargeTypeFixed, weekdays)]
+                      keyby = .(qHour, chargeTypeCorrected, weekdays)]
 
 t <- head(plotDT[meanDuration > 480][order(-meanDuration)])
 
@@ -883,20 +883,21 @@ As we would expect, the plot shows that for standard charging mean 'forward' dur
 Duration of fast charge events by start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. \@ref(fig:obsPower) suggests that drivers utilize fast charging only "as necessary" to ensure they have enough battery capacity to complete their journey or when 'at work' or conducting some other mobility related task such as shopping.
 
 ```{r durationTimeMean, fig.cap="Mean duration (within quarter hours) by time of charging start"}
-genCap <- paste0("Data source: Flip The Fleet",                  "First charging observations in a sequence, corrected charge type",
-                 "\n n EVs: ", uniqueN(dataDT$dvID),
-                 "\n n observations: ", nrow(dataDT),
+genCap <- paste0("Data source: Flip The Fleet",                  
+                 "\n First charging observations in a sequence, corrected charge type",
+                 "\n n EVs: ", uniqueN(dataDT$dvID), ", n observations: ", nrow(dataDT),
                  "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
-                 "\n Peak periods shaded"
+                 "\n Peak periods shaded, smoothed fit line via LOESS regression"
 )
 
 p <- ggplot2::ggplot(plotDT, 
-                aes(x = qHour, y = meanDuration, colour = chargeTypeFixed, alpha = nEVs)) +
+                aes(x = qHour, y = meanDuration, colour = chargeTypeCorrected, alpha = nEVs)) +
   theme(legend.position = "bottom", axis.text.x = element_text()) +
+  geom_smooth() +
   geom_point() +
   facet_grid(weekdays ~ .) +
   labs(x = "Time of day charging event started",
-       y = "Minutes", col = "",
+       y = "Mean duration of charge (mins)", col = "",
        caption = genCap)
 
 yMin <- min(plotDT$meanDuration)
@@ -913,85 +914,83 @@ The state of charge is the percentage of energy still available to be used in th
 
 This section provides an indication of the state of charge of electric vehicles upon charging, so that the potential of V2G technology can be assessed.
 
-```{r SoCplot1, fig.cap= "Value of state of charge at beginning of charge"}
-# use fixed first in sequence data
+```{r SoCplot1, fig.cap= "Value of state of charge (all charging observations)"}
+# use corrected first in sequence data
 
 dataDT <- cleanDT[chargeFlag %like% "First"]
   
-genCap <- paste0("Data source: Flip The Fleet",                  "First charging observations in a sequence",
-                 "\n n EVs: ", uniqueN(dataDT$dvID),
-                 "\n n observations: ", nrow(dataDT),
-                 "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
-                 "\n Peak periods shaded"
+genCap <- paste0("Data source: Flip The Fleet",                  
+                 "\n All charging observations",
+                 "\n n EVs: ", uniqueN(dataDT$dvID), ", n observations: ", nrow(dataDT),
+                 "\n Period: ", min(dataDT$date), " - ", max(dataDT$date)
 )
 
 p <- ggplot(dataDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
   facet_grid(chargeType ~ ., scales = "free")
-ggsave("plots/SOC_when_charging_begins.png")
+
 ```
 
-As can be seen in Figure \@ref(fig:SoCplot1), using the cleaned complete observations data, the majority of standard charges begin while the state of charge is above 90%. This is most likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle as described in Section \@ref(cleaning).
+As can be seen in Figure \@ref(fig:SoCplot1), using the cleaned complete observations data, the state of charge for the majority of standard charge observations is above 90%. This is most likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle as described in Section \@ref(cleaning).
 
-Figure \@ref(fig:SoCplot2) shows the state of charge values when charge begins but with state of charge greater than 90% removed from the data for clarity. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining. This has clear implications for battery life management since continually top-up charging is known to substantially shorten the lifetime of EV batteries (XX ref needed XX). However it also indicates the potential to use the charge in the battery to feed into the grid, especially in the residential context.
+Figure \@ref(fig:SoCplot2) shows the state of charge values for all charging events but with state of charge greater than 90% removed from the data for clarity. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining. This has clear implications for battery life management since continually top-up charging is known to substantially shorten the lifetime of EV batteries (XX ref needed XX). However it also indicates the potential to use the charge in the battery to feed into the grid, especially in the residential context.
 
-```{r SoCplot2, fig.cap= "Value of state of charge at beginning of charge (values > 90% removed)"}
+```{r SoCplot2, fig.cap= "Value of state of charge (values > 90% removed)"}
 plotDT <- cleanDT[chargeFlag %like% "First" & SoC_percent < 90]
 
-genCap <- paste0("Data source: Flip The Fleet",                  "First charging observations in a sequence, state of charge < 90%",
-                 "\n n EVs: ", uniqueN(plotDT$dvID),
-                 "\n n observations: ", nrow(plotDT),
-                 "\n Period: ", min(plotDT$date), " - ", max(plotDT$date),
-                 "\n Peak periods shaded"
+genCap <- paste0("Data source: Flip The Fleet",                  
+                 "\n All charging observations, state of charge < 90%",
+                 "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", nrow(plotDT),
+                 "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
 )
 
 p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
   facet_grid(chargeType ~ ., scales = "free")
-ggsave("plots/SOC_when_charging_begins_cleanDT.png")
+
 ```
 
-```{r SoCplot3, fig.cap= "Value of state of charge at beginning of charge (values > 90% removed)"}
+```{r SoCplot3, fig.cap= "Value of state of charge at beginning of charging sequence (chargeType corrected, values > 90% removed)"}
 plotDT <- firstCleanDT[SoC_percent < 90]
 
 genCap <- paste0("Data source: Flip The Fleet",
-                 "\n First charging observations in cleaned sequences, state of charge < 90%",
-                 "\n n EVs: ", uniqueN(plotDT$dvID), " n observations: ", nrow(plotDT),
-                 "\n Period: ", min(plotDT$date), " - ", max(plotDT$date),
-                 "\n Peak periods shaded"
+                 "\n First charging observation in a sequence, state of charge < 90%",
+                 "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", nrow(plotDT),
+                 "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
 )
 
 p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
 p + labs(x = "State of charge when charging begins (%)", caption = genCap) +
-  facet_grid(chargeType ~ ., scales = "free")
-ggsave("plots/SOC_when_charging_begins_firstCleanDT.png")
+  facet_grid(chargeTypeCorrected ~ ., scales = "free")
+
 ```
 
 Figure \@ref(fig:SoCplot3) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
 
-```{r SoCplotTiming, fig.cap= "Mean state of charge at beginning of charge (values > 90% removed)"}
+```{r SoCplotTiming, fig.cap= "Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values > 90% removed)"}
 
 dataDT <- firstCleanDT[SoC_percent < 90]
 plotDT <- dataDT[, .(meanChargePC = mean(SoC_percent),
-                 nEVs = uniqueN(dvID)), keyby = .(qHour, weekdays, chargeType)]
+                 nEVs = uniqueN(dvID)), keyby = .(qHour, weekdays, chargeTypeCorrected)]
 
 genCap <- paste0("Data source: Flip The Fleet",
                  "First charging observations in a sequence, state of charge < 90%",
                  "\n n EVs: ", uniqueN(dataDT$dvID), "n observations: ", nrow(dataDT),
                  "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
-                 "\n Peak periods shaded"
+                 "\n Peak periods shaded, smoothed fit line via LOESS regression"
 )
 p <- ggplot(plotDT, aes(x = qHour, y = meanChargePC, colour = weekdays, alpha = nEVs)) + 
+  geom_smooth() +
   geom_point() +
   labs(y = "Mean state of charge when charging begins (%)",
          x = "Time of Day",
        caption = genCap) +
-  facet_grid(chargeType ~ ., scales = "free")
+  facet_grid(chargeTypeCorrected ~ ., scales = "free")
 yMin <- min(plotDT$meanChargePC)
 yMax <- max(plotDT$meanChargePC)
 addPeaks(p)
 
-ggsave("plots/SOC_Time_when_charging_begins.png")
+#ggsave("plots/SOC_Time_when_charging_begins.png")
 ```
 
 Finally, Figure \@ref(fig:SoCplotTiming) shows the mean % charge by time of first charging observation in a sequence using the cleaned and corrected inferred start/end of charging sequence data. The plot suggests that this capacity may be relatively stable throughout the day albiet with slightly higher mean capacity around the morning peak as we would expect given over-night charging. It is unlikely that this early morning capacity would be willingly made available for V2G since the EV may be used in the near future although this may not always be the case. However it is interesting to note that mean capacity at start of charge in the evening peak period is still roughly 50% indicating relatively substantial power availability.
@@ -1003,13 +1002,13 @@ Based on a relatively small and probably non-representative sample of `r data.ta
 # XXX run to here to rebuild data ----
 # use cleaned first obs
 
-meanDurationStd <- mean(firstCleanDT[chargeTypeFixed %like% "Standard"]$pairDuration, na.rm = TRUE)
-medianDurationStd <- median(firstCleanDT[chargeTypeFixed %like% "Standard"]$pairDuration, na.rm = TRUE)
+meanDurationStd <- mean(firstCleanDT[chargeTypeCorrected %like% "Standard"]$pairDuration, na.rm = TRUE)
+medianDurationStd <- median(firstCleanDT[chargeTypeCorrected %like% "Standard"]$pairDuration, na.rm = TRUE)
 
-meanDurationFast <- mean(firstCleanDT[chargeTypeFixed %like% "Fast"]$pairDuration, na.rm = TRUE)
-medianDurationFast <- median(firstCleanDT[chargeTypeFixed %like% "Fast"]$pairDuration, na.rm = TRUE)
+meanDurationFast <- mean(firstCleanDT[chargeTypeCorrected %like% "Fast"]$pairDuration, na.rm = TRUE)
+medianDurationFast <- median(firstCleanDT[chargeTypeCorrected %like% "Fast"]$pairDuration, na.rm = TRUE)
 
-# use clean data (charge type not fixed)
+# use clean data (charge type not corrected)
 meanPowerStd <- round(mean(cleanDT[chargeType %like% "Standard", charge_power_kw]),2)
 medianPowerStd <- round(median(cleanDT[chargeType %like% "Standard", charge_power_kw]),2)
 
@@ -1113,9 +1112,9 @@ firstLastDT <- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be
 
 ```
 
-Figure \@ref(fig:checkStdSequences-kw) plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (fixed) 'standard' charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the charge rate increased.
+Figure \@ref(fig:checkStdSequenceskW) plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) 'standard' charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the charge rate increased.
 
-```{r checkStdSequences-kw}
+```{r checkStdSequenceskW, fig.height=10}
 
 # plotting function
 makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
@@ -1131,10 +1130,10 @@ makeSeqChargePlot <- function(dt, y = y, yend = yend, colour = colour){
   return(p)
 }
 
-dt <- firstLastDT[chargeTypeFixed %like% "Standard" & 
+dt <- firstLastDT[chargeTypeCorrected %like% "Standard" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (they could also be mis-coded 'fast' charging)
                     chargeFlag %like% "First" ,
-                  .(startTime, endTime, endTimeTrunc, chargeTypeFixed,startChargekW, endChargekW,
+                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
                     notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
 
 p <- makeSeqChargePlot(dt, y = "startChargekW", 
@@ -1142,37 +1141,37 @@ p <- makeSeqChargePlot(dt, y = "startChargekW",
                        colour =  "chargePowerDelta") 
 p <- p + 
   labs(y = "Charging rate (kW)",
-       caption = "Standard charging (fixed) \n Pairs spanning midnight excluded") +
+       caption = "Standard charging (corrected) \n Pairs spanning midnight excluded") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
 p
-ggsave("plots/standardChargePairs_kW_LineSegments.png", p, height = 10)
+#ggsave("plots/standardChargePairs_kW_LineSegments.png", p, height = 10)
 ```
 
-Figure \@ref(fig:checkStdSequences-soc) uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the battery state of charge decreased.
+Figure \@ref(fig:checkStdSequencesSoC) uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an 'odd' pattern - e.g. the battery state of charge decreased.
 
-```{r checkStdSequences-soc}
+```{r checkStdSequencesSoC, fig.height=10}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 
                        colour =  "SoC_pcDelta")
 p <- p + 
   labs(y = "State of charge (%)",
-       caption = "Standard charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
+       caption = "Standard charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
 p
-ggsave("plots/standardChargePairs_SoC_LineSegments.png", p, height = 10)
+#ggsave("plots/standardChargePairs_SoC_LineSegments.png", p, height = 10)
 
 ```
 
-Figure \@ref(fig:checkFastSequences-kw) and Figure \@ref(fig:checkFastSequences-soc) repeat these plots but for (fixed) 'fast' charge events.
+Figure \@ref(fig:checkFastSequenceskW) and Figure \@ref(fig:checkFastSequences-soc) repeat these plots but for (corrected) 'fast' charge events.
 
-```{r checkFastSequences-kw}
-dt <- firstLastDT[chargeTypeFixed %like% "Fast" & 
+```{r checkFastSequenceskW, fig.height=10}
+dt <- firstLastDT[chargeTypeCorrected %like% "Fast" & 
                     #startChargekW < 5 & #use this to filter out the few that seem to have 6kW chargers (or they might be 'fast' charging too)
                     chargeFlag %like% "First",
-                  .(startTime, endTime, endTimeTrunc, chargeTypeFixed,startChargekW, endChargekW,
+                  .(startTime, endTime, endTimeTrunc, chargeTypeCorrected,startChargekW, endChargekW,
                     notDuration, chargePowerDelta, startSoC_pc, endSoC_pc, SoC_pcDelta, dvID)]
 
 p <- makeSeqChargePlot(dt, y = "startChargekW", 
@@ -1180,33 +1179,32 @@ p <- makeSeqChargePlot(dt, y = "startChargekW",
                        colour =  "chargePowerDelta") 
 p <- p + 
   labs(y = "Charging rate (kW)",
-       caption = "Fast charging (fixed) \n Pairs spanning midnight excluded") +
+       caption = "Fast charging (corrected) \n Pairs spanning midnight excluded") +
   guides(colour = guide_legend(title = "Charge rate delta (kW)")) +
   scale_color_continuous(low = "green", high = "red") # highlight ones that went up
 p
-ggsave("plots/fastChargePairs_kW_LineSegments.png", p, height = 10)
+#ggsave("plots/fastChargePairs_kW_LineSegments.png", p, height = 10)
 ```
 
 
-```{r checkFastSequences-soc}
+```{r checkFastSequencesSoC, fig.height=10}
 #dt <- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p <- makeSeqChargePlot(dt, y = "startSoC_pc", 
                        yend = "endSoC_pc", 
                        colour =  "SoC_pcDelta")
 p <- p + 
   labs(y = "State of charge (%)",
-       caption = "Fast charging (fixed) \n Pairs spanning midnight truncated at 23:59") +
+       caption = "Fast charging (corrected) \n Pairs spanning midnight truncated at 23:59") +
   guides(colour = guide_legend(title = "State of charge delta (%)")) +
   scale_color_continuous(low = "red", high = "green") # highlight ones that went down
 p
-ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
+#ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
 ```
-
 
 
 ### Charge type
 
-`chargeType` is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have fixed it in some sections above using the start/end pairs.
+`chargeType` is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have corrected it in some sections above using the start/end pairs.
 
 ```{r checkChargeType}
 # Check chargeType ----
