@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-04-17 16:37:44</em></h4>
+<h4 class="date"><em>Last run at: 2019-04-17 16:50:25</em></h4>
 
 </div>
 
@@ -2727,17 +2727,16 @@ Figure 5.5: Fast charging (corrected) - state of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:fastPowerDeltaDensity">5.6</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘fast’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
+<p>Figure <a href="#fig:fastPowerDeltaDensity">5.6</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for all ‘fast’ charge events. These show a rather different pattern.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
-  geom_histogram(alpha = 0.5) +
+  geom_density(alpha = 0.5) +
   guides(colour = guide_legend(title = &quot;Peak period:&quot;)) +
   labs(x = &quot;Change in power from start to end (kW)&quot;)
 p</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <div class="figure"><span id="fig:fastPowerDeltaDensity"></span>
-<img src="EVBB_report_v1_files/figure-html/fastPowerDeltaDensity-1.png" alt="Histogram of state of charge deltas by peak/not peak period" width="672" />
+<img src="EVBB_report_v1_files/figure-html/fastPowerDeltaDensity-1.png" alt="Histogram of charge power deltas by peak/not peak period" width="672" />
 <p class="caption">
-Figure 5.6: Histogram of state of charge deltas by peak/not peak period
+Figure 5.6: Histogram of charge power deltas by peak/not peak period
 </p>
 </div>
 </div>

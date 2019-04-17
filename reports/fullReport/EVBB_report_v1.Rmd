@@ -1308,11 +1308,11 @@ addPeaks(p)
 #ggsave("plots/fastChargePairs_SoC_LineSegments.png", p, height = 10)
 ```
 
-Figure \@ref(fig:fastPowerDeltaDensity) shows the distribution of charge power deltas by peak/not peak period (of start time) for 'fast' charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the 'evening' and 'not peak' period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.
+Figure \@ref(fig:fastPowerDeltaDensity) shows the distribution of charge power deltas by peak/not peak period (of start time) for all 'fast' charge events. These show a rather different pattern.
 
-```{r fastPowerDeltaDensity, fig.cap="Histogram of state of charge deltas by peak/not peak period"}
+```{r fastPowerDeltaDensity, fig.cap="Histogram of charge power deltas by peak/not peak period"}
 p <- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
-  geom_histogram(alpha = 0.5) +
+  geom_density(alpha = 0.5) +
   guides(colour = guide_legend(title = "Peak period:")) +
   labs(x = "Change in power from start to end (kW)")
 p
