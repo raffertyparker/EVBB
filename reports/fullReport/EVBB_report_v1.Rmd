@@ -141,7 +141,7 @@ rawDT <- rawDT[, weekdays := ifelse(day_of_week == "Saturday" |
 ```{r cleanData, include=FALSE}
 # Clean data ----
 # https://www.rdocumentation.org/packages/data.table/versions/1.12.2/topics/copy
-cleanDT <- copy(rawDT) # need to do this otherwise all the following cleaning acts by reference on rawDT
+cleanDT <- data.table::copy(rawDT) # need to do this otherwise all the following cleaning acts by reference on rawDT
 # removal of silly state of charge percentage values ----
 #df$SoC_percent[df$SoC_percent > 100] <- NA
 cleanDT <- cleanDT[SoC_percent > 100, SoC_percent := NA]
