@@ -48,7 +48,8 @@ library(kableExtra) # for extra kable
 library(skimr) # for skim (data description)
 
 # Parameters ----
-# colour blind palettes for charts
+
+# colour blind palettes for charts ----
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 # with grey
 cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -77,6 +78,26 @@ if(user == "ben"){
   # > for Xubuntu ----
   dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
   dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
+}
+
+# Functions ----
+peaksAlpha <- 0.1
+peaksCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
+
+addPeaks <- function(p){
+  # takes a plot, assumes x is hms, adds peak period annotations
+  # assumes you've set yMin & yMax already
+  # breaks with facet_grid, scales = "free" so you have to build seperate plots if you want to do that
+  # there is a complex solution (https://stackoverflow.com/questions/27898651/get-scales-range-of-facets-scales-free) but...
+  p <- p + annotate("rect", xmin = amPeakStart, # set earlier
+             xmax = amPeakEnd, # set earlier
+             ymin = yMin, ymax = yMax, 
+             alpha = peaksAlpha, fill = peaksCol)
+  p <- p + annotate("rect", xmin = pmPeakStart, # set earlier
+             xmax = pmPeakEnd, # set earlier
+             ymin = yMin, ymax = yMax, 
+             alpha = peaksAlpha, fill = peaksCol)
+  return(p)
 }
 ```
 
@@ -380,13 +401,19 @@ Figure \@ref(fig:initialDataChecksPlotDate) shows the unique number of EVs recor
 dt <- rawDT[, .(nEVs = uniqueN(id),
                     nObs = .N), keyby = .(date = lubridate::date(dateTime))]
 
-ggplot2::ggplot(dt, aes(x = date, y =  nEVs)) +
+p <- ggplot2::ggplot(dt, aes(x = date, y =  nEVs)) +
   geom_line() +
   #scale_alpha(breaks = c(0,5,10,15,20)) +
   labs(x = "Date",
        y = "Number of unique EVs recorded",
-       caption = paste0("Data: All received data")
+       caption = paste0("Data: All received data",
+                        "\n Shaded area = suggested data selection")
        )
+
+p + annotate("rect", xmin = as.Date("2018-10-01"), # cut
+             xmax = as.Date("2018-12-31"), # set earlier
+             ymin = min(dt$nEVS), ymax = max(dt$nEVS), 
+             alpha = peaksAlpha, fill = peaksCol)
 ```
 
 Finally, \@ref(tab:noObsEVs) shows that a small number of EVs have very few observations, in some cases not extending beyond 1 day (shown as 0 days observed). 
@@ -792,27 +819,6 @@ Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard c
 This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to start later in the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
 
 ```{r meanChargeByTimeStd, fig.cap="Mean charging power demand (kW) by time of day"}
-
-rectAlpha <- 0.1
-vLineAlpha <- 0.4
-vLineCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
-myTextSize <- 3
-
-addPeaks <- function(p){
-  # takes a plot, assumes x is hms, adds peak period annotations
-  # assumes you've set yMin & yMax already
-  # breaks with facet_grid, scales = "free" so you have to build seperate plots if you want to do that
-  # there is a complex solution (https://stackoverflow.com/questions/27898651/get-scales-range-of-facets-scales-free) but...
-  p <- p + annotate("rect", xmin = amPeakStart, # set earlier
-             xmax = amPeakEnd, # set earlier
-             ymin = yMin, ymax = yMax, 
-             alpha = rectAlpha, fill = vLineCol)
-  p <- p + annotate("rect", xmin = pmPeakStart, # set earlier
-             xmax = pmPeakEnd, # set earlier
-             ymin = yMin, ymax = yMax, 
-             alpha = rectAlpha, fill = vLineCol)
-  return(p)
-}
 
 dt <- cleanDT[charge_power_kw > 0 & chargeType %like% "Standard"]
 pDT <- plotDT[chargeType %like% "Standard"]
