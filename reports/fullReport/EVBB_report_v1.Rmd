@@ -10,7 +10,7 @@ output:
     number_sections: yes
     self_contained: no
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
     toc_float: yes
   bookdown::pdf_document2:
     fig_caption: yes
@@ -27,9 +27,13 @@ bibliography: "../../EVBBmendeleyrefs.bib"
 ---
 
 ```{r setup, include=FALSE}
+# Knitr setup ----
+
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE) # for final tidy run
 knitr::opts_chunk$set(message = FALSE) # for final tidy run
+
+# Libraries ----
 
 library(readr) # tidy data reading
 library(data.table) # cos we like data.table (you may not in which case dplyr is fine :-)
@@ -43,6 +47,7 @@ library(knitr) # for knitting
 library(kableExtra) # for extra kable
 library(skimr) # for skim (data description)
 
+# Parameters ----
 # colour blind palettes for charts
 # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette
 # with grey
@@ -50,9 +55,15 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# data file to use
-file <- "EVBB_processed_all_v1.0_20180125.csv"
-# for Mac
+amPeakStart <- hms::as.hms("07:00:00")
+amPeakEnd <- hms::as.hms("09:00:00")
+pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
+pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
+
+# Data file to use ----
+file <- "EVBB_processed_all_v1.0_20180125.csv" # latest
+
+# > for Mac ----
 user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
@@ -63,7 +74,7 @@ if(user == "ben"){
     dFile <- paste0(dPath, file, ".zip")
   }
 } else {
-  # for Xubuntu:
+  # > for Xubuntu ----
   dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
   dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
 }
@@ -129,7 +140,8 @@ rawDT <- rawDT[, weekdays := ifelse(day_of_week == "Saturday" |
 
 ```{r cleanData, include=FALSE}
 # Clean data ----
-cleanDT <- rawDT
+# https://www.rdocumentation.org/packages/data.table/versions/1.12.2/topics/copy
+cleanDT <- copy(rawDT) # need to do this otherwise all the following cleaning acts by reference on rawDT
 # removal of silly state of charge percentage values ----
 #df$SoC_percent[df$SoC_percent > 100] <- NA
 cleanDT <- cleanDT[SoC_percent > 100, SoC_percent := NA]
@@ -145,7 +157,7 @@ cleanDT <- cleanDT[charge_power_kw > 120, charge_power_kw := NA]
 # > remove vehicles with all-zero charging values ----
 # also removes those with very few observations
 summaryDT <- cleanDT[, .(mean = mean(charge_power_kw), sd = sd(charge_power_kw), nObs = .N), keyby = .(dvID)]
-includeDT <- summaryDT[mean != 0, .(dvID)] # just keep id variable (not the summary stats as well)
+includeDT <- summaryDT[mean != 0, .(dvID)] # include where mean kw > 0 - just keep id variable (not the summary stats as well)
 setkey(includeDT, dvID)
 setkey(cleanDT, dvID)
 cleanDT <- cleanDT[includeDT]
@@ -157,12 +169,7 @@ setkey(cleanDT, id, dateTime)
 # calculate time diff from 1 obs to the next ----
 cleanDT <- cleanDT[, dateTimeDiff := dateTime - shift(dateTime), by = id]
 
-# locate in peak/not peak
-amPeakStart <- hms::as.hms("07:00:00")
-amPeakEnd <- hms::as.hms("09:00:00")
-pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
-pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
-
+# locate in peak/not peak ----
 cleanDT <- cleanDT[, peakPeriod := "Not peak"]
 cleanDT <- cleanDT[, startTime := hms::as.hms(dateTime)]
 cleanDT <- cleanDT[, peakPeriod := ifelse(startTime >= amPeakStart & 
@@ -239,8 +246,11 @@ sequenceMethod2_T <- table(clean2DT$chargeFlag, clean2DT$chargeType, useNA = "al
 # charge -> gap of > 120 secs -> charge <gap of > 120 secs -> charge
 # for now we therefore do not use the 120 second rule (see annex #chargeFlagTest for reporting)
 
-cleanDT <- clean2DT # use no threshold data
+cleanAllDT <- clean2DT # use no threshold data
 
+# keep observations between 1st October and 1st January only - see Data: Initial Cleaning
+# no more processing of cleanDT after this ----
+cleanDT <- cleanAllDT[date >= as.Date("2018-10-01") & date < as.Date("2019-01-01")]
 ```
 
 ```{r getPairs, include=FALSE}
@@ -337,18 +347,15 @@ Even though the use of an anonymised vehicle identifier should prevent the ident
 
 ```{r initialDataChecks}
 # make a plot of the number of EVs seen per day/hour
-rawDT <- rawDT[, r_dateTime := lubridate::as_datetime(paste0(date, time))]
 plotDT <- rawDT[, .(nEVs = uniqueN(id),
                     nObs = .N), keyby = .(time15m = hms::trunc_hms(time, 15*60),
-                                                   date = lubridate::date(r_dateTime))]
+                                                   date = lubridate::date(dateTime))]
 plotDT <- plotDT[, nObsPerEV := nObs/nEVs]
 ```
 
-Figure \@ref(fig:initialDataChecksPlot) shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only `r max(plotDT$nEVs)` out of a possible total of `r data.table::uniqueN(rawDT$id)`. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.
+Figure \@ref(fig:initialDataChecksPlotTile) shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only `r max(plotDT$nEVs)` out of a possible total of `r data.table::uniqueN(rawDT$id)`. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.
 
-In addition Table \@ref(fig:initialDataChecksPlot) shows that a small number of EVs have very few observations, in some cases not extending beyond 1 day (shown as 0 days observed). 
-
-```{r initialDataChecksPlot, fig.cap="Number of unique EVs observed by time of day and date"}
+```{r initialDataChecksPlotTile, fig.cap="Number of unique EVs observed by time of day and date"}
 ggplot2::ggplot(plotDT, aes(x = date, y = time15m, alpha = nEVs)) +
   geom_tile() +
   #scale_alpha(breaks = c(0,5,10,15,20)) +
@@ -364,11 +371,32 @@ ggplot2::ggplot(plotDT, aes(x = date, y = time15m, alpha = nEVs)) +
 # ggplot2::ggplot(plotDT, aes(x = date, y = time15m, alpha = nObsPerEV)) +
 #   geom_tile()
 
+
+```
+
+Figure \@ref(fig:initialDataChecksPlotDate) shows the unique number of EVs recorded on each day and reflects the period over which Flip The Fleet installed the data collection boxes.
+
+```{r initialDataChecksPlotDate, fig.cap="Number of unique EVs observed by time of day and date"}
+dt <- rawDT[, .(nEVs = uniqueN(id),
+                    nObs = .N), keyby = .(date = lubridate::date(dateTime))]
+
+ggplot2::ggplot(dt, aes(x = date, y =  nEVs)) +
+  geom_line() +
+  #scale_alpha(breaks = c(0,5,10,15,20)) +
+  labs(x = "Date",
+       y = "Number of unique EVs recorded",
+       caption = paste0("Data: All received data")
+       )
+```
+
+Finally, \@ref(tab:noObsEVs) shows that a small number of EVs have very few observations, in some cases not extending beyond 1 day (shown as 0 days observed). 
+
+```{r noObsEVs}
 # make a list of vehicles with start & end dates
 
 vehicleIDsDT <- rawDT[, .(nObs = .N,
-                          startTime = min(r_dateTime),
-                          endTime = max(r_dateTime),
+                          startTime = min(dateTime),
+                          endTime = max(dateTime),
                           meanWhCharging = mean(charge_power_kw),
                           maxWhCharging = max(charge_power_kw)), keyby = .(id)]
 
@@ -381,12 +409,13 @@ kableExtra::kable(t,
   kable_styling()
 ```
 
-Further, as Table \@ref(fig:initialDataChecksPlot) also indicates, there were several (`r nrow(summaryDT) - nrow(includeDT)`) vehicles that had no recorded charging observations. These were discarded (which also discarded those with very few observations).
 
-We then discarded:
+Taking all of the above into account we have therefore discarded:
 
+ * the `r nrow(summaryDT) - nrow(includeDT)` vehicles that had no recorded _charging_ observations (this also discarded those with very few observations - see Table \@ref(tab:noObsEVs));
  * `r nrow(rawDT[ charge_power_kw > 120])` instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand [@ConceptConsulting2018];
- * `r nrow(rawDT[SoC_percent > 100])` instances of battery state of charge observations of greater than 100%.
+ * `r nrow(rawDT[SoC_percent > 100])` instances of battery state of charge observations of greater than 100%;
+ * all observations collected before 1st October and after 1st January in order to focus analysis on the periods with most EVs present in the data. It is hoped that this will reduce the extent to which the charging behaviour of a small number of EV owners will skew the aggregated results.
 
 This left `r data.table::uniqueN(cleanDT$dvID)` remaining vehicles, and `r prettyNum(nrow(cleanDT), big.mark = ",")` observations as shown in Table \@ref(tab:finalTable).
 
@@ -405,13 +434,9 @@ kableExtra::kable(t,
 
 Charging data has been broadly separated into two separate categories, 'Standard' and 'Fast'. Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of ordinary home charging without an expensive wiring upgrade [@ConceptConsulting2018]. Fast charging is all charging equal to or greater than 7kW, and would likely occur at designated and purpose-built public charging stations.
 
-> It should be noted that this method is not always accurate since we can identify apparent sequences of charging which start at > 7kW and decline to < 7kW over a relatively short period. In this circumstance the first observation will be correctly classified as 'Fast' but the lower observations, which we assume are lower power trickle 'top-up' at the end of a fast charge will be incorrectly classified as 'Standard' (see \@ref(processedCheck)). This is clarified in Section \@ref(duration) where we use the first observation in a sequence to denote fast/standard but has yet to be resolved in other sections. As a result we may currently be _under-estimating_ the number of fast charge observations and _over-estimating_ the mean power demand of standard charges. Future work will resolve this potential misclassification error.
+It should be noted that this method is not always accurate since we can identify apparent sequences of charging which start at > 7kW and decline to < 7kW over a relatively short period or vice versa (see Section \@ref(chargeFlagTest)). In this circumstance the first observation will be correctly classified as 'Fast' but the lower observations, which we assume are lower power 'top-ups' at the end of a fast charge will be incorrectly classified as 'Standard'.  As an example, we know that there are `r nrow(firstLastDT[chargeTypeError %like% "Error"])` sequences of charging events (out of a total of `r nrow(firstLastDT)`) where the first and last charge types do not match. 
 
-```{r testErrors}
-nErrors <- nrow(firstLastDT[chargeTypeError %like% "Error"])
-```
-
-As an example, we know that there are `r nErrors` sequences of charging events (out of a total of `r nrow(firstLastDT)`) where the first and last charge types do not match. Of these `r nrow(firstLastDT[chargeTypeError %like% "first = Fast"])` were pairs where the first charging observation was 'Fast' and the last classified at 'Standard'. 
+This is clarified and corrected in Section \@ref(codeSequences) for charging begin/end pairs (and thus in the results that use this data) but has yet to be resolved in other sections which use all charging observations. As a result we may currently be _under-estimating_ the number of fast charge observations and _over-estimating_ the mean power demand of standard charges where we conduct analysis using all charging observations.
 
 Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand by inferred charge type without correcting for potential mis-classifications. Setting aside the small number of potential misclassifications noted above, the plot confirms the validity of our definition and shows that fast charges were relatively rare in the dataset. Fast charges have two distinct power demand 'peaks' at ~22kW and ~45kW while the far more common standard charging was mostly concentrated around 1.8kW and 3kW, with a smaller concentration around 6kW.
 
@@ -436,9 +461,10 @@ p + labs(y = "Charging observations",
   theme(legend.position = "bottom")
 ```
 
+
 ### Charge sequences{#codeSequences}
 
-In order to determine charging durations, we need to identify observations which are the start and end of charging sequences. We use the following logic to do this:
+In order to determine charging durations, we have identified and extracted observations which are the start and end of charging sequences. This is done using the following logic:
 
  * rows were coded as "charging begins" if the charging power was greater than zero and the previous and following row's charging power were (respectively) equal to zero and greater than zero;
  * rows were coded as "charge ends" if the charging power was greater than zero and the previous and following row's charging power were (respectively) greater than zero and equal to zero;
@@ -451,26 +477,37 @@ In order to determine charging durations, we need to identify observations which
 nChBegins <- nrow(firstLastDT[chargeFlag %like% "First"])
 nChEnds <- nrow(firstLastDT[chargeFlag %like% "Last"])
 
-t <- table(cleanDT$chargeFlag, clean2DT$chargeType, useNA = "always")
+t <- with(cleanDT, table(chargeFlag, chargeType, useNA = "always"))
 
-kableExtra::kable(addmargins(t), caption = "Charge sequence coding results") %>%
+kableExtra::kable(addmargins(t), 
+                  caption = "Charge sequence coding results (all cleaned data)") %>%
   kable_styling()
 ```
 
-Table \@ref(tab:seqCodeTable) shows the results of this coding for all clean observations. As we can see very few observations were not coded using this scheme. As shown in Section \@ref(chargeFlagTest) an alternative method which added a 120 second maximim threshold to sequences of observations was also tested but not used as it failed to identify sparse sequences of charging events.
+Table \@ref(tab:seqCodeTable) shows the results of this coding for all clean observations within the selected dates (`r min(cleanDT$date)` - `r max(cleanDT$date)`). As we can see most observations were coded using this scheme and we obtained `r prettyNum(nChBegins, big.mark = ",")` instances of charging starting, and `r prettyNum(nChEnds, big.mark = ",")` instances of charge ending. The additional `r nChEnds - nChBegins` instances of charge ending than there are of the charge beginning may be due to the first (or last) instance of data collection occurring during mid-charge for some vehicles. 
 
-Using this method we obtained `r prettyNum(nChBegins, big.mark = ",")` instances of charging starting, and `r prettyNum(nChEnds, big.mark = ",")` instances of charge ending. The additional `r nChEnds - nChBegins` instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles. 
+An alternative classification method, tested in Section \@ref(chargeFlagTest), added a 120 second maximim threshold to sequences of observations but was not used as it failed to identify sparse sequences of charging events.
 
-The charge duration was then calculated as being the time duration between each pair of "first charge" and "last charge" observations
+Comparison of the begining and end charge types showed, as suspected, that a number of pairs had mis-matching charge-types (see Table \@ref(tab:checkChargeTypeErrors)). In all cases charge type was set to 'Fast' if either of the start or end observations was classified as 'Fast'. However this correction has only been made with the extracted pairs data and how not yet been applied to the full 'all observations' data.
 
-Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for both charging types.
+```{r checkChargeTypeErrors}
+t <- with(firstLastDT, table(chargeTypeError, chargeType))
 
-```{r durationHist, fig.cap="Duration of charging sequences"}
+kableExtra::kable(addmargins(t), 
+                  caption = "Charge type errors detected via mis-matching start and end observations vs uncorrected charge type")  %>%
+  kable_styling()
+```
+
+The charge duration was then calculated as being the time duration between each pair of 'first in charge sequence' and 'last in charge sequence' observations.
+
+Figure \@ref(fig:durationHist) shows the overall distribution of all charging sequences using the corrected charge type. Clearly there are very small and a few very large values for both charging types.
+
+```{r durationHist, fig.cap="Duration of charging sequences by corrected charge type"}
 
 plotDT <- firstLastDT[chargeFlag %like% "First"]
 
 genCap <- paste0("Data source: Flip The Fleet",
-                 "\n'First charge' observations, corrected charge type",
+                 "\n Charge start observation, corrected charge type",
                  "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", nrow(plotDT),
                         "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
 )
@@ -478,7 +515,7 @@ genCap <- paste0("Data source: Flip The Fleet",
 ggplot2::ggplot(plotDT, 
                 aes(x = pairDuration)) +
   geom_histogram(binwidth = 10) +
-  facet_wrap(chargeTypeCorrected ~ ., scales = "free") +
+  facet_wrap(. ~ chargeTypeCorrected, scales = "free") +
     labs(x = "Minutes", 
        caption = genCap)
 ```
@@ -495,6 +532,26 @@ t <- firstLastDT[chargeFlag %like% "First" & !is.na(pairDuration),
                  keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, 
                   caption = "Duration of all charge sequences by charge type", digits = 2) %>%
+  kable_styling()
+```
+
+Table \@ref(tab:durationLongTableStd) shows the longest duration 'standard' charge events while Table \@ref(tab:durationLongTableFast) shows the longest duration 'fast' charge events.
+
+```{r durationLongTableStd}
+dt <- firstLastDT[chargeFlag %like% "First" & !is.na(pairDuration) & chargeTypeCorrected %like% "Standard",
+                      .(dvID, startTime, day_of_week, chargeType, chargeTypeCorrected, pairDuration)]
+dt <- dt[, duration_hours := as.numeric(pairDuration/60)]
+kableExtra::kable(head(dt[order(-pairDuration)], 10), 
+                  caption = "Duration of longest charge sequences (Standard charging)", digits = 2) %>%
+  kable_styling()
+```
+
+```{r durationLongTableFast}
+dt <- firstLastDT[chargeFlag %like% "First" & !is.na(pairDuration) & chargeTypeCorrected %like% "Fast",
+                      .(dvID, startTime, day_of_week, chargeType, chargeTypeCorrected, pairDuration)]
+dt <- dt[, duration_hours := as.numeric(pairDuration/60)]
+kableExtra::kable(head(dt[order(-pairDuration)],10), 
+                  caption = "Duration of longest charge sequences (Fast charging)", digits = 2) %>%
   kable_styling()
 ```
 
@@ -518,7 +575,9 @@ ggplot2::ggplot(plotDT,
        )
 ```
 
-Table \@ref(tab:durationDescTableReduced) shows the same descriptive statistics but for all sequences of greater than 8 minute duration. Now we can see that the mean and median durations for both Standard and Fast Charge sequences are closer.
+Manual inspection of the data showed that these short-duration 'standard' charging events generally occurred near the end of a longer-duration charging sequence. It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is probably due to the behaviour of the charger once the battery was almost full. 
+
+Table \@ref(tab:durationDescTableReduced) repeats the same descriptive statistics reported in Table \@ref(tab:durationDescTable) but for all sequences of greater than 8 minute duration. We can now see that the mean and median durations for both Standard and Fast Charge sequences are closer.
 
 ```{r durationDescTableReduced}
 t <- firstLastDT[chargeFlag %like% "First" & pairDuration > 8, 
@@ -533,19 +592,18 @@ kableExtra::kable(t,
   kable_styling()
 ```
 
+In addition to the many 'short' charging duration values, a small number of unreasonably long charging durations (longer than 14 hours for fast charging - see Table \@ref(tab:durationLongTableFast)) were calculated. As these exceeded the expected charge durations of even the highest capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Section \@ref(duration) below was therefore made with the following charge events excluded from the data:
 
-Manual inspection of the data showed that these short-duration charging "events" generally occurred near the end of a longer-duration charging sequence It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is probably due to the behaviour of the charger once the battery was almost full. 
-In addition to the myriad "short" charging duration values, a small number of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Section \@ref(duration) below was therefore made with the following charge events excluded from the data:
-
- * duration > 6000 minutes (`r nrow(firstLastDT[pairDuration > 6000])` observations)
- * duration < 8 minutes for standard charging (`r nrow(firstLastDT[pairDuration < 8 & chargeTypeCorrected %like% "Standard"])` observations - noting that some of these may be short low power 'fast charge' events as discussed in Section \@ref(#chargeType))
- * duration > 840 minutes for fast charging (`r nrow(firstLastDT[pairDuration > 840 & chargeTypeCorrected %like% "Fast"])` observations)
+ * duration < 8 minutes for standard charging (`r nrow(firstLastDT[pairDuration < 8 & chargeTypeCorrected %like% "Standard"])` observations - noting that some of these may be short low power 'fast charge' events as discussed in Section \@ref(chargeType))
+ * duration > 840 minutes (`r 840/60` hours) for fast charging (`r nrow(firstLastDT[pairDuration > 840 & chargeTypeCorrected %like% "Fast"])` observations)
 
 
 ```{r removeBigAndSmallDurations}
 # Remove overly large values
 #table(firstLastDT$chargeFlag)
 firstCleanDT <- firstLastDT[pairDuration < 6000] # Last have pairDuration of NA so this removes them automatically (we don't need them any more)
+# NB: proably not needed with new date filter
+
 #table(firstCleanDT$chargeFlag)
 
 # ATTN BEN do we do the following here or disply the plots below that depend on the small values and then remove them for further analysis?
@@ -559,7 +617,7 @@ firstCleanDT <- firstCleanDT[!(firstCleanDT$pairDuration > 840 &
                                          firstCleanDT$chargeTypeCorrected %like% "Fast charging")]
 ```
 
-Figure \@ref(fig:longDuration) and \@ref(tab:longDuration) shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and charging powers. 
+Figure \@ref(fig:longDuration) shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and available charge power. 
 
 ```{r longDuration, fig.cap="Duration of charging sequences with unreasonably long or short values removed"}
 
@@ -584,12 +642,14 @@ t <- firstCleanDT[chargeFlag %like% "First",
                    max = max(pairDuration)), 
                  keyby = .(chargeTypeCorrected)]
 kableExtra::kable(t, 
-                  caption = "Duration of charge sequences, final duration data (minutes)", digits = 2) %>%
+                  caption = "Duration of charge sequences, final duration data", digits = 2) %>%
   kable_styling()
 
 
 ```
 
+
+# Results
 
 ```{r keyFindings}
 # calculate these here for re-use
@@ -612,8 +672,7 @@ standardDurMedian <- median(dt$pairDuration, na.rm = TRUE)
 standardDurMean <- mean(dt$pairDuration, na.rm = TRUE)
 ```
 
-
-# Time of charging
+## Time of charging
 
 It has been suggested that EV charging is more likely to occur in the early evening when drivers return from daily commutes or school pick-ups [@langbroek_when_2017]. Figure \@ref(fig:chargeBeginsTime) uses a density plot to represent the proportion of charging and non-charging observations at different times of day by weekday vs weekends. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for fast charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
 
@@ -706,7 +765,7 @@ Standard charging events were most likely to begin around 10pm during both weekd
 
 Fast charging events were most likely to begin at 11:30am on weekdays and 1pm during weekends.  
 
-# Patterns of power demand
+## Patterns of power demand
 
 Given this distribution of charging events, it is important to understand their magnitude to understand the potential effect on the electricity network. Although we are hampered by the lack of 'no charge' data when the EV is not connected to the charger and switched off, this section analyses the patterns of power demand where charging is observed. Clearly this does not provide overall sample mean power demand which would include charging, non-charging _and_ non-use observations.
 
@@ -718,8 +777,8 @@ fastQT <- quantile(cleanDT[charge_power_kw > 0 & chargeType %like% "Fast"]$charg
 Overall 75% of standard charging observations were `r round(stdQT[[2]],2)` kW or more but the figure was `r round(fastQT[[2]],2)` kW or more for fast charging.
 
 ```{r makePowerPlotDT}
-dataDT <- cleanDT[charge_power_kw > 0 & date > as.Date("2018-09-01")]
-plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
+
+plotDT <- cleanDT[charge_power_kw > 0, .(meankW = mean(charge_power_kw),
                  mediankW = median(charge_power_kw),
                  sdkW = sd(charge_power_kw),
                  nEVs = uniqueN(dvID),
@@ -728,7 +787,7 @@ plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
 
 ```
 
-Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after `r format(min(dataDT$date), format = "%B %Y")` to ensure maximum sample size (see Section \@ref(cleaning)). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
+Figure \@ref(fig:meanChargeByTimeStd) shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the selected time period. The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section \@ref(background), this indicates patterns which are generally shared across more EVs.
 
 This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to start later in the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods. 
 
@@ -740,7 +799,7 @@ vLineCol <- "#0072B2" # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-col
 myTextSize <- 3
 
 addPeaks <- function(p){
-  # takes a plot, assumes qHour is hms, adds peak period annotations
+  # takes a plot, assumes x is hms, adds peak period annotations
   # assumes you've set yMin & yMax already
   # breaks with facet_grid, scales = "free" so you have to build seperate plots if you want to do that
   # there is a complex solution (https://stackoverflow.com/questions/27898651/get-scales-range-of-facets-scales-free) but...
@@ -755,7 +814,8 @@ addPeaks <- function(p){
   return(p)
 }
 
-dt <- dataDT[chargeType %like% "Standard"]
+dt <- cleanDT[charge_power_kw > 0 & chargeType %like% "Standard"]
+pDT <- plotDT[chargeType %like% "Standard"]
 genCap <- paste0("Data source: Flip The Fleet",
                  "\n All standard charging observations",
                  "\n n EVs: ", uniqueN(dt$dvID), ", n observations: ", nrow(dt),
@@ -763,7 +823,7 @@ genCap <- paste0("Data source: Flip The Fleet",
                  "\n Peak periods shaded"
 )
 
-p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, y = meankW, colour = weekdays, alpha = nEVs)) +
+p <- ggplot2::ggplot(pDT, aes(x = qHour, y = meankW, colour = weekdays, alpha = nEVs)) +
   geom_point() +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   #facet_grid(chargeType ~ ., scales = "free") + # 
@@ -771,17 +831,16 @@ p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, y = me
        y = "Mean kW" ,
        caption = genCap)
 
-yMin <- min(plotDT[chargeType %like% "Standard"]$meankW)
-yMax <- max(plotDT[chargeType %like% "Standard"]$meankW)
+yMin <- min(pDT$meankW)
+yMax <- max(pDT$meankW)
 addPeaks(p)
 ```
 
 Fast charging however has no detectable pattern other than a clear increase in density during weekday daytimes (Figure \@ref(fig:meanChargeByTimeFast)).
 
 ```{r meanChargeByTimeFast, fig.cap="Mean charging power demand (kW) by time of day"}
-
-
-dt <- dataDT[chargeType %like% "Fast"]
+dt <- cleanDT[charge_power_kw > 0 & chargeType %like% "Fast"]
+pDT <- plotDT[chargeType %like% "Fast"]
 genCap <- paste0("Data source: Flip The Fleet",
                  "\n All fast charging observations",
                  "\n n EVs: ", uniqueN(dt$dvID), ", n observations: ", nrow(dt),
@@ -789,41 +848,42 @@ genCap <- paste0("Data source: Flip The Fleet",
                  "\n Peak periods shaded"
 )
 
-p <- ggplot2::ggplot(plotDT[chargeType %like% "Fast"], aes(x = qHour, colour = weekdays, alpha = nEVs)) +
-  geom_point(aes(y = meankW)) +
+p <- ggplot2::ggplot(pDT, aes(x = qHour, y = meankW, colour = weekdays, alpha = nEVs)) +
+  geom_point() +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   #facet_grid(chargeType ~ ., scales = "free") + # 
   labs(x = "Time of day",
        y = "Mean kW" ,
        caption = genCap)
 
-yMin <- min(plotDT[chargeType %like% "Fast"]$meankW)
-yMax <- max(plotDT[chargeType %like% "Fast"]$meankW)
+yMin <- min(pDT$meankW)
+yMax <- max(pDT$meankW)
 addPeaks(p)
 ```
 
-It is possible that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(#chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is likely to be due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTimeStd).  
+It is possible that the 'standard charge' day-time peak is skewed by mis-classified short low power 'fast charge' observations (see Section \@ref(chargeType)). Figure \@ref(fig:medianChargeByTime) attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified 'fast charges' will be skewing the standard charge mean value upwards, is likely to be due to mis-classified 'fast charging'. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from \@ref(fig:meanChargeByTimeStd).  
 
 ```{r medianChargeByTime, fig.cap="Median charging power demand (kW) by time of day"}
 
-dt <- dataDT[chargeType %like% "Standard"]
+dt <- cleanDT[charge_power_kw > 0 & chargeType %like% "Standard"]
+pDT <- plotDT[chargeType %like% "Standard"]
 genCap <- paste0("Data source: Flip The Fleet",
-                 "\n All Standard charging observations",
+                 "\n All standard charging observations",
                  "\n n EVs: ", uniqueN(dt$dvID), ", n observations: ", nrow(dt),
                  "\n Period: ", min(dt$date), " - ", max(dt$date),
                  "\n Peak periods shaded"
 )
 
-p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, colour = weekdays, alpha = nEVs)) +
-  geom_point(aes(y = mediankW)) +
-  #facet_grid(chargeType ~ ., scales = "free") +
+p <- ggplot2::ggplot(pDT, aes(x = qHour, y = mediankW, colour = weekdays, alpha = nEVs)) +
+  geom_point() +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
+  #facet_grid(chargeType ~ ., scales = "free") + # 
   labs(x = "Time of day",
        y = "Median kW" ,
        caption = genCap)
 
-yMin <- min(plotDT[chargeType %like% "Standard"]$meankW)
-yMax <- max(plotDT[chargeType %like% "Standard"]$meankW)
+yMin <- min(pDT$mediankW)
+yMax <- max(pDT$mediankW)
 addPeaks(p)
 ```
 
@@ -831,9 +891,9 @@ addPeaks(p)
 Figure \@ref(fig:meanChargeByTimeMonth) repeats the median power-based analysis for 'Standard charging' but shows the results by month. While the sample size is probably too small to draw robust conclusions there appear to be differences between months with December showing few discernable peaks and September and January showing much lower daytime weekday charging. In addition, weekdays and weekends are much more similar in November and December.
 
 ```{r meanChargeByTimeMonth, fig.cap="Median charging power demand (kW) by time of day and month", fig.height=6}
-dataDT <- cleanDT[charge_power_kw > 0 & date > as.Date("2018-09-01")]
+dt <- cleanDT[charge_power_kw > 0]
 
-plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
+plotDT <- dt[, .(meankW = mean(charge_power_kw),
                  mediankW = median(charge_power_kw),
                  sdkW = sd(charge_power_kw),
                  nEVs = uniqueN(dvID),
@@ -842,12 +902,12 @@ plotDT <- dataDT[, .(meankW = mean(charge_power_kw),
 
 genCap <- paste0("Data source: Flip The Fleet",
                  "\n All standard charging observations",
-                 "\n n EVs: ", uniqueN(dataDT$dvID), ", n observations: ", nrow(dataDT),
-                 "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
+                 "\n n EVs: ", uniqueN(dt$dvID), ", n observations: ", nrow(dt),
+                 "\n Period: ", min(dt$date), " - ", max(dt$date),
                  "\n Peak periods shaded"
 )
 
-p <- ggplot2::ggplot(plotDT[chargeType == "Standard charging"], aes(x = qHour, colour = weekdays, alpha = nEVs)) +
+p <- ggplot2::ggplot(plotDT[chargeType %like% "Standard"], aes(x = qHour, colour = weekdays, alpha = nEVs)) +
   geom_point(aes(y = mediankW)) +
   scale_colour_manual(values=cbbPalette) + # use colour-blind friendly palette
   facet_grid(month ~ .) +
@@ -855,8 +915,8 @@ p <- ggplot2::ggplot(plotDT[chargeType == "Standard charging"], aes(x = qHour, c
        y = "Median kW",
        caption = genCap)
 
-yMin <- min(plotDT[chargeType %like% "Standard"]$meankW)
-yMax <- max(plotDT[chargeType %like% "Standard"]$meankW)
+yMin <- min(plotDT[chargeType %like% "Standard"]$mediankW)
+yMax <- max(plotDT[chargeType %like% "Standard"]$mediankW)
 addPeaks(p)
 ```
 
@@ -864,7 +924,7 @@ On face value the results suggest that EVs could be placing additional power dem
 
 > Clearly this analysis should be revisited once the potential misclassification of 'fast' as 'standard' charging observations has been resolved and the 'missing' non-use (zero charging) observations have been imputed. 
 
-# Charging duration {#duration}
+## Charging duration {#duration}
 
 This section analyses the duration of observed charging events to understand when longer charging sequences are likely to occur. Table \@ref(tab:meanDurationTable) shows the mean durations for all all charging events by event start time for standard charging durations greater than 8 minutes (see Section \@ref(codeSequences)) and all fast charging events for observations collected after `r format(min(firstCleanDT[date >= as.Date("2018-09-01")]$date), format = "%d %B %Y")`.
 
@@ -928,7 +988,7 @@ addPeaks(p)
 
 
 
-# State of charge{#SoC}
+## State of charge{#SoC}
 
 The state of charge is the percentage of energy still available to be used in the battery. In future, electric vehicles may be able to discharge any remaining battery charge as electricity into the grid, a process known as vehicle to grid (V2G) energy transfer. This may allow electric vehicles to have a net beneficial effect on the grid, reducing the evening peaks by providing electricity to the home during this period, and then recharging later in the evening or early the next morning when peak demand has diminished.
 

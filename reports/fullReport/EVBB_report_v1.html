@@ -201,7 +201,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
@@ -303,7 +303,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle"><em>Statistical Report</em></h3>
 <h4 class="author"><em>Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago</em></h4>
-<h4 class="date"><em>Last run at: 2019-04-16 23:24:15</em></h4>
+<h4 class="date"><em>Last run at: 2019-04-17 16:32:00</em></h4>
 
 </div>
 
@@ -331,17 +331,24 @@ div.tocify {
 </div>
 <div id="cleaning" class="section level2">
 <h2><span class="header-section-number">2.2</span> Initial cleaning</h2>
-<p>Figure <a href="#fig:initialDataChecksPlot">2.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only 22 out of a possible total of 50. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
-<p>In addition Table <a href="#fig:initialDataChecksPlot">2.1</a> shows that a small number of EVs have very few observations, in some cases not extending beyond 1 day (shown as 0 days observed).</p>
-<div class="figure"><span id="fig:initialDataChecksPlot"></span>
-<img src="EVBB_report_v1_files/figure-html/initialDataChecksPlot-1.png" alt="Number of unique EVs observed by time of day and date" width="672" />
+<p>Figure <a href="#fig:initialDataChecksPlotTile">2.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only 22 out of a possible total of 50. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
+<div class="figure"><span id="fig:initialDataChecksPlotTile"></span>
+<img src="EVBB_report_v1_files/figure-html/initialDataChecksPlotTile-1.png" alt="Number of unique EVs observed by time of day and date" width="672" />
 <p class="caption">
 Figure 2.1: Number of unique EVs observed by time of day and date
 </p>
 </div>
+<p>Figure <a href="#fig:initialDataChecksPlotDate">2.2</a> shows the unique number of EVs recorded on each day and reflects the period over which Flip The Fleet installed the data collection boxes.</p>
+<div class="figure"><span id="fig:initialDataChecksPlotDate"></span>
+<img src="EVBB_report_v1_files/figure-html/initialDataChecksPlotDate-1.png" alt="Number of unique EVs observed by time of day and date" width="672" />
+<p class="caption">
+Figure 2.2: Number of unique EVs observed by time of day and date
+</p>
+</div>
+<p>Finally, <a href="#tab:noObsEVs">2.1</a> shows that a small number of EVs have very few observations, in some cases not extending beyond 1 day (shown as 0 days observed).</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:initialDataChecksPlot">Table 2.1: </span>Number of observations and start/end dates for vehicles (6 most scarce)
+<span id="tab:noObsEVs">Table 2.1: </span>Number of observations and start/end dates for vehicles (6 most scarce)
 </caption>
 <thead>
 <tr>
@@ -509,13 +516,14 @@ nDaysObserved
 </tr>
 </tbody>
 </table>
-<p>Further, as Table <a href="#fig:initialDataChecksPlot">2.1</a> also indicates, there were several (6) vehicles that had no recorded charging observations. These were discarded (which also discarded those with very few observations).</p>
-<p>We then discarded:</p>
+<p>Taking all of the above into account we have therefore discarded:</p>
 <ul>
-<li>0 instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand <span class="citation">(Concept Consulting 2018)</span>;</li>
-<li>0 instances of battery state of charge observations of greater than 100%.</li>
+<li>the 6 vehicles that had no recorded <em>charging</em> observations (this also discarded those with very few observations - see Table <a href="#tab:noObsEVs">2.1</a>);</li>
+<li>45 instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand <span class="citation">(Concept Consulting 2018)</span>;</li>
+<li>53 instances of battery state of charge observations of greater than 100%;</li>
+<li>all observations collected before 1st October and after 1st January in order to focus analysis on the periods with most EVs present in the data. It is hoped that this will reduce the extent to which the charging behaviour of a small number of EV owners will skew the aggregated results.</li>
 </ul>
-<p>This left 44 remaining vehicles, and 1,291,881 observations as shown in Table <a href="#tab:finalTable">2.2</a>.</p>
+<p>This left 42 remaining vehicles, and 851,473 observations as shown in Table <a href="#tab:finalTable">2.2</a>.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:finalTable">Table 2.2: </span>Number of observations by charge flag (final cleaned data)
@@ -544,16 +552,16 @@ Sum
 Fast charging
 </td>
 <td style="text-align:right;">
-5830
+3438
 </td>
 <td style="text-align:right;">
-2537
+1473
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-8367
+4911
 </td>
 </tr>
 <tr>
@@ -561,16 +569,16 @@ Fast charging
 Not charging
 </td>
 <td style="text-align:right;">
-402519
+223527
 </td>
 <td style="text-align:right;">
-98971
+55092
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-501490
+278619
 </td>
 </tr>
 <tr>
@@ -578,16 +586,16 @@ Not charging
 Standard charging
 </td>
 <td style="text-align:right;">
-584821
+420522
 </td>
 <td style="text-align:right;">
-197203
+147421
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-782024
+567943
 </td>
 </tr>
 <tr>
@@ -612,16 +620,16 @@ NA
 Sum
 </td>
 <td style="text-align:right;">
-993170
+647487
 </td>
 <td style="text-align:right;">
-298711
+203986
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-1291881
+851473
 </td>
 </tr>
 </tbody>
@@ -632,21 +640,19 @@ Sum
 <div id="chargeType" class="section level3">
 <h3><span class="header-section-number">2.3.1</span> Charge type</h3>
 <p>Charging data has been broadly separated into two separate categories, ‘Standard’ and ‘Fast’. Standard charging is defined to be when the charger is reading less than 7kW - this is considered the upper limit of ordinary home charging without an expensive wiring upgrade <span class="citation">(Concept Consulting 2018)</span>. Fast charging is all charging equal to or greater than 7kW, and would likely occur at designated and purpose-built public charging stations.</p>
-<blockquote>
-<p>It should be noted that this method is not always accurate since we can identify apparent sequences of charging which start at &gt; 7kW and decline to &lt; 7kW over a relatively short period. In this circumstance the first observation will be correctly classified as ‘Fast’ but the lower observations, which we assume are lower power trickle ‘top-up’ at the end of a fast charge will be incorrectly classified as ‘Standard’ (see <a href="#processedCheck">8.1.2</a>). This is clarified in Section <a href="#duration">5</a> where we use the first observation in a sequence to denote fast/standard but has yet to be resolved in other sections. As a result we may currently be <em>under-estimating</em> the number of fast charge observations and <em>over-estimating</em> the mean power demand of standard charges. Future work will resolve this potential misclassification error.</p>
-</blockquote>
-<p>As an example, we know that there are 105 sequences of charging events (out of a total of 15186) where the first and last charge types do not match. Of these 478 were pairs where the first charging observation was ‘Fast’ and the last classified at ‘Standard’.</p>
-<p>Figure <a href="#fig:obsPower">2.2</a> shows the distribution of observed charging kW demand by inferred charge type without correcting for potential mis-classifications. Setting aside the small number of potential misclassifications noted above, the plot confirms the validity of our definition and shows that fast charges were relatively rare in the dataset. Fast charges have two distinct power demand ‘peaks’ at ~22kW and ~45kW while the far more common standard charging was mostly concentrated around 1.8kW and 3kW, with a smaller concentration around 6kW.</p>
+<p>It should be noted that this method is not always accurate since we can identify apparent sequences of charging which start at &gt; 7kW and decline to &lt; 7kW over a relatively short period or vice versa (see Section <a href="#chargeFlagTest">5.2.1</a>). In this circumstance the first observation will be correctly classified as ‘Fast’ but the lower observations, which we assume are lower power ‘top-ups’ at the end of a fast charge will be incorrectly classified as ‘Standard’. As an example, we know that there are 67 sequences of charging events (out of a total of 10342) where the first and last charge types do not match.</p>
+<p>This is clarified and corrected in Section <a href="#codeSequences">2.3.2</a> for charging begin/end pairs (and thus in the results that use this data) but has yet to be resolved in other sections which use all charging observations. As a result we may currently be <em>under-estimating</em> the number of fast charge observations and <em>over-estimating</em> the mean power demand of standard charges where we conduct analysis using all charging observations.</p>
+<p>Figure <a href="#fig:obsPower">2.3</a> shows the distribution of observed charging kW demand by inferred charge type without correcting for potential mis-classifications. Setting aside the small number of potential misclassifications noted above, the plot confirms the validity of our definition and shows that fast charges were relatively rare in the dataset. Fast charges have two distinct power demand ‘peaks’ at ~22kW and ~45kW while the far more common standard charging was mostly concentrated around 1.8kW and 3kW, with a smaller concentration around 6kW.</p>
 <div class="figure"><span id="fig:obsPower"></span>
 <img src="EVBB_report_v1_files/figure-html/obsPower-1.png" alt="Observed power demand distribution by charge type where charging observed" width="672" />
 <p class="caption">
-Figure 2.2: Observed power demand distribution by charge type where charging observed
+Figure 2.3: Observed power demand distribution by charge type where charging observed
 </p>
 </div>
 </div>
 <div id="codeSequences" class="section level3">
 <h3><span class="header-section-number">2.3.2</span> Charge sequences</h3>
-<p>In order to determine charging durations, we need to identify observations which are the start and end of charging sequences. We use the following logic to do this:</p>
+<p>In order to determine charging durations, we have identified and extracted observations which are the start and end of charging sequences. This is done using the following logic:</p>
 <ul>
 <li>rows were coded as “charging begins” if the charging power was greater than zero and the previous and following row’s charging power were (respectively) equal to zero and greater than zero;</li>
 <li>rows were coded as “charge ends” if the charging power was greater than zero and the previous and following row’s charging power were (respectively) greater than zero and equal to zero;</li>
@@ -655,7 +661,7 @@ Figure 2.2: Observed power demand distribution by charge type where charging obs
 </ul>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:seqCodeTable">Table 2.3: </span>Charge sequence coding results
+<span id="tab:seqCodeTable">Table 2.3: </span>Charge sequence coding results (all cleaned data)
 </caption>
 <thead>
 <tr>
@@ -684,19 +690,19 @@ Sum
 Charging in a seq
 </td>
 <td style="text-align:right;">
-7272
+4307
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-762195
+554875
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-769467
+559182
 </td>
 </tr>
 <tr>
@@ -704,19 +710,19 @@ Charging in a seq
 First charge obs in a seq
 </td>
 <td style="text-align:right;">
-478
+276
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7110
+4892
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7588
+5168
 </td>
 </tr>
 <tr>
@@ -724,19 +730,19 @@ First charge obs in a seq
 Last charge in a seq
 </td>
 <td style="text-align:right;">
-402
+233
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7196
+4941
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7598
+5174
 </td>
 </tr>
 <tr>
@@ -747,7 +753,7 @@ Not charging (0 kW)
 0
 </td>
 <td style="text-align:right;">
-501490
+278619
 </td>
 <td style="text-align:right;">
 0
@@ -756,7 +762,7 @@ Not charging (0 kW)
 0
 </td>
 <td style="text-align:right;">
-501490
+278619
 </td>
 </tr>
 <tr>
@@ -764,24 +770,30 @@ Not charging (0 kW)
 Single charge observation
 </td>
 <td style="text-align:right;">
-213
+94
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-5513
+3233
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-5726
+3327
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 NA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
 </td>
 <td style="text-align:right;">
 2
@@ -790,13 +802,7 @@ NA
 0
 </td>
 <td style="text-align:right;">
-10
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-12
+3
 </td>
 </tr>
 <tr>
@@ -804,37 +810,130 @@ NA
 Sum
 </td>
 <td style="text-align:right;">
-8367
+4911
 </td>
 <td style="text-align:right;">
-501490
+278619
 </td>
 <td style="text-align:right;">
-782024
+567943
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-1291881
+851473
 </td>
 </tr>
 </tbody>
 </table>
-<p>Table <a href="#tab:seqCodeTable">2.3</a> shows the results of this coding for all clean observations. As we can see very few observations were not coded using this scheme. As shown in Section <a href="#chargeFlagTest">8.2.1</a> an alternative method which added a 120 second maximim threshold to sequences of observations was also tested but not used as it failed to identify sparse sequences of charging events.</p>
-<p>Using this method we obtained 7,588 instances of charging starting, and 7,598 instances of charge ending. The additional 10 instances of the charge ending than there are of the charge beginning may be due to the first instance of data collection occurring during mid-charge for some vehicles.</p>
-<p>The charge duration was then calculated as being the time duration between each pair of “first charge” and “last charge” observations</p>
-<p>Figure <a href="#fig:durationHist">2.3</a> shows the overall distribution of all charging sequences. Clearly there are very small and a few very large values for both charging types.</p>
-<div class="figure"><span id="fig:durationHist"></span>
-<img src="EVBB_report_v1_files/figure-html/durationHist-1.png" alt="Duration of charging sequences" width="672" />
-<p class="caption">
-Figure 2.3: Duration of charging sequences
-</p>
-</div>
-<p>Table <a href="#tab:durationDescTable">2.4</a> shows the overall distributions and indicates the extent to which the means are skewed by the very small and a few very large values shown in Figure <a href="#fig:durationHist">2.3</a>.</p>
+<p>Table <a href="#tab:seqCodeTable">2.3</a> shows the results of this coding for all clean observations within the selected dates (2018-10-01 - 2018-12-31). As we can see most observations were coded using this scheme and we obtained 5,168 instances of charging starting, and 5,174 instances of charge ending. The additional 6 instances of charge ending than there are of the charge beginning may be due to the first (or last) instance of data collection occurring during mid-charge for some vehicles.</p>
+<p>An alternative classification method, tested in Section <a href="#chargeFlagTest">5.2.1</a>, added a 120 second maximim threshold to sequences of observations but was not used as it failed to identify sparse sequences of charging events.</p>
+<p>Comparison of the begining and end charge types showed, as suspected, that a number of pairs had mis-matching charge-types (see Table <a href="#tab:checkChargeTypeErrors">2.4</a>). In all cases charge type was set to ‘Fast’ if either of the start or end observations was classified as ‘Fast’. However this correction has only been made with the extracted pairs data and how not yet been applied to the full ‘all observations’ data.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:durationDescTable">Table 2.4: </span>Duration of all charge sequences by charge type
+<span id="tab:checkChargeTypeErrors">Table 2.4: </span>Charge type errors detected via mis-matching start and end observations vs uncorrected charge type
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Fast charging
+</th>
+<th style="text-align:right;">
+Standard charging
+</th>
+<th style="text-align:right;">
+Sum
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Error: first = Fast, last = Standard
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+55
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Error: first = Standard, last = Fast
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OK: first = Fast, last = Fast
+</td>
+<td style="text-align:right;">
+221
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+221
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OK: first = Standard, last = Standard
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4880
+</td>
+<td style="text-align:right;">
+4880
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sum
+</td>
+<td style="text-align:right;">
+276
+</td>
+<td style="text-align:right;">
+4892
+</td>
+<td style="text-align:right;">
+5168
+</td>
+</tr>
+</tbody>
+</table>
+<p>The charge duration was then calculated as being the time duration between each pair of ‘first in charge sequence’ and ‘last in charge sequence’ observations.</p>
+<p>Figure <a href="#fig:durationHist">2.4</a> shows the overall distribution of all charging sequences using the corrected charge type. Clearly there are very small and a few very large values for both charging types.</p>
+<div class="figure"><span id="fig:durationHist"></span>
+<img src="EVBB_report_v1_files/figure-html/durationHist-1.png" alt="Duration of charging sequences by corrected charge type" width="672" />
+<p class="caption">
+Figure 2.4: Duration of charging sequences by corrected charge type
+</p>
+</div>
+<p>Table <a href="#tab:durationDescTable">2.5</a> shows the overall distributions and indicates the extent to which the means are skewed by the very small and a few very large values shown in Figure <a href="#fig:durationHist">2.4</a>.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:durationDescTable">Table 2.5: </span>Duration of all charge sequences by charge type
 </caption>
 <thead>
 <tr>
@@ -864,10 +963,10 @@ max
 Standard charging
 </td>
 <td style="text-align:right;">
-7095
+4878
 </td>
 <td style="text-align:left;">
-98.49 mins
+102.84 mins
 </td>
 <td style="text-align:right;">
 3.43
@@ -876,7 +975,7 @@ Standard charging
 0.27 mins
 </td>
 <td style="text-align:left;">
-1616.72 mins
+1442.3 mins
 </td>
 </tr>
 <tr>
@@ -884,34 +983,560 @@ Standard charging
 Fast charging
 </td>
 <td style="text-align:right;">
-492
+288
 </td>
 <td style="text-align:left;">
-41.89 mins
+23.88 mins
 </td>
 <td style="text-align:right;">
-13.53
+14.26
 </td>
 <td style="text-align:left;">
 0.02 mins
 </td>
 <td style="text-align:left;">
-8621.00 mins
+865.7 mins
 </td>
 </tr>
 </tbody>
 </table>
-<p>Figure <a href="#fig:shortDuration">2.4</a> shows the distribution of very short charging sequences. As we can see these appear to be generally less than 8 minutes in length for Standard Charges.</p>
+<p>Table <a href="#tab:durationLongTableStd">2.6</a> shows the longest duration ‘standard’ charge events while Table <a href="#tab:durationLongTableFast">2.7</a> shows the longest duration ‘fast’ charge events.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:durationLongTableStd">Table 2.6: </span>Duration of longest charge sequences (Standard charging)
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+dvID
+</th>
+<th style="text-align:left;">
+startTime
+</th>
+<th style="text-align:left;">
+day_of_week
+</th>
+<th style="text-align:left;">
+chargeType
+</th>
+<th style="text-align:left;">
+chargeTypeCorrected
+</th>
+<th style="text-align:left;">
+pairDuration
+</th>
+<th style="text-align:right;">
+duration_hours
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicle 27
+</td>
+<td style="text-align:left;">
+02:54:06
+</td>
+<td style="text-align:left;">
+Monday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1442.30 mins
+</td>
+<td style="text-align:right;">
+24.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 37
+</td>
+<td style="text-align:left;">
+06:40:33
+</td>
+<td style="text-align:left;">
+Friday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1341.80 mins
+</td>
+<td style="text-align:right;">
+22.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 37
+</td>
+<td style="text-align:left;">
+23:44:13
+</td>
+<td style="text-align:left;">
+Sunday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1324.10 mins
+</td>
+<td style="text-align:right;">
+22.07
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 37
+</td>
+<td style="text-align:left;">
+05:54:34
+</td>
+<td style="text-align:left;">
+Thursday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1264.10 mins
+</td>
+<td style="text-align:right;">
+21.07
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 37
+</td>
+<td style="text-align:left;">
+04:35:00
+</td>
+<td style="text-align:left;">
+Friday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1063.82 mins
+</td>
+<td style="text-align:right;">
+17.73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 5
+</td>
+<td style="text-align:left;">
+02:41:37
+</td>
+<td style="text-align:left;">
+Sunday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+1034.12 mins
+</td>
+<td style="text-align:right;">
+17.24
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 29
+</td>
+<td style="text-align:left;">
+03:20:28
+</td>
+<td style="text-align:left;">
+Saturday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+999.90 mins
+</td>
+<td style="text-align:right;">
+16.66
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 2
+</td>
+<td style="text-align:left;">
+05:39:50
+</td>
+<td style="text-align:left;">
+Tuesday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+913.73 mins
+</td>
+<td style="text-align:right;">
+15.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 5
+</td>
+<td style="text-align:left;">
+04:18:36
+</td>
+<td style="text-align:left;">
+Monday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+893.32 mins
+</td>
+<td style="text-align:right;">
+14.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 35
+</td>
+<td style="text-align:left;">
+05:46:25
+</td>
+<td style="text-align:left;">
+Monday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+881.40 mins
+</td>
+<td style="text-align:right;">
+14.69
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:durationLongTableFast">Table 2.7: </span>Duration of longest charge sequences (Fast charging)
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+dvID
+</th>
+<th style="text-align:left;">
+startTime
+</th>
+<th style="text-align:left;">
+day_of_week
+</th>
+<th style="text-align:left;">
+chargeType
+</th>
+<th style="text-align:left;">
+chargeTypeCorrected
+</th>
+<th style="text-align:left;">
+pairDuration
+</th>
+<th style="text-align:right;">
+duration_hours
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicle 34
+</td>
+<td style="text-align:left;">
+06:10:19
+</td>
+<td style="text-align:left;">
+Wednesday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+865.70 mins
+</td>
+<td style="text-align:right;">
+14.43
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 12
+</td>
+<td style="text-align:left;">
+10:08:02
+</td>
+<td style="text-align:left;">
+Thursday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+582.53 mins
+</td>
+<td style="text-align:right;">
+9.71
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 38
+</td>
+<td style="text-align:left;">
+01:37:03
+</td>
+<td style="text-align:left;">
+Thursday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+398.27 mins
+</td>
+<td style="text-align:right;">
+6.64
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 41
+</td>
+<td style="text-align:left;">
+04:39:24
+</td>
+<td style="text-align:left;">
+Tuesday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+227.85 mins
+</td>
+<td style="text-align:right;">
+3.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 1
+</td>
+<td style="text-align:left;">
+20:20:46
+</td>
+<td style="text-align:left;">
+Thursday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+173.58 mins
+</td>
+<td style="text-align:right;">
+2.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 47
+</td>
+<td style="text-align:left;">
+01:40:40
+</td>
+<td style="text-align:left;">
+Tuesday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+116.37 mins
+</td>
+<td style="text-align:right;">
+1.94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 42
+</td>
+<td style="text-align:left;">
+05:02:37
+</td>
+<td style="text-align:left;">
+Monday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+80.27 mins
+</td>
+<td style="text-align:right;">
+1.34
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 33
+</td>
+<td style="text-align:left;">
+05:23:22
+</td>
+<td style="text-align:left;">
+Saturday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+50.43 mins
+</td>
+<td style="text-align:right;">
+0.84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 1
+</td>
+<td style="text-align:left;">
+03:59:40
+</td>
+<td style="text-align:left;">
+Thursday
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+49.83 mins
+</td>
+<td style="text-align:right;">
+0.83
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicle 1
+</td>
+<td style="text-align:left;">
+03:44:59
+</td>
+<td style="text-align:left;">
+Friday
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Fast charging
+</td>
+<td style="text-align:left;">
+49.50 mins
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+</tr>
+</tbody>
+</table>
+<p>Figure <a href="#fig:shortDuration">2.5</a> shows the distribution of very short charging sequences. As we can see these appear to be generally less than 8 minutes in length for Standard Charges.</p>
 <div class="figure"><span id="fig:shortDuration"></span>
 <img src="EVBB_report_v1_files/figure-html/shortDuration-1.png" alt="Duration of charging sequences &lt; 15 minutes" width="672" />
 <p class="caption">
-Figure 2.4: Duration of charging sequences &lt; 15 minutes
+Figure 2.5: Duration of charging sequences &lt; 15 minutes
 </p>
 </div>
-<p>Table <a href="#tab:durationDescTableReduced">2.5</a> shows the same descriptive statistics but for all sequences of greater than 8 minute duration. Now we can see that the mean and median durations for both Standard and Fast Charge sequences are closer.</p>
+<p>Manual inspection of the data showed that these short-duration ‘standard’ charging events generally occurred near the end of a longer-duration charging sequence. It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is probably due to the behaviour of the charger once the battery was almost full.</p>
+<p>Table <a href="#tab:durationDescTableReduced">2.8</a> repeats the same descriptive statistics reported in Table <a href="#tab:durationDescTable">2.5</a> but for all sequences of greater than 8 minute duration. We can now see that the mean and median durations for both Standard and Fast Charge sequences are closer.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:durationDescTableReduced">Table 2.5: </span>Duration of charge sequences &gt; 8 minutes by charge type (minutes)
+<span id="tab:durationDescTableReduced">Table 2.8: </span>Duration of charge sequences &gt; 8 minutes by charge type (minutes)
 </caption>
 <thead>
 <tr>
@@ -941,19 +1566,19 @@ max
 Standard charging
 </td>
 <td style="text-align:right;">
-2809
+1947
 </td>
 <td style="text-align:left;">
-245.40 mins
+254.38 mins
 </td>
 <td style="text-align:right;">
-209.80
+220.97
 </td>
 <td style="text-align:left;">
-8.02 mins
+8.03 mins
 </td>
 <td style="text-align:left;">
-1616.72 mins
+1442.3 mins
 </td>
 </tr>
 <tr>
@@ -961,39 +1586,38 @@ Standard charging
 Fast charging
 </td>
 <td style="text-align:right;">
-356
+207
 </td>
 <td style="text-align:left;">
-56.48 mins
+31.85 mins
 </td>
 <td style="text-align:right;">
-17.86
+19.22
 </td>
 <td style="text-align:left;">
-8.05 mins
+8.12 mins
 </td>
 <td style="text-align:left;">
-8621.00 mins
+865.7 mins
 </td>
 </tr>
 </tbody>
 </table>
-<p>Manual inspection of the data showed that these short-duration charging “events” generally occurred near the end of a longer-duration charging sequence It appeared that once the vehicle had reached its highest state of charge, charging would intermittently stop and start again. This is probably due to the behaviour of the charger once the battery was almost full. In addition to the myriad “short” charging duration values, a small number of unreasonably long charging durations (longer than 100 hours for standard charging or longer than 14 hours for fast charging) were calculated. As these exceeded the expected charge durations of the most high capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Section <a href="#duration">5</a> below was therefore made with the following charge events excluded from the data:</p>
+<p>In addition to the many ‘short’ charging duration values, a small number of unreasonably long charging durations (longer than 14 hours for fast charging - see Table <a href="#tab:durationLongTableFast">2.7</a>) were calculated. As these exceeded the expected charge durations of even the highest capacity vehicles currently available, they were also assumed to be anomalies. The analyses in Section <a href="#duration">3.3</a> below was therefore made with the following charge events excluded from the data:</p>
 <ul>
-<li>duration &gt; 6000 minutes (1 observations)</li>
-<li>duration &lt; 8 minutes for standard charging (4285 observations - noting that some of these may be short low power ‘fast charge’ events as discussed in Section @ref(#chargeType))</li>
-<li>duration &gt; 840 minutes for fast charging (3 observations)</li>
+<li>duration &lt; 8 minutes for standard charging (2931 observations - noting that some of these may be short low power ‘fast charge’ events as discussed in Section <a href="#chargeType">2.3.1</a>)</li>
+<li>duration &gt; 840 minutes (14 hours) for fast charging (1 observations)</li>
 </ul>
-<p>Figure <a href="#fig:longDuration">2.5</a> and <a href="#tab:longDuration">2.6</a> shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and charging powers.</p>
+<p>Figure <a href="#fig:longDuration">2.6</a> shows the distribution of charging sequences with the excessively long or short events removed. These charging durations appear more reasonable when considering standard battery capacities and available charge power.</p>
 <div class="figure"><span id="fig:longDuration"></span>
 <img src="EVBB_report_v1_files/figure-html/longDuration-1.png" alt="Duration of charging sequences with unreasonably long or short values removed" width="672" />
 <p class="caption">
-Figure 2.5: Duration of charging sequences with unreasonably long or short values removed
+Figure 2.6: Duration of charging sequences with unreasonably long or short values removed
 </p>
 </div>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:longDuration">Table 2.6: </span>Duration of charge sequences, final duration data (minutes)
+<span id="tab:longDuration">Table 2.9: </span>Duration of charge sequences, final duration data
 </caption>
 <thead>
 <tr>
@@ -1023,19 +1647,19 @@ max
 Standard charging
 </td>
 <td style="text-align:right;">
-2810
+1947
 </td>
 <td style="text-align:left;">
-245.32 mins
+254.38 mins
 </td>
 <td style="text-align:right;">
-209.73
+220.97
 </td>
 <td style="text-align:left;">
-8.00 mins
+8.03 mins
 </td>
 <td style="text-align:left;">
-1616.72 mins
+1442.30 mins
 </td>
 </tr>
 <tr>
@@ -1043,19 +1667,19 @@ Standard charging
 Fast charging
 </td>
 <td style="text-align:right;">
-489
+287
 </td>
 <td style="text-align:left;">
-20.86 mins
+20.95 mins
 </td>
 <td style="text-align:right;">
-13.50
+14.25
 </td>
 <td style="text-align:left;">
 0.02 mins
 </td>
 <td style="text-align:left;">
-767.20 mins
+582.53 mins
 </td>
 </tr>
 </tbody>
@@ -1063,8 +1687,10 @@ Fast charging
 </div>
 </div>
 </div>
-<div id="time-of-charging" class="section level1">
-<h1><span class="header-section-number">3</span> Time of charging</h1>
+<div id="results" class="section level1">
+<h1><span class="header-section-number">3</span> Results</h1>
+<div id="time-of-charging" class="section level2">
+<h2><span class="header-section-number">3.1</span> Time of charging</h2>
 <p>It has been suggested that EV charging is more likely to occur in the early evening when drivers return from daily commutes or school pick-ups <span class="citation">(Langbroek, Franklin, and Susilo 2017)</span>. Figure <a href="#fig:chargeBeginsTime">3.3</a> uses a density plot to represent the proportion of charging and non-charging observations at different times of day by weekday vs weekends. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for fast charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or ‘smart’ charging or trickle events.</p>
 <div class="figure"><span id="fig:chargeTime"></span>
 <img src="EVBB_report_v1_files/figure-html/chargeTime-1.png" alt="Density plot of charging start times during weekdays" width="672" />
@@ -1080,7 +1706,7 @@ Figure 3.2: Count of observed charging events by type, day of week and time
 </p>
 </div>
 <p>This figure indicates that the greatest frequency of standard charging events occur between the hours of 8pm and 8am, with very low occurrences of charging during morning and evening grid peaks. Fast charging on the other hand is a day-time activity on both weekdays and weekends.</p>
-<p>To make the patterns of ‘initial charging’ clearer, we use just the ‘first’ charge observation in a pair (see above) and exclude automatic battery ‘top-ups’ (refer to Section <a href="#SoC">6</a>) by also filtering out any data where a charging observation begins while the state of charge is greater than 90%. Having done so, Figure <a href="#fig:chargeBeginsTime">3.3</a> uses a density plot to represent the proportion of charging events that begin at different times of the day on weekdays vs weekends for standard and fast charging (corrected classification).</p>
+<p>To make the patterns of ‘initial charging’ clearer, we use just the ‘first’ charge observation in a pair (see above) and exclude automatic battery ‘top-ups’ (refer to Section <a href="#SoC">3.4</a>) by also filtering out any data where a charging observation begins while the state of charge is greater than 90%. Having done so, Figure <a href="#fig:chargeBeginsTime">3.3</a> uses a density plot to represent the proportion of charging events that begin at different times of the day on weekdays vs weekends for standard and fast charging (corrected classification).</p>
 <div class="figure"><span id="fig:chargeBeginsTime"></span>
 <img src="EVBB_report_v1_files/figure-html/chargeBeginsTime-1.png" alt="Density plot of charging start times during weekdays where state of charge &lt; 90%" width="672" />
 <p class="caption">
@@ -1091,37 +1717,37 @@ Figure 3.3: Density plot of charging start times during weekdays where state of 
 <p>Standard charging events were most likely to begin around 10pm during both weekdays and weekends. As it seems unlikely that this is due to vehicle drivers returning home at this hour, this effect may be due to drivers setting the charger on a timer to take advantage of cheaper “off-peak” electricity times, which frequently begin around 10pm.</p>
 <p>Fast charging events were most likely to begin at 11:30am on weekdays and 1pm during weekends.</p>
 </div>
-<div id="patterns-of-power-demand" class="section level1">
-<h1><span class="header-section-number">4</span> Patterns of power demand</h1>
+<div id="patterns-of-power-demand" class="section level2">
+<h2><span class="header-section-number">3.2</span> Patterns of power demand</h2>
 <p>Given this distribution of charging events, it is important to understand their magnitude to understand the potential effect on the electricity network. Although we are hampered by the lack of ‘no charge’ data when the EV is not connected to the charger and switched off, this section analyses the patterns of power demand where charging is observed. Clearly this does not provide overall sample mean power demand which would include charging, non-charging <em>and</em> non-use observations.</p>
-<p>Overall 75% of standard charging observations were 1.47 kW or more but the figure was 20.28 kW or more for fast charging.</p>
-<p>Figure <a href="#fig:meanChargeByTimeStd">4.1</a> shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the charging data collected after September 2018 to ensure maximum sample size (see Section <a href="#cleaning">2.2</a>). The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section <a href="#background">2.1</a>, this indicates patterns which are generally shared across more EVs.</p>
+<p>Overall 75% of standard charging observations were 1.46 kW or more but the figure was 21.43 kW or more for fast charging.</p>
+<p>Figure <a href="#fig:meanChargeByTimeStd">3.4</a> shows the mean power demand for standard charging observations by time of day and weekdays vs weekends for the selected time period. The plot uses transparency to indicate the number of EVs contributing to each of the mean calculations to give a guide to their reliability. Dots with stronger colours indicate means calculated from a larger number of EVs and, given the data gaps noted in Section <a href="#background">2.1</a>, this indicates patterns which are generally shared across more EVs.</p>
 <p>This plot appears to show that there are three peaks in standard charging, one at 10:00, one at 18:00 (possibly based on fewer EVs) and one after midnight on weekdays. There are also noticeable 07:00 and 16:00 charging blips. On the other hand at weekends the daytime peak shifts to 14:00. Thus, while our previous analysis suggested that charging events were more likely to start later in the evening, the power demand of earlier charging events may actually be relatively high and co-incide with exisitng peak demand periods.</p>
 <div class="figure"><span id="fig:meanChargeByTimeStd"></span>
 <img src="EVBB_report_v1_files/figure-html/meanChargeByTimeStd-1.png" alt="Mean charging power demand (kW) by time of day" width="672" />
 <p class="caption">
-Figure 4.1: Mean charging power demand (kW) by time of day
+Figure 3.4: Mean charging power demand (kW) by time of day
 </p>
 </div>
-<p>Fast charging however has no detectable pattern other than a clear increase in density during weekday daytimes (Figure <a href="#fig:meanChargeByTimeFast">4.2</a>).</p>
+<p>Fast charging however has no detectable pattern other than a clear increase in density during weekday daytimes (Figure <a href="#fig:meanChargeByTimeFast">3.5</a>).</p>
 <div class="figure"><span id="fig:meanChargeByTimeFast"></span>
 <img src="EVBB_report_v1_files/figure-html/meanChargeByTimeFast-1.png" alt="Mean charging power demand (kW) by time of day" width="672" />
 <p class="caption">
-Figure 4.2: Mean charging power demand (kW) by time of day
+Figure 3.5: Mean charging power demand (kW) by time of day
 </p>
 </div>
-<p>It is possible that the ‘standard charge’ day-time peak is skewed by mis-classified short low power ‘fast charge’ observations (see Section @ref(#chargeType)). Figure <a href="#fig:medianChargeByTime">4.3</a> attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified ‘fast charges’ will be skewing the standard charge mean value upwards, is likely to be due to mis-classified ‘fast charging’. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from <a href="#fig:meanChargeByTimeStd">4.1</a>.</p>
+<p>It is possible that the ‘standard charge’ day-time peak is skewed by mis-classified short low power ‘fast charge’ observations (see Section <a href="#chargeType">2.3.1</a>). Figure <a href="#fig:medianChargeByTime">3.6</a> attempts to allow for this misclassification by plotting the median rather than the mean. The plot more clearly shows the 10:00 weekday spike which, if we assume that the mis-classified ‘fast charges’ will be skewing the standard charge mean value upwards, is likely to be due to mis-classified ‘fast charging’. However the 18:00 peak persists as does the 14:00 weekend peak while overnight charging levels are relatively stable as we would expect from <a href="#fig:meanChargeByTimeStd">3.4</a>.</p>
 <div class="figure"><span id="fig:medianChargeByTime"></span>
 <img src="EVBB_report_v1_files/figure-html/medianChargeByTime-1.png" alt="Median charging power demand (kW) by time of day" width="672" />
 <p class="caption">
-Figure 4.3: Median charging power demand (kW) by time of day
+Figure 3.6: Median charging power demand (kW) by time of day
 </p>
 </div>
-<p>Figure <a href="#fig:meanChargeByTimeMonth">4.4</a> repeats the median power-based analysis for ‘Standard charging’ but shows the results by month. While the sample size is probably too small to draw robust conclusions there appear to be differences between months with December showing few discernable peaks and September and January showing much lower daytime weekday charging. In addition, weekdays and weekends are much more similar in November and December.</p>
+<p>Figure <a href="#fig:meanChargeByTimeMonth">3.7</a> repeats the median power-based analysis for ‘Standard charging’ but shows the results by month. While the sample size is probably too small to draw robust conclusions there appear to be differences between months with December showing few discernable peaks and September and January showing much lower daytime weekday charging. In addition, weekdays and weekends are much more similar in November and December.</p>
 <div class="figure"><span id="fig:meanChargeByTimeMonth"></span>
 <img src="EVBB_report_v1_files/figure-html/meanChargeByTimeMonth-1.png" alt="Median charging power demand (kW) by time of day and month" width="672" />
 <p class="caption">
-Figure 4.4: Median charging power demand (kW) by time of day and month
+Figure 3.7: Median charging power demand (kW) by time of day and month
 </p>
 </div>
 <p>On face value the results suggest that EVs could be placing additional power demand on local and national networks during well-known periods of peak demand although this appears to vary by month for this small sample of EV owners.</p>
@@ -1129,12 +1755,12 @@ Figure 4.4: Median charging power demand (kW) by time of day and month
 <p>Clearly this analysis should be revisited once the potential misclassification of ‘fast’ as ‘standard’ charging observations has been resolved and the ‘missing’ non-use (zero charging) observations have been imputed.</p>
 </blockquote>
 </div>
-<div id="duration" class="section level1">
-<h1><span class="header-section-number">5</span> Charging duration</h1>
-<p>This section analyses the duration of observed charging events to understand when longer charging sequences are likely to occur. Table <a href="#tab:meanDurationTable">5.1</a> shows the mean durations for all all charging events by event start time for standard charging durations greater than 8 minutes (see Section <a href="#codeSequences">2.3.2</a>) and all fast charging events for observations collected after 01 September 2018.</p>
+<div id="duration" class="section level2">
+<h2><span class="header-section-number">3.3</span> Charging duration</h2>
+<p>This section analyses the duration of observed charging events to understand when longer charging sequences are likely to occur. Table <a href="#tab:meanDurationTable">3.1</a> shows the mean durations for all all charging events by event start time for standard charging durations greater than 8 minutes (see Section <a href="#codeSequences">2.3.2</a>) and all fast charging events for observations collected after 01 October 2018.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:meanDurationTable">Table 5.1: </span>Mean duration of charge events by charge type (filtered data, corrected charge type)
+<span id="tab:meanDurationTable">Table 3.1: </span>Mean duration of charge events by charge type (filtered data, corrected charge type)
 </caption>
 <thead>
 <tr>
@@ -1164,19 +1790,19 @@ sd
 Standard charging
 </td>
 <td style="text-align:left;">
-251.15 mins
+254.38 mins
 </td>
 <td style="text-align:left;">
-217.78 mins
+220.97 mins
 </td>
 <td style="text-align:left;">
-8.00 mins
+8.03 mins
 </td>
 <td style="text-align:left;">
-1616.72 mins
+1442.30 mins
 </td>
 <td style="text-align:right;">
-189.62
+187.01
 </td>
 </tr>
 <tr>
@@ -1184,26 +1810,26 @@ Standard charging
 Fast charging
 </td>
 <td style="text-align:left;">
-21.66 mins
+20.95 mins
 </td>
 <td style="text-align:left;">
-13.70 mins
+14.25 mins
 </td>
 <td style="text-align:left;">
 0.02 mins
 </td>
 <td style="text-align:left;">
-767.20 mins
+582.53 mins
 </td>
 <td style="text-align:right;">
-53.25
+45.08
 </td>
 </tr>
 </tbody>
 </table>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:makeDurationTimeMean">Table 5.2: </span>Mean duration of charge sequences (values &gt; 480 minutes)
+<span id="tab:makeDurationTimeMean">Table 3.2: </span>Mean duration of charge sequences (values &gt; 480 minutes)
 </caption>
 <thead>
 <tr>
@@ -1236,10 +1862,10 @@ Standard charging
 Weekends
 </td>
 <td style="text-align:left;">
-684.57 mins
+1324.10 mins
 </td>
 <td style="text-align:right;">
-2
+1
 </td>
 </tr>
 <tr>
@@ -1287,63 +1913,98 @@ Standard charging
 Weekends
 </td>
 <td style="text-align:left;">
-500.20 mins
+515.46 mins
 </td>
 <td style="text-align:right;">
-11
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+02:45:00
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Weekends
+</td>
+<td style="text-align:left;">
+497.73 mins
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+11:45:00
+</td>
+<td style="text-align:left;">
+Standard charging
+</td>
+<td style="text-align:left;">
+Weekends
+</td>
+<td style="text-align:left;">
+495.30 mins
+</td>
+<td style="text-align:right;">
+1
 </td>
 </tr>
 </tbody>
 </table>
-<p>Figure <a href="#fig:durationTimeMean">5.1</a> plots the mean duration by time of day and weekday vs weekend and charge type. As before we use transparency to indicate the number of unique EVs contributing to the mean values and we have removed a small number of very large duration outliers (mean duration &gt; 540 minutes or 9 hours) which appears to be based on just 1 or 2 EVs (see Table @ref:(tab:makeDurationTimeMean)).</p>
+<p>Figure <a href="#fig:durationTimeMean">3.8</a> plots the mean duration by time of day and weekday vs weekend and charge type. As before we use transparency to indicate the number of unique EVs contributing to the mean values and we have removed a small number of very large duration outliers (mean duration &gt; 540 minutes or 9 hours) which appears to be based on just 1 or 2 EVs (see Table @ref:(tab:makeDurationTimeMean)).</p>
 <p>As we would expect, the plot shows that for standard charging mean ‘forward’ duration generally decreases from midnight, presumably as batteries are becoming fully charged through to 06:00 and then increases as the time of starting to charge increases through the day before trending downwards before midnight. Again, this confirms that charge events starting in or just after the evening peak demand period on both weekdays and weekends are likely to be longer, possibly reflecting the lower state of charge at this time of day (following use).</p>
-<p>Duration of fast charge events by start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. <a href="#fig:obsPower">2.2</a> suggests that drivers utilize fast charging only “as necessary” to ensure they have enough battery capacity to complete their journey or when ‘at work’ or conducting some other mobility related task such as shopping.</p>
+<p>Duration of fast charge events by start time appear to be more randomly distributed, although very few events were recorded between midnight and 7am. This, along with the comparatively low number of recorded fast charge events indicated in Fig. <a href="#fig:obsPower">2.3</a> suggests that drivers utilize fast charging only “as necessary” to ensure they have enough battery capacity to complete their journey or when ‘at work’ or conducting some other mobility related task such as shopping.</p>
 <div class="figure"><span id="fig:durationTimeMean"></span>
 <img src="EVBB_report_v1_files/figure-html/durationTimeMean-1.png" alt="Mean duration (within quarter hours) by time of charging start" width="672" />
 <p class="caption">
-Figure 5.1: Mean duration (within quarter hours) by time of charging start
+Figure 3.8: Mean duration (within quarter hours) by time of charging start
 </p>
 </div>
 </div>
-<div id="SoC" class="section level1">
-<h1><span class="header-section-number">6</span> State of charge</h1>
+<div id="SoC" class="section level2">
+<h2><span class="header-section-number">3.4</span> State of charge</h2>
 <p>The state of charge is the percentage of energy still available to be used in the battery. In future, electric vehicles may be able to discharge any remaining battery charge as electricity into the grid, a process known as vehicle to grid (V2G) energy transfer. This may allow electric vehicles to have a net beneficial effect on the grid, reducing the evening peaks by providing electricity to the home during this period, and then recharging later in the evening or early the next morning when peak demand has diminished.</p>
 <p>This section provides an indication of the state of charge of electric vehicles upon charging, so that the potential of V2G technology can be assessed.</p>
 <div class="figure"><span id="fig:SoCplot1"></span>
 <img src="EVBB_report_v1_files/figure-html/SoCplot1-1.png" alt="Value of state of charge (all charging observations)" width="672" />
 <p class="caption">
-Figure 6.1: Value of state of charge (all charging observations)
+Figure 3.9: Value of state of charge (all charging observations)
 </p>
 </div>
-<p>As can be seen in Figure <a href="#fig:SoCplot1">6.1</a>, using the cleaned complete observations data, the state of charge for the majority of standard charge observations is above 90%. This is most likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle as described in Section <a href="#cleaning">2.2</a>.</p>
-<p>Figure <a href="#fig:SoCplot2">6.2</a> shows the state of charge values for all charging events but with state of charge greater than 90% removed from the data for clarity. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining. This has clear implications for battery life management since continually top-up charging is known to substantially shorten the lifetime of EV batteries (XX ref needed XX). However it also indicates the potential to use the charge in the battery to feed into the grid, especially in the residential context.</p>
+<p>As can be seen in Figure <a href="#fig:SoCplot1">3.9</a>, using the cleaned complete observations data, the state of charge for the majority of standard charge observations is above 90%. This is most likely due to the manner in which the charger regularly turns off and on again near the end of the charging cycle as described in Section <a href="#cleaning">2.2</a>.</p>
+<p>Figure <a href="#fig:SoCplot2">3.10</a> shows the state of charge values for all charging events but with state of charge greater than 90% removed from the data for clarity. The figure indicates that many vehicles begin charging despite having greater than 50% charge remaining. This has clear implications for battery life management since continually top-up charging is known to substantially shorten the lifetime of EV batteries (XX ref needed XX). However it also indicates the potential to use the charge in the battery to feed into the grid, especially in the residential context.</p>
 <div class="figure"><span id="fig:SoCplot2"></span>
 <img src="EVBB_report_v1_files/figure-html/SoCplot2-1.png" alt="Value of state of charge (values &gt; 90% removed)" width="672" />
 <p class="caption">
-Figure 6.2: Value of state of charge (values &gt; 90% removed)
+Figure 3.10: Value of state of charge (values &gt; 90% removed)
 </p>
 </div>
-<p>Figure <a href="#fig:SoCplot3">6.3</a> repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure <a href="#fig:SoCplot3">6.3</a> shows very similar distributions to the previous ‘all-observations’ plot (Figure <a href="#fig:SoCplot2">6.2</a>) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%.</p>
+<p>Figure <a href="#fig:SoCplot3">3.11</a> repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure <a href="#fig:SoCplot3">3.11</a> shows very similar distributions to the previous ‘all-observations’ plot (Figure <a href="#fig:SoCplot2">3.10</a>) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%.</p>
 <div class="figure"><span id="fig:SoCplot3"></span>
 <img src="EVBB_report_v1_files/figure-html/SoCplot3-1.png" alt="Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)" width="672" />
 <p class="caption">
-Figure 6.3: Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)
+Figure 3.11: Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)
 </p>
 </div>
 <div class="figure"><span id="fig:SoCplotTiming"></span>
 <img src="EVBB_report_v1_files/figure-html/SoCplotTiming-1.png" alt="Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values &gt; 90% removed)" width="672" />
 <p class="caption">
-Figure 6.4: Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values &gt; 90% removed)
+Figure 3.12: Mean state of charge at beginning of charge sequence by time of day (chargeType corrected, values &gt; 90% removed)
 </p>
 </div>
-<p>Finally, Figure <a href="#fig:SoCplotTiming">6.4</a> shows the mean % charge by time of first charging observation in a sequence using the cleaned and corrected inferred start/end of charging sequence data. The plot suggests that this capacity may be relatively stable throughout the day albiet with slightly higher mean capacity around the morning peak as we would expect given over-night charging. It is unlikely that this early morning capacity would be willingly made available for V2G since the EV may be used in the near future although this may not always be the case. However it is interesting to note that mean capacity at start of charge in the evening peak period is still roughly 50% indicating relatively substantial power availability.</p>
+<p>Finally, Figure <a href="#fig:SoCplotTiming">3.12</a> shows the mean % charge by time of first charging observation in a sequence using the cleaned and corrected inferred start/end of charging sequence data. The plot suggests that this capacity may be relatively stable throughout the day albiet with slightly higher mean capacity around the morning peak as we would expect given over-night charging. It is unlikely that this early morning capacity would be willingly made available for V2G since the EV may be used in the near future although this may not always be the case. However it is interesting to note that mean capacity at start of charge in the evening peak period is still roughly 50% indicating relatively substantial power availability.</p>
+</div>
 </div>
 <div id="summary" class="section level1">
-<h1><span class="header-section-number">7</span> Summary</h1>
-<p>Based on a relatively small and probably non-representative sample of 44 domestic electric vehicles provided by our research partner <a href="https://flipthefleet.org/">FlipTheFleet</a> and which were monitored from April 2018 to January 2019 we have found that:</p>
+<h1><span class="header-section-number">4</span> Summary</h1>
+<p>Based on a relatively small and probably non-representative sample of 42 domestic electric vehicles provided by our research partner <a href="https://flipthefleet.org/">FlipTheFleet</a> and which were monitored from April 2018 to January 2019 we have found that:</p>
 <ul>
-<li><em>Power supplied</em>: The median power supplied during a charging event coded as ‘standard’ was 1.78 kW. The mean was slightly higher at 2.12 kW. Charging observations coded as ‘Fast’ had a median of 1.78 kW (mean = 2.12 kW). Mean power when charging showed a complex temporal profile for weekday standard charging (Figure <a href="#fig:meanChargeByTimeStd">4.1</a>) with a peak of ~ 2.5kw at 10:00 and a second of the same value at around 18:00 with further peaks just after midnight. The inverse is seen on weekends with a charge peak during the middle of the day;</li>
-<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of 209.7333333 minutes and a mean duration of 245.3190629 minutes. High power ‘Fast’ charge events had a median duration of 13.5 minutes and a mean duration of 13.5 minutes;</li>
+<li><em>Power supplied</em>: The median power supplied during a charging event coded as ‘standard’ was 1.76 kW. The mean was slightly higher at 2.09 kW. Charging observations coded as ‘Fast’ had a median of 1.76 kW (mean = 2.09 kW). Mean power when charging showed a complex temporal profile for weekday standard charging (Figure <a href="#fig:meanChargeByTimeStd">3.4</a>) with a peak of ~ 2.5kw at 10:00 and a second of the same value at around 18:00 with further peaks just after midnight. The inverse is seen on weekends with a charge peak during the middle of the day;</li>
+<li><em>Charging duration</em>: Charging durations tended to fall into one of two groups. Longer ‘standard’ charges had a median duration of 220.9666667 minutes and a mean duration of 254.3840181 minutes. High power ‘Fast’ charge events had a median duration of 14.25 minutes and a mean duration of 14.25 minutes;</li>
 <li><em>Time of day</em>: Standard charging events tended to be the most frequent around 22:00 on both weekdays and weekends, suggesting the drivers in our dataset utilise timers to take advantage of off-peak electricity although this is not universal with a substantial proportion of charging events starting earlier in the day and potentially at higher power levels (see above). Fast charging events tended to begin at 11:30am on weekdays and 1pm during weekends;</li>
 <li><em>State of charge</em>: As has been previously shown <span class="citation">(Speidel and Bräunl 2014)</span>, any drivers begin recharging with greater than 50% charge still remaining in the battery for both standard and fast charge events. This has clear implications both for the management of battery life and also for the potential for vehicle-to-grid power flows during peak demand periods where vehciles may be at or arriving home with substantial available charge.</li>
 </ul>
@@ -1351,34 +2012,34 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 <p>These preliminary findings support recent modelling work <span class="citation">(Concept Consulting 2018)</span> that suggests that any negative effects electric vehicles may have on the evening national electricity grid peaks should be mitigable through ‘smart’ charging methods. In addition, our analysis indicates that this may already be occurring to some extent in this sample of EV owners. If later adopters of electric vehicles can be induced to follow the same ‘smart’ charging patterns as those displayed in some of our data sample, it is likely that the effects that electric vehicles are otherwise likely to have on the electricity grid may be mitigated.</p>
 </div>
 <div id="statistical-annex" class="section level1">
-<h1><span class="header-section-number">8</span> Statistical Annex</h1>
+<h1><span class="header-section-number">5</span> Statistical Annex</h1>
 <div id="flip-the-fleet-data-description" class="section level2">
-<h2><span class="header-section-number">8.1</span> Flip The Fleet data description</h2>
+<h2><span class="header-section-number">5.1</span> Flip The Fleet data description</h2>
 <div id="raw-data" class="section level3">
-<h3><span class="header-section-number">8.1.1</span> Raw data</h3>
+<h3><span class="header-section-number">5.1.1</span> Raw data</h3>
 <p>Data description for original data supplied (before processing or filtering).</p>
 <pre class="r"><code>skimr::skim(rawDF)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1515812 
 ##  n variables: 8 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##     variable missing complete       n min max empty n_unique
 ##  day_of_week       0  1515812 1515812   6   9     0        7
 ##           id       0  1515812 1515812  32  32     0       50
 ##        month       0  1515812 1515812   3   3     0       10
 ## 
-## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n        min        max     median
 ##      date       0  1515812 1515812 2018-04-05 2019-01-25 2018-11-09
 ##  n_unique
 ##       293
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n    min        max     median n_unique
 ##      time       0  1515812 1515812 0 secs 86399 secs 44827 secs    86400
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##                 variable missing complete       n    mean      sd     p0
 ##          charge_power_kw       0  1515812 1515812    1.73   71         0
 ##              odometer_km 1000156   515656 1515812 7290.5  7954.38 -62920
@@ -1389,135 +2050,135 @@ Figure 6.4: Mean state of charge at beginning of charge sequence by time of day 
 ##    56.43   70.57    83.2  1677.72 ▇▁▁▁▁▁▁▁</code></pre>
 </div>
 <div id="processedCheck" class="section level3">
-<h3><span class="header-section-number">8.1.2</span> Processed and cleaned data</h3>
+<h3><span class="header-section-number">5.1.2</span> Processed and cleaned data</h3>
 <p>Data description for cleaned data (all observations).</p>
 <pre class="r"><code>skimr::skim(cleanDT)</code></pre>
 <pre><code>## Skim summary statistics
-##  n obs: 1291881 
+##  n obs: 851473 
 ##  n variables: 17 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
-##    variable missing complete       n min max empty n_unique
-##  chargeFlag      12  1291869 1291881  17  25     0        5
-##  chargeType       0  1291881 1291881  12  17     0        3
-##        dvID       0  1291881 1291881   9  10     0       44
-##          id       0  1291881 1291881  32  32     0       44
-##  peakPeriod       0  1291881 1291881   8  12     0        3
-##    weekdays       0  1291881 1291881   8   8     0        2
+## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##    variable missing complete      n min max empty n_unique
+##  chargeFlag       3   851470 851473  17  25     0        5
+##  chargeType       0   851473 851473  12  17     0        3
+##        dvID       0   851473 851473   9  10     0       42
+##          id       0   851473 851473  32  32     0       42
+##  peakPeriod       0   851473 851473   8  12     0        3
+##    weekdays       0   851473 851473   8   8     0        2
 ## 
-## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
-##  variable missing complete       n        min        max     median
-##      date       0  1291881 1291881 2018-05-12 2019-01-25 2018-11-13
+## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##  variable missing complete      n        min        max     median
+##      date       0   851473 851473 2018-10-01 2018-12-31 2018-11-16
 ##  n_unique
-##       249
+##        92
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
-##      variable missing complete       n    min          max   median
-##  dateTimeDiff      44  1291837 1291881 0 secs 4912664 secs  50 secs
-##         qHour       0  1291881 1291881 0 secs   85500 secs 11:45:00
-##     startTime       0  1291881 1291881 0 secs   86399 secs 12:24:49
-##          time       0  1291881 1291881 0 secs   86399 secs 11:50:53
+## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##      variable missing complete      n    min          max   median
+##  dateTimeDiff      12   851461 851473 0 secs 2489602 secs  50 secs
+##         qHour       0   851473 851473 0 secs   85500 secs 11:45:00
+##     startTime       0   851473 851473 0 secs   86399 secs 12:30:07
+##          time       0   851473 851473 0 secs   86399 secs 11:49:50
 ##  n_unique
-##     13443
+##      9573
 ##        96
-##     86400
-##     86400
+##     86380
+##     86380
 ## 
-## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────
-##     variable missing complete       n n_unique
-##  day_of_week       0  1291881 1291881        7
-##        month       0  1291881 1291881        9
+## ── Variable type:factor ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##     variable missing complete      n n_unique
+##  day_of_week       0   851473 851473        7
+##        month       0   851473 851473        3
 ##                                          top_counts ordered
-##  Fri: 206422, Wed: 206292, Thu: 205166, Mon: 190389    TRUE
-##  Nov: 298332, Oct: 280869, Dec: 272272, Jan: 188498   FALSE
+##  Fri: 136333, Thu: 132137, Wed: 130721, Mon: 127828    TRUE
+##       Nov: 298332, Oct: 280869, Dec: 272272, Jan: 0   FALSE
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
-##         variable missing complete       n    mean      sd     p0     p25
-##  charge_power_kw       0  1291881 1291881    1.48    2.89      0    0   
-##      odometer_km  857152   434729 1291881 6801.77 7943.05 -62920 1698   
-##      SoC_percent      46  1291835 1291881   68.42   18.58      0   55.68
+## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##         variable missing complete      n    mean      sd     p0     p25
+##  charge_power_kw       0   851473 851473    1.58    2.82      0    0   
+##      odometer_km  590546   260927 851473 6699.62 8356.62 -62920 1709   
+##      SoC_percent      22   851451 851473   68.29   18.5       0   55.58
 ##      p50     p75     p100     hist
-##     1.38    1.9     70.16 ▇▁▁▁▁▁▁▁
-##  4123    8816    69394    ▁▁▁▇▇▂▁▁
-##    69.73   82.26    98.1  ▁▁▂▃▆▇▇▇
+##     1.47    1.93    70.16 ▇▁▁▁▁▁▁▁
+##  4007    7825    69163    ▁▁▁▇▇▂▁▁
+##    69.52   81.99    98.1  ▁▁▂▃▆▇▇▆
 ## 
-## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────
-##  variable missing complete       n        min        max     median
-##  dateTime       0  1291881 1291881 2018-05-12 2019-01-25 2018-11-13
+## ── Variable type:POSIXct ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+##  variable missing complete      n        min        max     median
+##  dateTime       0   851473 851473 2018-10-01 2018-12-31 2018-11-16
 ##  n_unique
-##   1230977</code></pre>
+##    805295</code></pre>
 <p>Data description for cleaned data (first observations in a charging sequence).</p>
 <pre class="r"><code>skimr::skim(firstCleanDT)</code></pre>
 <pre><code>## Skim summary statistics
-##  n obs: 3299 
+##  n obs: 2234 
 ##  n variables: 22 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n min max empty n_unique
-##       chargeFlag       0     3299 3299  25  25     0        1
-##       chargeType       0     3299 3299  13  17     0        2
-##  chargeTypeError       0     3299 3299  29  37     0        4
-##             dvID       0     3299 3299   9  10     0       43
-##          endType       0     3299 3299  13  17     0        2
-##               id       0     3299 3299  32  32     0       43
-##       peakPeriod       0     3299 3299   8  12     0        3
-##         weekdays       0     3299 3299   8   8     0        2
+##       chargeFlag       0     2234 2234  25  25     0        1
+##       chargeType       0     2234 2234  13  17     0        2
+##  chargeTypeError       0     2234 2234  29  37     0        4
+##             dvID       0     2234 2234   9  10     0       41
+##          endType       0     2234 2234  13  17     0        2
+##               id       0     2234 2234  32  32     0       41
+##       peakPeriod       0     2234 2234   8  12     0        3
+##         weekdays       0     2234 2234   8   8     0        2
 ## 
-## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
-##      date       0     3299 3299 2018-05-12 2019-01-17 2018-11-09      201
+##      date       0     2234 2234 2018-10-01 2018-12-31 2018-11-15       92
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##      variable missing complete    n                   min
-##  dateTimeDiff       0     3299 3299  0 secs              
-##       endTime       0     3299 3299  1 secs              
-##  pairDuration       0     3299 3299       0.01666667 mins
-##         qHour       0     3299 3299  0 secs              
-##     startTime       0     3299 3299 31 secs              
-##          time       0     3299 3299 40 secs              
-##                   max             median n_unique
-##  230025 secs          305 secs               1804
-##   86395 secs          13:06:27               3215
-##         1616.717 mins      178.8167 mins     3024
-##   85500 secs          15:15:00                 96
-##   86392 secs          10:15:44               3170
-##   86246 secs          15:22:14               3167
+##  dateTimeDiff       0     2234 2234  0 secs              
+##       endTime       0     2234 2234  1 secs              
+##  pairDuration       0     2234 2234       0.01666667 mins
+##         qHour       0     2234 2234  0 secs              
+##     startTime       0     2234 2234 31 secs              
+##          time       0     2234 2234 63 secs              
+##                 max               median n_unique
+##  230025 secs               336.5 secs        1312
+##   86395 secs             48273.5 secs        2192
+##         1442.3 mins        194.7917 mins     2117
+##   85500 secs        56700 secs                 96
+##   86392 secs             37122.5 secs        2163
+##   86246 secs        56717 secs               2163
 ## 
-## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##             variable missing complete    n n_unique
-##  chargeTypeCorrected       0     3299 3299        2
-##          day_of_week       0     3299 3299        7
-##                month       0     3299 3299        9
+##  chargeTypeCorrected       0     2234 2234        2
+##          day_of_week       0     2234 2234        7
+##                month       0     2234 2234        3
 ##                              top_counts ordered
-##      Sta: 2810, Fas: 489, Not: 0, NA: 0   FALSE
-##  Fri: 524, Wed: 502, Thu: 490, Mon: 489    TRUE
-##  Nov: 791, Oct: 743, Dec: 702, Sep: 458   FALSE
+##      Sta: 1947, Fas: 287, Not: 0, NA: 0   FALSE
+##  Fri: 360, Mon: 346, Thu: 346, Wed: 323    TRUE
+##    Nov: 791, Oct: 743, Dec: 700, Jan: 0   FALSE
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n    mean      sd        p0     p25
-##  charge_power_kw       0     3299 3299    7.31   12.68      0.5     1.62
-##      odometer_km    2555      744 3299 5649.15 7459.93 -52352    1289.25
-##      SoC_percent       0     3299 3299   49.41   18.72      4.11   35.89
+##  charge_power_kw       0     2234 2234    6.64   12.03      0.5     1.57
+##      odometer_km    1742      492 2234 5729.76 7499.14 -52352    1448   
+##      SoC_percent       0     2234 2234   48.78   18.42      4.11   35.46
 ##      p50     p75     p100     hist
-##     2.62    3.35    70.16 ▇▁▁▁▁▁▁▁
-##  3435    7345.75 54443    ▁▁▁▂▇▁▁▁
-##    48.41   59.63    98.1  ▁▃▆▇▇▃▂▂
+##     2.1     3.3     70.16 ▇▁▁▁▁▁▁▁
+##  3679.5  7393.5  38453    ▁▁▁▁▇▅▁▁
+##    47.55   58.94    98.1  ▁▃▆▇▇▃▁▂
 ## 
-## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
-##  dateTime       0     3299 3299 2018-05-12 2019-01-17 2018-11-09     3299</code></pre>
+##  dateTime       0     2234 2234 2018-10-01 2018-12-31 2018-11-15     2234</code></pre>
 </div>
 </div>
 <div id="coding-checks" class="section level2">
-<h2><span class="header-section-number">8.2</span> Coding checks</h2>
+<h2><span class="header-section-number">5.2</span> Coding checks</h2>
 <div id="chargeFlagTest" class="section level3">
-<h3><span class="header-section-number">8.2.1</span> Charge flag</h3>
+<h3><span class="header-section-number">5.2.1</span> Charge flag</h3>
 <p>This is used to identify observations that form part of a sequence. The logic is given in Section <a href="#codeSequences">2.3.2</a>. Here we show the results of applying an additional 120 second rule. In this case a sequence only exists where we have charging observations which have less than 120 seconds between them.</p>
 <pre class="r"><code>kableExtra::kable(sequenceMethod1_T, caption = &quot;Charge sequence flags (120 second rule)&quot;) %&gt;%
   kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:checkChargeFlagMethods">Table 8.1: </span>Charge sequence flags (120 second rule)
+<span id="tab:checkChargeFlagMethods">Table 5.1: </span>Charge sequence flags (120 second rule)
 </caption>
 <thead>
 <tr>
@@ -1663,7 +2324,7 @@ NA
   kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:checkChargeFlagMethods">Table 8.1: </span>Charge sequence flags (no 120 second rule)
+<span id="tab:checkChargeFlagMethods">Table 5.1: </span>Charge sequence flags (no 120 second rule)
 </caption>
 <thead>
 <tr>
@@ -1801,7 +2462,7 @@ kableExtra::kable(t, caption = &quot;chargeFlag errors (clean data)&quot;) %&gt;
   kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:checkChargeFlags">Table 8.2: </span>chargeFlag errors (clean data)
+<span id="tab:checkChargeFlags">Table 5.2: </span>chargeFlag errors (clean data)
 </caption>
 <thead>
 <tr>
@@ -1827,13 +2488,13 @@ NA
 Charging in a seq
 </td>
 <td style="text-align:right;">
-7272
+4307
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-762195
+554875
 </td>
 <td style="text-align:right;">
 0
@@ -1844,13 +2505,13 @@ Charging in a seq
 First charge obs in a seq
 </td>
 <td style="text-align:right;">
-478
+276
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7110
+4892
 </td>
 <td style="text-align:right;">
 0
@@ -1861,13 +2522,13 @@ First charge obs in a seq
 Last charge in a seq
 </td>
 <td style="text-align:right;">
-402
+233
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-7196
+4941
 </td>
 <td style="text-align:right;">
 0
@@ -1881,7 +2542,7 @@ Not charging (0 kW)
 0
 </td>
 <td style="text-align:right;">
-501490
+278619
 </td>
 <td style="text-align:right;">
 0
@@ -1895,13 +2556,13 @@ Not charging (0 kW)
 Single charge observation
 </td>
 <td style="text-align:right;">
-213
+94
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-5513
+3233
 </td>
 <td style="text-align:right;">
 0
@@ -1912,13 +2573,13 @@ Single charge observation
 NA
 </td>
 <td style="text-align:right;">
-2
+1
 </td>
 <td style="text-align:right;">
 0
 </td>
 <td style="text-align:right;">
-10
+2
 </td>
 <td style="text-align:right;">
 0
@@ -1949,7 +2610,7 @@ firstLastDT &lt;- firstLastDT[, endTimeTrunc := ifelse(notDuration &lt; 0,
 # charge rate &amp; state of charge deltas ----
 firstLastDT &lt;- firstLastDT[, chargePowerDelta := endChargekW - charge_power_kw] # should be -ve where we start high and end low
 firstLastDT &lt;- firstLastDT[, SoC_pcDelta := endSoC_pc - startSoC_pc] # should be -ve where we start high and end low</code></pre>
-<p>Figure <a href="#fig:checkStdSequenceskW">8.1</a> plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) ‘standard’ charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the charge rate increased.</p>
+<p>Figure <a href="#fig:checkStdSequenceskW">5.1</a> plots the first and last charge observation in a sequence for all pairs and for all vehicles where events were classified as (corrected) ‘standard’ charges. The y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the charge rate increased.</p>
 <pre class="r"><code># format labels function
 # https://stackoverflow.com/questions/53804629/how-to-format-difftime-as-hhmm-in-ggplot2
 format_hm &lt;- function(sec) stringr::str_sub(format(sec), end = -4L)
@@ -1988,11 +2649,11 @@ addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkStdSequenceskW"></span>
 <img src="EVBB_report_v1_files/figure-html/checkStdSequenceskW-1.png" alt="Standard charging (corrected) - rate of charge" width="672" />
 <p class="caption">
-Figure 8.1: Standard charging (corrected) - rate of charge
+Figure 5.1: Standard charging (corrected) - rate of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:stdPowerDeltaDensity">8.2</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘standard’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
+<p>Figure <a href="#fig:stdPowerDeltaDensity">5.2</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘standard’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
   geom_density(alpha = 0.5) +
   guides(colour = guide_legend(title = &quot;Peak period:&quot;)) +
@@ -2001,10 +2662,10 @@ p</code></pre>
 <div class="figure"><span id="fig:stdPowerDeltaDensity"></span>
 <img src="EVBB_report_v1_files/figure-html/stdPowerDeltaDensity-1.png" alt="Histogram of charge power deltas by peak/not peak period" width="672" />
 <p class="caption">
-Figure 8.2: Histogram of charge power deltas by peak/not peak period
+Figure 5.2: Histogram of charge power deltas by peak/not peak period
 </p>
 </div>
-<p>Figure <a href="#fig:checkStdSequencesSoC">8.3</a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
+<p>Figure <a href="#fig:checkStdSequencesSoC">5.3</a> uses the same approach but in this case the y value is charging rate (kW) at the start and end of the sequence. Colour (red end of the scale) is used to highlight pairs which show an ‘odd’ pattern - e.g. the battery state of charge decreased.</p>
 <pre class="r"><code>#dt &lt;- dt[, SoC_pcDelta := SoC_pcDelta * -1] # invert so big drops become red in plot
 p &lt;- makeSeqChargePlot(dt, y = &quot;startSoC_pc&quot;, 
                        yend = &quot;endSoC_pc&quot;, 
@@ -2020,11 +2681,11 @@ addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkStdSequencesSoC"></span>
 <img src="EVBB_report_v1_files/figure-html/checkStdSequencesSoC-1.png" alt="Standard charging (corrected) - state of charge" width="672" />
 <p class="caption">
-Figure 8.3: Standard charging (corrected) - state of charge
+Figure 5.3: Standard charging (corrected) - state of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/standardChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:checkFastSequenceskW">8.4</a> and Figure <a href="#fig:checkFastSequencesSoC">8.5</a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
+<p>Figure <a href="#fig:checkFastSequenceskW">5.4</a> and Figure <a href="#fig:checkFastSequencesSoC">5.5</a> repeat these plots but for (corrected) ‘fast’ charge events.</p>
 <pre class="r"><code>dt &lt;- firstLastDT[chargeTypeCorrected %like% &quot;Fast&quot; &amp; 
                     #startChargekW &lt; 5 &amp; #use this to filter out the few that seem to have 6kW chargers (or they might be &#39;fast&#39; charging too)
                     chargeFlag %like% &quot;First&quot;]
@@ -2043,7 +2704,7 @@ addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkFastSequenceskW"></span>
 <img src="EVBB_report_v1_files/figure-html/checkFastSequenceskW-1.png" alt="Fast charging (corrected) - rate of charge" width="672" />
 <p class="caption">
-Figure 8.4: Fast charging (corrected) - rate of charge
+Figure 5.4: Fast charging (corrected) - rate of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_kW_LineSegments.png&quot;, p, height = 10)</code></pre>
@@ -2062,11 +2723,11 @@ addPeaks(p)</code></pre>
 <div class="figure"><span id="fig:checkFastSequencesSoC"></span>
 <img src="EVBB_report_v1_files/figure-html/checkFastSequencesSoC-1.png" alt="Fast charging (corrected) - state of charge" width="672" />
 <p class="caption">
-Figure 8.5: Fast charging (corrected) - state of charge
+Figure 5.5: Fast charging (corrected) - state of charge
 </p>
 </div>
 <pre class="r"><code>#ggsave(&quot;plots/fastChargePairs_SoC_LineSegments.png&quot;, p, height = 10)</code></pre>
-<p>Figure <a href="#fig:fastPowerDeltaDensity">8.6</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘fast’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
+<p>Figure <a href="#fig:fastPowerDeltaDensity">5.6</a> shows the distribution of charge power deltas by peak/not peak period (of start time) for ‘fast’ charge events. This suggests that the majority of charging events either hold power constant or decline over time with some sort of shoulder effect. A few increase. More of those which start in the ‘evening’ and ‘not peak’ period seem to hold the power level constant, presumably because the battery capacity is slightly lower at this time following day-time use.</p>
 <pre class="r"><code>p &lt;- ggplot2::ggplot(dt, aes(x = chargePowerDelta, colour = peakPeriod)) +
   geom_histogram(alpha = 0.5) +
   guides(colour = guide_legend(title = &quot;Peak period:&quot;)) +
@@ -2076,12 +2737,12 @@ p</code></pre>
 <div class="figure"><span id="fig:fastPowerDeltaDensity"></span>
 <img src="EVBB_report_v1_files/figure-html/fastPowerDeltaDensity-1.png" alt="Histogram of state of charge deltas by peak/not peak period" width="672" />
 <p class="caption">
-Figure 8.6: Histogram of state of charge deltas by peak/not peak period
+Figure 5.6: Histogram of state of charge deltas by peak/not peak period
 </p>
 </div>
 </div>
 <div id="charge-type" class="section level3">
-<h3><span class="header-section-number">8.2.2</span> Charge type</h3>
+<h3><span class="header-section-number">5.2.2</span> Charge type</h3>
 <p><code>chargeType</code> is used to classify charging events into standard vs fast using the 7 kW threshold. But there may be misclassfications where a sequence starts on a fast charger but power demand declines below the threshold. We can check this and have corrected it in some sections above using the start/end pairs.</p>
 <pre class="r"><code># Check chargeType ----
 
@@ -2091,7 +2752,7 @@ kableExtra::kable(t, caption = &quot;chargeType errors detected&quot;) %&gt;%
   kable_styling()</code></pre>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:checkChargeType">Table 8.3: </span>chargeType errors detected
+<span id="tab:checkChargeType">Table 5.3: </span>chargeType errors detected
 </caption>
 <thead>
 <tr>
@@ -2114,7 +2775,7 @@ NA
 Error: first = Fast, last = Standard
 </td>
 <td style="text-align:right;">
-91
+55
 </td>
 <td style="text-align:right;">
 0
@@ -2131,7 +2792,7 @@ Error: first = Standard, last = Fast
 0
 </td>
 <td style="text-align:right;">
-14
+12
 </td>
 <td style="text-align:right;">
 0
@@ -2142,7 +2803,7 @@ Error: first = Standard, last = Fast
 OK: first = Fast, last = Fast
 </td>
 <td style="text-align:right;">
-387
+221
 </td>
 <td style="text-align:right;">
 0
@@ -2159,7 +2820,7 @@ OK: first = Standard, last = Standard
 0
 </td>
 <td style="text-align:right;">
-7096
+4880
 </td>
 <td style="text-align:right;">
 0
@@ -2170,10 +2831,10 @@ OK: first = Standard, last = Standard
 NA
 </td>
 <td style="text-align:right;">
-402
+233
 </td>
 <td style="text-align:right;">
-7196
+4941
 </td>
 <td style="text-align:right;">
 0
@@ -2184,7 +2845,7 @@ NA
 <pre class="r"><code>nError &lt;- nrow(firstLastDT[chargeTypeError %like% &quot;Error&quot;])
 nErrorEVs &lt;- uniqueN(firstLastDT[chargeTypeError %like% &quot;Error&quot;]$dvID)  
 message(&quot;There are &quot;, nError, &quot; pairs (out of a total of &quot;, nrow(firstLastDT)/2,&quot;) from &quot;, nErrorEVs ,&quot; EVs where charge type doesn&#39;t match.&quot;)</code></pre>
-<pre><code>## There are 105 pairs (out of a total of 7593) from 26 EVs where charge type doesn&#39;t match.</code></pre>
+<pre><code>## There are 67 pairs (out of a total of 5171) from 21 EVs where charge type doesn&#39;t match.</code></pre>
 </div>
 </div>
 </div>
