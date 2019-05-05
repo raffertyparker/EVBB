@@ -67,5 +67,29 @@ vehicleIDsDT <- vehicleIDsDT[, nDays := as.Date(endTime) - as.Date(startTime)]
 head(vehicleIDsDT[order(nObs)])
 
 # notice that some ids have very few observations
+allTimesDT <- data.table::data.table() # data bucket
+IdList <- vehicleIDsDT[, id] # get the list of ids
+n <- 1
+for(hh in IdList){
+  # yes we could probably lapply this
+  message("Imputing times for vehicle ", n , " of ", length(idList))
+  from <- vehicleIDsDT[id == hh, startTime] # first obs
+  to <- vehicleIDsDT[id == hh, endTime] # last obs
+  imputedTimes <- seq(from, to , "1 min") # sequence of 1 minute times between from & to
+  tempDT <- data.table::as.data.table(imputedTimes) # make a data.table
+  tempDT <- tempDT[, id := hh] # add id back
+  data.table::setnames(tempDT, "x", "r_dateTime") # set name of time var
+  allTimesDT <- rbind(allTimesDT, tempDT)
+  n <- n + 1
+}
+# seq(lubridate::as_datetime("2019-04-01 01:00:00"), lubridate::as_datetime("2019-04-10 01:00:00"), "10 mins")
 
+# truncate minute observations back to the start minute so they can be matched
+allTimesDT <- allTimesDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
+setkey(allTimesDT, id, r_dateTimeImputed)
+rawDT <- rawDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
+setkey(rawDT, id, r_dateTimeImputed)
 
+imputedDT <- rawDT[allTimesDT]
+summary(imputedDT)
+summary(allTimesDT)
