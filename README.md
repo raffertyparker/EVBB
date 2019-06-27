@@ -4,9 +4,9 @@ Code used to analyse various EV performance & power flow datasets.
 
 ## Analysis
 
-Best viewed via [github pages](https://dataknut.github.io/EVBB/).
+Best viewed via [github pages](https://cfsotago.github.io/evAnalysis/).
 
- * [Report v1.0](https://dataknut.github.io/EVBB/reports/fullReport/EVBB_report_v1.html)
+ * [Report v1.0](https://cfsotago.github.io/evAnalysis/reports/fullReport/EVBB_report_v1.html)
 
 ## Structure
 
