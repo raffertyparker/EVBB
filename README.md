@@ -1,4 +1,4 @@
-# evBB
+# evAnalysis
 
 Code used to analyse various EV performance & power flow datasets.
 
