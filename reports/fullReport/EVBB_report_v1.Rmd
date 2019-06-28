@@ -23,7 +23,7 @@ output:
     toc: yes
     toc_depth: 2
 always_allow_html: yes
-bibliography: "../../EVBBmendeleyrefs.bib"  
+bibliography: '`r paste0(here::here(), "/EVBBmendeleyrefs.bib")`'
 ---
 
 ```{r setup, include=FALSE}
@@ -1258,6 +1258,12 @@ These preliminary findings support recent modelling work [@ConceptConsulting2018
 
 # Statistical Annex
 
+Data used:
+
+ * `r dFile`
+
+If this is not what you expect this may be a test run using preliminary data.
+ 
 ```{r resetOptions}
 # turn these back on for annex
 knitr::opts_chunk$set(echo = TRUE)
