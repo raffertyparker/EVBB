@@ -2,7 +2,7 @@
 
 # Major changes:
 # - uses drake to create & process data
-# - introduces imputed 0 kW charing minute observations to 'fill out' data
+# - parameterises input data so can use expanded synthetic observations file (or any other file of same format)
 
 # Packages needed ----
 # use require so it fails if package missing
@@ -19,17 +19,18 @@ require(lubridate) # for date & time manip
 # Parameters ----
 
 # > Data file to use ----
-file <- "EVBB_processed_all_v1.0_20180125.csv" # latest
+#dataFile <- "EVBB_processed_all_v1.0_20180125.csv" # latest
+dataFile <- "EVBB_processed_all_v1.0_20180125_expanded.csv" # expanded
 
 # > for Mac ----
 user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
-  dFile <- paste0(dPath, file, ".zip") # use zipped data
+  dFile <- paste0(dPath, dataFile, ".zip") # use zipped data
   if(!file.exists(dFile)) {
     # we probably don't have the HCS mounted so switch to local
-    dPath <- "~/Data/NZ_GREENGrid/ftf/"
-    dFile <- paste0(dPath, file, ".zip")
+    dPath <- "~/Data/NZ_FlipTheFleet/"
+    dFile <- paste0(dPath, dataFile, ".gz")
   }
 } else {
   # > for Xubuntu ----
@@ -61,9 +62,9 @@ getData <- function(dFile){
   
   # convert to data.table as much faster
   rawDT <- data.table::as.data.table(rawDF) # so we can do data.table stuff
-  #Combine date and time columns into POSIXct datetime ----
-  rawDT <- rawDT[,dateTime := lubridate::as_datetime(paste0(date, time))]
-  #df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
+  # Combine date and time columns into POSIXct datetime ----
+  rawDT <- rawDT[, dateTime := lubridate::as_datetime(paste0(date, time))]
+  # df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
   
   # set correct order for days of the week ----
   rawDT <- rawDT[, day_of_week := ordered(day_of_week, 
@@ -206,49 +207,7 @@ processData <- function(rawData){
   
   cleanAllDT <- clean2DT # use no threshold data
   
-  # keep observations between 1st October and 1st January only - see Data: Initial Cleaning
-  # no more processing of cleanDT after this ----
-  cleanDT <- cleanAllDT[date >= as.Date("2018-10-01") & date < as.Date("2019-01-01")]
-  return(cleanDT)
-}
-
-expandTimes <- function(cleanData){
-  # make a list of vehicles with start & end dates
-  
-  vehicleIDsDT <- cleanData[, .(nObs = .N,
-                            startTime = min(dateTime),
-                            endTime = max(dateTime)), keyby = .(id)]
-  
-  vehicleIDsDT <- vehicleIDsDT[, nDays := as.Date(endTime) - as.Date(startTime)]
-  
-  #head(vehicleIDsDT[order(nObs)])
-  
-  # notice that some ids have very few observations
-  allTimesDT <- data.table::data.table() # data bucket
-  IdList <- vehicleIDsDT[, id] # get the list of ids
-  n <- 1
-  for(hh in IdList){
-    # yes we could probably lapply this
-    #message("Imputing times for vehicle ", n , " of ", length(idList))
-    from <- vehicleIDsDT[id == hh, startTime] # first obs
-    to <- vehicleIDsDT[id == hh, endTime] # last obs
-    imputedTimes <- seq(from, to , "1 min") # sequence of 1 minute times between from & to
-    tempDT <- data.table::as.data.table(imputedTimes) # make a data.table
-    tempDT <- tempDT[, id := hh] # add id back
-    data.table::setnames(tempDT, "x", "r_dateTime") # set name of time var
-    allTimesDT <- rbind(allTimesDT, tempDT)
-    n <- n + 1
-  }
-  # seq(lubridate::as_datetime("2019-04-01 01:00:00"), lubridate::as_datetime("2019-04-10 01:00:00"), "10 mins")
-  
-  # truncate minute observations back to the start minute so they can be matched
-  allTimesDT <- allTimesDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
-  setkey(allTimesDT, id, r_dateTimeImputed)
-  cleanData <- cleanData[, r_dateTimeImputed := lubridate::floor_date(dateTime, unit = "minutes", 1)]
-  setkey(cleanData, id, r_dateTimeImputed)
-  
-  imputedDT <- cleanData[allTimesDT]
-  return(imputedDT)
+  return(cleanAllDT)
 }
 
 # Make the plan ----
@@ -256,11 +215,11 @@ expandTimes <- function(cleanData){
 plan <- drake::drake_plan(
   rawData = getData(dFile),
   cleanData = processData(rawData),
-  expandedData = expandTimes(cleanData),
   report = rmarkdown::render(
-    knitr_in("EVBB_report_v2.Rmd"),
-    output_file = file_out("EVBB_report_v2.html"),
-    quiet = TRUE
+     knitr_in("reports/fullReport/EVBB_reportContent.Rmd"),
+     output_file = file_out(paste0("reports/fullReport/EVBB_report_",
+                                   dataFile, ".html")),
+     quiet = TRUE
   )
 )
 
