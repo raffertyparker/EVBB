@@ -57,10 +57,12 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # with black
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
+# Define peak periods
+# see https://www.electrickiwi.co.nz/hour-of-power
 amPeakStart <- hms::as.hms("07:00:00")
 amPeakEnd <- hms::as.hms("09:00:00")
-pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
-pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
+pmPeakStart <- hms::as.hms("17:00:00") 
+pmPeakEnd <- hms::as.hms("21:00:00") 
 
 # Data file to use ----
 file <- "EVBB_processed_all_v1.0_20180125.csv" # latest
