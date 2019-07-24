@@ -8,16 +8,16 @@ library(lubridate)
 # load the data we have
 
 # data file to use
-file <- "EVBB_processed_all_v1.0_20180125.csv"
+fileName <- "EVBB_processed_all_v1.0_20180125"
 # for Mac
 user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
-  dFile <- paste0(dPath, file, ".zip") # use zipped data
+  dFile <- paste0(dPath, file, ".csv.zip") # use zipped data
   if(!file.exists(dFile)) {
     # we probably don't have the HCS mounted so switch to local
-    dPath <- "~/Data/NZ_GREENGrid/ftf/"
-    dFile <- paste0(dPath, file, ".zip")
+    dPath <- "~/Data/NZ_FlipTheFleet/"
+    dFile <- paste0(dPath, fileName, ".csv.gz")
   }
 } else {
   # for Xubuntu:
@@ -72,7 +72,7 @@ IdList <- vehicleIDsDT[, id] # get the list of ids
 n <- 1
 for(hh in IdList){
   # yes we could probably lapply this
-  message("Imputing times for vehicle ", n , " of ", length(idList))
+  message("Imputing times for vehicle ", n , " of ", length(IdList))
   from <- vehicleIDsDT[id == hh, startTime] # first obs
   to <- vehicleIDsDT[id == hh, endTime] # last obs
   imputedTimes <- seq(from, to , "1 min") # sequence of 1 minute times between from & to
@@ -90,6 +90,13 @@ setkey(allTimesDT, id, r_dateTimeImputed)
 rawDT <- rawDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
 setkey(rawDT, id, r_dateTimeImputed)
 
+summary(allTimesDT)
+# link the data
 imputedDT <- rawDT[allTimesDT]
 summary(imputedDT)
-summary(allTimesDT)
+
+oFile <- paste0(dPath, fileName, "_expanded.csv")
+data.table::fwrite(imputedDT, oFile)
+dkUtils::gzipIt(oFile)
+
+message("Done!")
