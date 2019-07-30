@@ -19,8 +19,8 @@ require(lubridate) # for date & time manip
 # Parameters ----
 
 # > Data file to use ----
-#dataFile <- "EVBB_processed_all_v1.0_20180125.csv" # latest
-dataFile <- "EVBB_processed_all_v1.0_20180125_expanded.csv" # expanded
+#dataFile <- "EVBB_processed_all_v1.0_20180125" # latest
+dataFile <- "EVBB_processed_all_v1.0_20180125_expanded" # expanded
 
 # > for Mac ----
 user <- Sys.info()[[7]]
@@ -30,12 +30,12 @@ if(user == "ben"){
   if(!file.exists(dFile)) {
     # we probably don't have the HCS mounted so switch to local
     dPath <- "~/Data/NZ_FlipTheFleet/"
-    dFile <- paste0(dPath, dataFile, ".gz")
+    dFile <- paste0(dPath, dataFile, ".csv.gz")
   }
 } else {
   # > for Xubuntu ----
   dPath <- "/run/user/1001/gvfs/smb-share:server=storage.hcs-p01.otago.ac.nz,share=hum-csafe,user=student%5Cparra358/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
-  dFile <- paste0(dPath, "EVBB_processed_all_v1.0_20180125.csv")
+  dFile <- paste0(dPath, dataFile, ".csv")
 }
 
 # > colours ----
