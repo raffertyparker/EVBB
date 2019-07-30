@@ -13,7 +13,7 @@ fileName <- "EVBB_processed_all_v1.0_20180125"
 user <- Sys.info()[[7]]
 if(user == "ben"){
   dPath <- "/Volumes/hum-csafe/Research Projects/GREEN Grid/externalData/flipTheFleet/safe/testData/2019_01_25/"
-  dFile <- paste0(dPath, file, ".csv.zip") # use zipped data
+  dFile <- paste0(dPath, fileName, ".csv.zip") # use zipped data
   if(!file.exists(dFile)) {
     # we probably don't have the HCS mounted so switch to local
     dPath <- "~/Data/NZ_FlipTheFleet/"
@@ -85,18 +85,25 @@ for(hh in IdList){
 # seq(lubridate::as_datetime("2019-04-01 01:00:00"), lubridate::as_datetime("2019-04-10 01:00:00"), "10 mins")
 
 # truncate minute observations back to the start minute so they can be matched
-allTimesDT <- allTimesDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
+allTimesDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
 setkey(allTimesDT, id, r_dateTimeImputed)
-rawDT <- rawDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
+rawDT[, r_dateTimeImputed := lubridate::floor_date(r_dateTime, unit = "minutes", 1)]
 setkey(rawDT, id, r_dateTimeImputed)
 
 summary(allTimesDT)
 # link the data
 imputedDT <- rawDT[allTimesDT]
+# rmeove vars we don't need to save space
+imputedDT$i.r_dateTime <- NULL
+imputedDT$r_dateTime <- NULL
+imputedDT$dateTime <- NULL
+imputedDT$qHour <- NULL
+
 summary(imputedDT)
 
 oFile <- paste0(dPath, fileName, "_expanded.csv")
 data.table::fwrite(imputedDT, oFile)
 dkUtils::gzipIt(oFile)
 
+message("Done")
 message("Done!")
