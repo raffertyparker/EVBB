@@ -1,6 +1,6 @@
 ---
 params:
-  cleanData: '' # set by R script
+  dFile: '' # set by R script
   title: '' # set by R script
   subtitle: '' # set by R script
 title: '`r params$title`'
@@ -69,7 +69,8 @@ pmPeakStart <- hms::as.hms("17:00:00")
 pmPeakEnd <- hms::as.hms("21:00:00") 
 
 # Data file to use ----
-cleanDT <- drake::readd(params$cleanData)
+rawDT <- drake::readd(rawData)
+cleanDT <- drake::readd(cleanData)
 
 # Functions ----
 peaksAlpha <- 0.1
@@ -165,6 +166,8 @@ This report extends the work done by Concept Consulting, but utilises actual dat
 
 
 # Data{#data}
+
+Data used: `r dFile`
 
 ## Background{#background}
 
@@ -265,6 +268,14 @@ t <- head(vehicleIDsDT[order(nObs)],6)
 kableExtra::kable(t, 
                   caption = "Number of observations and start/end dates for vehicles (6 most scarce)") %>%
   kable_styling()
+
+# set which to include (or were included) ----
+summaryDT <- rawDT[, .(mean = mean(charge_power_kw, na.rm = TRUE), 
+                           sd = sd(charge_power_kw, na.rm = TRUE), 
+                           nObs = .N), keyby = .(dvID)]
+
+includeDT <- summaryDT[mean != 0, .(dvID)] # include where mean kw > 0 - just keep id variable (not the summary stats as well)
+  setkey(includeDT, dvID)
 ```
 
 
