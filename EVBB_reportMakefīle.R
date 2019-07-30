@@ -63,7 +63,19 @@ getData <- function(dFile){
   # convert to data.table as much faster
   rawDT <- data.table::as.data.table(rawDF) # so we can do data.table stuff
   # Combine date and time columns into POSIXct datetime ----
-  rawDT <- rawDT[, dateTime := lubridate::as_datetime(paste0(date, time))]
+  # NB if this is the imputed file this will not include the imputed dateTimes
+  rawDT[, dateTime := lubridate::as_datetime(paste0(date, time))]
+  
+  # over-write dateTime where imputed file used ----
+  # should fail gracefully
+  try(rawDT[, dateTime := r_dateTimeImputed])
+  
+  # over-write charge_power_kw where imputed file used ----
+  rawDT[, charge_power_kw_obs := charge_power_kw]
+  rawDT[, charge_power_kw := ifelse(is.na(charge_power_kw),
+                                    0,
+                                    charge_power_kw_obs)]
+  
   # df$dateTime <- lubridate::as_datetime(paste0(df$date, df$time))
   
   # set correct order for days of the week ----
@@ -104,28 +116,31 @@ getData <- function(dFile){
   return(rawDT)
 }
 
-processData <- function(rawData){
+makeCleanData <- function(rawData){
   # Clean data ----
   # https://www.rdocumentation.org/packages/data.table/versions/1.12.2/topics/copy
-  cleanDT <- data.table::copy(rawData) # need to do this otherwise all the following cleaning acts by reference on rawDT
+  cleanDT <- data.table::copy(drake::readd(rawData)) # need to do this otherwise all the following cleaning acts by reference on rawDT
   # removal of silly state of charge percentage values ----
   #df$SoC_percent[df$SoC_percent > 100] <- NA
-  cleanDT <- cleanDT[SoC_percent > 100, SoC_percent := NA]
+  cleanDT[SoC_percent > 100, SoC_percent := NA]
   #df$SoC_percent[df$SoC_percent < 0] <- NA
-  cleanDT <- cleanDT[SoC_percent < 0, SoC_percent := NA]
+  cleanDT[SoC_percent < 0, SoC_percent := NA]
   
-  # > removal of silly charge_power_kw values ----
+  # > removal of odd charge_power_kw values ----
   # "...charging stations are being developed with capacities of 120kW in New Zealand"
   # (Concept Consulting report)
   #df$charge_power_kw[df$charge_power_kw > 120] <- NA
-  cleanDT <- cleanDT[charge_power_kw > 120, charge_power_kw := NA]
+  cleanDT[charge_power_kw > 120, charge_power_kw := NA]
   
   # > remove vehicles with all-zero charging values ----
   # also removes those with very few observations
-  summaryDT <- cleanDT[, .(mean = mean(charge_power_kw), sd = sd(charge_power_kw), nObs = .N), keyby = .(dvID)]
+  summaryDT <- cleanDT[, .(mean = mean(charge_power_kw, na.rm = TRUE), 
+                           sd = sd(charge_power_kw, na.rm = TRUE), 
+                           nObs = .N), keyby = .(dvID)]
   includeDT <- summaryDT[mean != 0, .(dvID)] # include where mean kw > 0 - just keep id variable (not the summary stats as well)
   setkey(includeDT, dvID)
   setkey(cleanDT, dvID)
+  
   cleanDT <- cleanDT[includeDT]
   
   # set key (& order) to id & dateTime ----
@@ -205,19 +220,21 @@ processData <- function(rawData){
   # charge -> gap of > 120 secs -> charge <gap of > 120 secs -> charge
   # for now we therefore do not use the 120 second rule (see annex #chargeFlagTest for reporting)
   
-  cleanAllDT <- clean2DT # use no threshold data
+ # use no threshold data
   
-  return(cleanAllDT)
+  return(clean2DT)
 }
 
 # Make the plan ----
-# drake plan ----
 plan <- drake::drake_plan(
   rawData = getData(dFile),
-  cleanData = processData(rawData),
+  cleanData = makeCleanData(rawData), # uses drake::readd(rawData) within function
   report = rmarkdown::render(
-     knitr_in("reports/fullReport/EVBB_reportContent.Rmd"),
-     output_file = file_out(paste0("reports/fullReport/EVBB_report_",
+     knitr_in("EVBB_reportContent.Rmd"),
+     params = list(title = "Analysis of electric vehicle usage patterns in New Zealand",
+                subtitle = paste0("Analysis of ", dataFile),
+                dFile = dFile),
+     output_file = file_out(paste0("EVBB_report_",
                                    dataFile, ".html")),
      quiet = TRUE
   )
