@@ -75,9 +75,10 @@ p <- ggplot2::ggplot(plotDT, aes(x = date, y = time15m, alpha = nObsPerEV)) +
 ggplot2::ggsave(paste0(pPath, fileName, "_nObsPerEV.png"))
 
 # removes variables we don't need ----
-colsToDelete <- c("dayid", "location","date", "month", "day_of_week", "time", "fractime")
-
+rawDT[, timeChr := as.character(time)] # keep time in as string for a visual check
+colsToDelete <- c("dayid", "location","date", "month", "time", "day_of_week", "fractime") 
 rawDT[, (colsToDelete) := NULL]
+
 
 message("Test data")
 head(rawDT)
