@@ -1,12 +1,7 @@
 ---
-params:
-  title: ''
-  subtitle: ''
-  dataFile: ''
-  bibFile: ''
-title: '`r params$title`'
-subtitle: '`r params$subtitle`'
-author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (daniel@zeno.nz, Flip The Fleet)"
+title: "Analysis of electric vehicle charging and usage patterns from a sample of New Zealand Flip The Fleet vehicles"
+subtitle: "Statistical Report"
+author: 'Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (Flip The Fleet, daniel@zeno.nz)'
 date: 'Last run at: `r Sys.time()`'
 output:
   bookdown::html_document2:
@@ -17,8 +12,13 @@ output:
     toc: yes
     toc_depth: 3
     toc_float: yes
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
 always_allow_html: yes
-bibliography: '`r params$bibFile`'
+bibliography: '`r paste0(here::here(), "/EVBBmendeleyrefs.bib")`'
 ---
 
 ```{r setup, include=FALSE}
@@ -83,24 +83,20 @@ addPeaks <- function(p){
 ```{r loadData, include=FALSE}
 print(paste0("Using ", dFile)) # <- dFile set in makeFile
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
-# remove location var as it is NA but may lead to readers/ftf members thinking we know their location when we don't
-rawDF$location <- NULL
-
-# remove the dayid & fractime as we don't need them
-rawDF$dayid <- NULL
-rawDF$fractime <- NULL
-
-# tbh the month & day_of_week vars aren't needed either as we have the date...
 ```
 
 
 ```{r cleanData, include=FALSE}
 # convert to data.table as much faster
 rawDT <- data.table::as.data.table(rawDF) # so we can do data.table stuff
+#rawDT <- data.table::fread(dFile) # so we can do data.table stuff
 
-# set correct order for days of the week ----
+# set date & times ----
+rawDT[, r_dateTime := lubridate::force_tz(r_dateTime, tzone = "Pacific/Auckland")] # crucial you set tz otherwise it assumes UTC!
+# if in doubt check it matches timeChr
+rawDT[, date := lubridate::date(r_dateTime)]
 rawDT[, day_of_week := lubridate::wday(r_dateTime, label = TRUE)]
-rawDT[, hms := hms::as.hms(r_dateTime, tz = "Pacific/Auckland")] # crucial you set tz!
+rawDT[, hms := hms::as.hms(r_dateTime)] 
 rawDT[, qHour := hms::trunc_hms(hms, 15*60)] # truncate to previous 15 min
 
 # https://www.rdocumentation.org/packages/data.table/versions/1.12.2/topics/copy
@@ -305,7 +301,6 @@ firstLastDT <- firstLastDT[chargeFlag %like% "Last", pairDuration := NA] # remov
 
 ```
 
-
 # Introduction
 
 The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021 [@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41% [@ConceptConsulting2018]. 
@@ -319,11 +314,13 @@ This report extends the work done by Concept Consulting, but utilises actual dat
 
 # Data{#data}
 
+Data file used in this report: `r dataFile`
+
 ## Background{#background}
 
 The data used has been provided by 'Flip the Fleet', a community organisation that hopes to increase uptake of electric vehicles in New Zealand. Flip the Fleet have been collecting data on electric vehicle usage patterns, via Exact IOT Limited's [blackbox recorder](https://flipthefleet.org/ev-black-box/), a small electronic  device that connects to the vehicle's internal computer and sends detailed data about the battery health, power demand, charging rate, speed and other performance information to a secure database.
 
-The subset of this data provided to the University of Otago was collected from `r data.table::uniqueN(rawDT$id)` domestic electric vehicles monitored from `r format(min(rawDT$date), format = "%B %Y")` to `r format(max(rawDT$date), format = "%B %Y")`. The data consisted of `r prettyNum(nrow(rawDT), big.mark = ",")` 1 minute interval observations of timestamped odometer readings (in km) together with measurements of charging power (kW) and battery charge state (% charged) linked by a unique anonymised vehicle identifier. The data received contained _all_ available observations but charging was set to 0 kW if the vehicle was non-stationary (speed > 0 km/h) prior to data delivery to the University. This enabled us to automatically exclude charging through regenerative braking from the analysis.
+The subset of this data provided to the University of Otago was collected from `r data.table::uniqueN(rawDT$id)` domestic electric vehicles monitored from `r format(min(rawDT$date, na.rm = TRUE), format = "%B %Y")` to `r format(max(rawDT$date, na.rm = TRUE), format = "%B %Y")`. The data consisted of `r prettyNum(nrow(rawDT), big.mark = ",")` 1 minute interval observations of timestamped odometer readings (in km) together with measurements of charging power (kW) and battery charge state (% charged) linked by a unique anonymised vehicle identifier. The data received contained _all_ available observations but charging was set to 0 kW if the vehicle was non-stationary (speed > 0 km/h) prior to data delivery to the University. This enabled us to automatically exclude charging through regenerative braking from the analysis.
 
 There are a number of important limitations to this data:
 
@@ -383,7 +380,7 @@ Figure \@ref(fig:initialDataChecksPlotDate) shows the unique number of EVs recor
 
 ```{r initialDataChecksPlotDate, fig.cap="Number of unique EVs observed by time of day and date"}
 dt <- rawDT[, .(nEVs = uniqueN(id),
-                    nObs = .N), keyby = .(date = lubridate::date(r_dateTime))]
+                    nObs = .N), keyby = .(date)]
 
 p <- ggplot2::ggplot(dt, aes(x = date, y =  nEVs)) +
   geom_line() +
@@ -396,7 +393,8 @@ p <- ggplot2::ggplot(dt, aes(x = date, y =  nEVs)) +
 
 p + annotate("rect", xmin = as.Date("2018-10-01"), # cut
              xmax = as.Date("2018-12-31"), # set earlier
-             ymin = min(dt$nEVS), ymax = max(dt$nEVS), 
+             ymin = min(dt$nEVS, na.rm = TRUE), 
+             ymax = max(dt$nEVS, na.rm = TRUE), 
              alpha = peaksAlpha, fill = peaksCol)
 ```
 
