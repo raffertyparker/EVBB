@@ -39,17 +39,13 @@ pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-o
 
 title <- "Analysis of a sample Flip The Fleet members' electric vehicle usage patterns in New Zealand"
 subtitle <- paste0("Statistical report using ", dataFile)
-bibFile <- paste0(here::here(), "/EVBBmendeleyrefs.bib")
 
 rmd <- paste0(here::here(), "/reports/fullReport/EVBB_report.Rmd")
 outF <- paste0(here::here(), "/reports/fullReport/EVBB_report_", dataFile ,'.html')
 
 message("Running ", rmd, " and saving as ", outF) 
 rmarkdown::render(input = rmd,
-                  params = list(title = title, 
-                                subtitle = subtitle, 
-                                bibFile = bibFile, 
-                                dataFile = dataFile),
+                  params = list(t = title, st = subtitle),
                   output_file=outF)
 
 
