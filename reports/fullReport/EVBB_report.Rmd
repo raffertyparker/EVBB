@@ -3,6 +3,7 @@ params:
   title: ''
   subtitle: ''
   dataFile: ''
+  bibFile: ''
 title: '`r params$title`'
 subtitle: '`r params$subtitle`'
 author: "Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (daniel@zeno.nz, Flip The Fleet)"
@@ -17,7 +18,7 @@ output:
     toc_depth: 3
     toc_float: yes
 always_allow_html: yes
-bibliography: '`r paste0(here::here(), "/EVBBmendeleyrefs.bib")`'
+bibliography: '`r params$bibFile`'
 ---
 
 ```{r setup, include=FALSE}
@@ -80,7 +81,7 @@ addPeaks <- function(p){
 ```
 
 ```{r loadData, include=FALSE}
-print(paste0("Using ", dFile))
+print(paste0("Using ", dFile)) # <- dFile set in makeFile
 rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
 # remove location var as it is NA but may lead to readers/ftf members thinking we know their location when we don't
 rawDF$location <- NULL
