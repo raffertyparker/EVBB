@@ -6,7 +6,8 @@ Code used to analyse various EV performance & power flow datasets.
 
 Best viewed via [github pages](https://cfsotago.github.io/evAnalysis/).
 
- * [Report v1.0](https://cfsotago.github.io/evAnalysis/reports/fullReport/EVBB_report_v1.html)
+ * [Report v1.0](https://cfsotago.github.io/evAnalysis/reports/fullReport/EVBB_report_EVBB_processed_all_v1.0_20180125.html)
+ * [Report v2.0](https://cfsotago.github.io/evAnalysis/reports/fullReport/EVBB_report_EVBB_processed_all_v2.0_20190604.html) - additional data
 
 ## Structure
 
