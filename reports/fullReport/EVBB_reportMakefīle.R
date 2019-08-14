@@ -12,8 +12,8 @@ require(rmarkdown)
 # Parameters ----
 
 # > Data file to use ----
-dataFile <- "EVBB_processed_all_v1.0_20180125" # previous
-#dataFile <- "EVBB_processed_all_v2.0_20190604" # latest
+#dataFile <- "EVBB_processed_all_v1.0_20180125" # previous
+dataFile <- "EVBB_processed_all_v2.0_20190604" # latest
 
 # > for Mac ----
 user <- Sys.info()[[7]]
@@ -37,15 +37,11 @@ amPeakEnd <- hms::as.hms("09:00:00")
 pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
 pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
 
-title <- "Analysis of a sample Flip The Fleet members' electric vehicle usage patterns in New Zealand"
-subtitle <- paste0("Statistical report using ", dataFile)
-
 rmd <- paste0(here::here(), "/reports/fullReport/EVBB_report.Rmd")
 outF <- paste0(here::here(), "/reports/fullReport/EVBB_report_", dataFile ,'.html')
 
 message("Running ", rmd, " and saving as ", outF) 
 rmarkdown::render(input = rmd,
-                  params = list(t = title, st = subtitle),
                   output_file=outF)
 
 
