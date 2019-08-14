@@ -1,7 +1,11 @@
 ---
-title: "Analysis of electric vehicle charging and usage patterns from a sample of New Zealand Flip The Fleet vehicles"
-subtitle: "Statistical Report"
-author: 'Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (Flip The Fleet, daniel@zeno.nz)'
+params:
+  authors: 'Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (Flip The Fleet, daniel@zeno.nz)'
+  title: 'Analysis of electric vehicle usage patterns in New Zealand'
+  subtitle: 'Statistical report using Flip The Fleet data'
+title: '`r paste0(params$title)`'
+subtitle: '`r paste0(params$subtitle)`'
+author: '`r paste0(params$authors)`'
 date: 'Last run at: `r Sys.time()`'
 output:
   bookdown::html_document2:
@@ -301,11 +305,39 @@ firstLastDT <- firstLastDT[chargeFlag %like% "Last", pairDuration := NA] # remov
 
 ```
 
+# About
+
+## Citation
+
+ * Parker, R., Anderson, B., and Myall, D. (`r lubridate::year(Sys.Date())`) _`r paste0(params$title, ": ", params$subtitle)`_. University of Otago: [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/index.html)
+ 
+## License
+
+This work is made available under the Creative Commons [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) License](https://creativecommons.org/licenses/by-sa/4.0/).
+
+This means you are free to:
+
+ * _Share_ — copy and redistribute the material in any medium or format
+ * _Adapt_ — remix, transform, and build upon the material for any purpose, even commercially.
+ 
+Under the following terms:
+
+ * _Attribution_ — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+ * _ShareAlike_ — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+ * _No additional restrictions_ — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+
+**Notices:**
+
+ * You do not have to comply with the license for elements of the material in the public domain or where your use is permitted by an applicable exception or limitation.
+ * No warranties are given. The license may not give you all of the permissions necessary for your intended use. For example, other rights such as publicity, privacy, or moral rights may limit how you use the material. #YMMV
+
+For the avoidance of doubt and explanation of terms please refer to the full [license notice](https://creativecommons.org/licenses/by-sa/4.0/) and [legal code](https://creativecommons.org/licenses/by-sa/4.0/legalcode).
+
 # Introduction
 
 The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021 [@TranspowerNewZealand2017]. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled "Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand" predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41% [@ConceptConsulting2018]. 
 
-New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening [@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process [@Khan2018]. Concurrent electric vehicle charging, especially in the early evening when many motorists return home [@speidel_driving_2014,@langbroek_when_2017], would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015,@langbroek_when_2017], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid [@Stephenson2017].
+New Zealand's total electricity demand varies throughout the day, with weekdays in particular having two distinct "peaks"; one in the morning, and one in the evening [@TranspowerNZ2015]. Providing the electricity to meet these demand peaks is a costly and inefficient process [@Khan2018]. Concurrent electric vehicle charging, especially in the early evening when many motorists return home [@speidel_driving_2014,@langbroek_when_2017], would have the potential to negatively impact the operation of the grid through drastically increasing peak loads [@Azadfar2015;@langbroek2017], leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid [@Stephenson2017].
 
 The Concept Consulting report considers different methods of EV charging in its models. The assumption that most drivers would begin charging immediately after returning home is referred to as "passive" charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as "smart". The modelling undertaken in the Concept Consulting report suggests that under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household), passive charging would cause an increase of peak electricity demand of approximately 3,000MW, whereas if all were charged in a "smart" fashion, there would be no increase in peak demand.
 
@@ -340,8 +372,8 @@ plotDT <- rawDT[, .(nEVs = uniqueN(id),
                     nObs = .N), keyby = .(qHour, date = lubridate::date(r_dateTime))]
 plotDT <- plotDT[, nObsPerEV := nObs/nEVs]
 
-startDate <- min(plotDT$date)
-endDate <- max(plotDT$date)
+startDate <- min(lubridate::date(rawDT$r_dateTime),na.rm = TRUE)
+endDate <- max(lubridate::date(rawDT$r_dateTime), na.rm = TRUE)
 ```
 
 The original supplied data consisted of `r nrow(rawDT)` observations for the period `r startDate` to `r endDate`.
