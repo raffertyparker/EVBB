@@ -307,7 +307,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle">Statistical report using Flip The Fleet data</h3>
 <h4 class="author">Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz" class="email">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago; Daniel Myall (Flip The Fleet, <a href="mailto:daniel@zeno.nz" class="email">daniel@zeno.nz</a>)</h4>
-<h4 class="date">Last run at: 2019-08-20 21:22:42</h4>
+<h4 class="date">Last run at: 2019-08-20 22:04:54</h4>
 
 </div>
 
@@ -360,7 +360,7 @@ div.tocify {
 <ul>
 <li>observations were only collected when the car was switched on and/or plugged in and charging. As a result no observations exist for periods when the EV is switched off and so there are large non-erroneous ‘gaps’ in the data which represent ‘no charging’ but which are not included as ‘0 power demand’ in the analyses since to do so would require imputation of a very large number of missing timestamps for each vehicle. This means we are only able to analyse power demand profiles for vehicles that were known to be charging, <em>not for all vehicles in all time periods</em>;</li>
 <li>data upload relied on mobile 3G data signal and the extent to which gaps in the data are due to data upload errors rather than the vehicle being switched off (as above) is currently unclear;</li>
-<li>these vehicles are driven by ‘early adopters’ who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers <span class="citation">(Rezvani, Jansson, and Bodin 2015,<span class="citation">@li_review_2017</span>)</span>.</li>
+<li>these vehicles are driven by ‘early adopters’ who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers <span class="citation">(Rezvani, Jansson, and Bodin 2015; Li et al. 2017)</span>.</li>
 </ul>
 <p>Even though the use of an anonymised vehicle identifier should prevent the identification of the vehicles in the sample, the fine-grained temporal nature of the data and the relatively small population of EV owners from whom the sample is drawn (Flip The Fleet members) means that the data cannot be publicly released.</p>
 </div>
@@ -408,6 +408,9 @@ hms
 <th style="text-align:left;">
 qHour
 </th>
+<th style="text-align:left;">
+odometerFlag
+</th>
 </tr>
 </thead>
 <tbody>
@@ -440,6 +443,9 @@ Min. :2018-04-05
 </td>
 <td style="text-align:left;">
 Thu :302335
+</td>
+<td style="text-align:left;">
+Length:1882040
 </td>
 <td style="text-align:left;">
 Length:1882040
@@ -484,6 +490,9 @@ Class1:hms
 <td style="text-align:left;">
 Class1:hms
 </td>
+<td style="text-align:left;">
+Class :character
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -520,6 +529,9 @@ Class2:difftime
 </td>
 <td style="text-align:left;">
 Class2:difftime
+</td>
+<td style="text-align:left;">
+Mode :character
 </td>
 </tr>
 <tr>
@@ -558,6 +570,9 @@ Mode :numeric
 <td style="text-align:left;">
 Mode :numeric
 </td>
+<td style="text-align:left;">
+NA
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -588,6 +603,9 @@ NA
 </td>
 <td style="text-align:left;">
 Mon :269050
+</td>
+<td style="text-align:left;">
+NA
 </td>
 <td style="text-align:left;">
 NA
@@ -632,6 +650,9 @@ NA
 <td style="text-align:left;">
 NA
 </td>
+<td style="text-align:left;">
+NA
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -669,10 +690,13 @@ NA
 <td style="text-align:left;">
 NA
 </td>
+<td style="text-align:left;">
+NA
+</td>
 </tr>
 </tbody>
 </table>
-<p>Figure <a href="#fig:initialDataChecksPlotTile">3.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only 19 out of a possible total of 52. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
+<p>Figure <a href="#fig:initialDataChecksPlotTile">3.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only - out of a possible total of 52. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
 <div class="figure"><span id="fig:initialDataChecksPlotTile"></span>
 <img src="EVBB_report_EVBB_processed_all_v2.0_20190604_files/figure-html/initialDataChecksPlotTile-1.png" alt="Number of unique EVs observed by time of day and date" width="672" />
 <p class="caption">
@@ -2375,16 +2399,16 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  n obs: 1882040 
 ##  n variables: 7 
 ## 
-## ── Variable type:character ───────────────────────────────────
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n min max empty n_unique
 ##      dvID       0  1882040 1882040   9  10     0       52
 ##        id       0  1882040 1882040  32  32     0       52
 ## 
-## ── Variable type:difftime ────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n    min        max     median n_unique
 ##   timeChr       0  1882040 1882040 0 secs 86399 secs 44877 secs    86400
 ## 
-## ── Variable type:numeric ─────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────────
 ##                 variable missing complete       n    mean      sd     p0
 ##          charge_power_kw       0  1882040 1882040    1.59   63.73      0
 ##              odometer_km 1255614   626426 1882040 7789.97 8268.44 -62920
@@ -2394,7 +2418,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  2166.25 5309    11154    73607    ▁▁▁▇▇▁▁▁
 ##    56.31   70.41    83.05  1677.72 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ─────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete       n        min        max     median
 ##  r_dateTime       0  1882040 1882040 2018-04-05 2019-03-01 2018-11-25
 ##  n_unique
@@ -2406,23 +2430,24 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 <pre class="r"><code>skimr::skim(cleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 939874 
-##  n variables: 20 
+##  n variables: 21 
 ## 
-## ── Variable type:character ───────────────────────────────────
-##    variable missing complete      n min max empty n_unique
-##  chargeFlag       2   939872 939874  17  25     0        5
-##        dvID       0   939874 939874   9  10     0       45
-##          id       0   939874 939874  32  32     0       45
-##  peakPeriod       0   939874 939874   8  12     0        3
-##    weekdays       0   939874 939874   8   8     0        2
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────────
+##      variable missing complete      n min max empty n_unique
+##    chargeFlag       2   939872 939874  17  25     0        5
+##          dvID       0   939874 939874   9  10     0       45
+##            id       0   939874 939874  32  32     0       45
+##  odometerFlag  656134   283740 939874   1   3     0        3
+##    peakPeriod       0   939874 939874   8  12     0        3
+##      weekdays       0   939874 939874   8   8     0        2
 ## 
-## ── Variable type:Date ────────────────────────────────────────
+## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete      n        min        max     median
 ##      date       0   939874 939874 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
 ##        93
 ## 
-## ── Variable type:difftime ────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────────
 ##        variable missing complete      n    min          max     median
 ##             hms       0   939874 939874 0 secs   86399 secs 43882 secs
 ##           qHour       0   939874 939874 0 secs   85500 secs 43200 secs
@@ -2436,7 +2461,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##     86391
 ##     86391
 ## 
-## ── Variable type:factor ──────────────────────────────────────
+## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────────────────────
 ##     variable missing complete      n n_unique
 ##   chargeType       0   939874 939874        3
 ##  day_of_week       0   939874 939874        7
@@ -2444,7 +2469,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##          Sta: 627490, Not: 306871, Rap: 5513, NA: 0   FALSE
 ##  Fri: 152881, Thu: 146464, Wed: 146461, Tue: 136529    TRUE
 ## 
-## ── Variable type:numeric ─────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete      n    mean      sd     p0     p25
 ##  charge_power_kw       0   939874 939874    1.57    2.76      0    0   
 ##            month       0   939874 939874   10.96    0.98      1   10   
@@ -2460,7 +2485,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##    70.28   82.92    98.1  ▁▁▂▃▆▇▇▇
 ##     0       0       70.16 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ─────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete      n        min        max     median
 ##  r_dateTime       0   939874 939874 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
@@ -2469,22 +2494,23 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 <pre class="r"><code>skimr::skim(firstCleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 2565 
-##  n variables: 24 
+##  n variables: 25 
 ## 
-## ── Variable type:character ───────────────────────────────────
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n min max empty n_unique
 ##       chargeFlag       0     2565 2565  25  25     0        1
 ##  chargeTypeError       0     2565 2565  31  37     0        4
 ##             dvID       0     2565 2565   9  10     0       44
 ##               id       0     2565 2565  32  32     0       44
+##     odometerFlag    2033      532 2565   3   3     0        2
 ##       peakPeriod       0     2565 2565   8  12     0        3
 ##         weekdays       0     2565 2565   8   8     0        2
 ## 
-## ── Variable type:Date ────────────────────────────────────────
+## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
 ##      date       0     2565 2565 2018-10-01 2019-01-01 2018-11-16       93
 ## 
-## ── Variable type:difftime ────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────────
 ##        variable missing complete    n                   min
 ##         endTime       0     2565 2565 31 secs              
 ##             hms       0     2565 2565 91 secs              
@@ -2502,7 +2528,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##   86246 secs        15:43:40               2471
 ##   86246 secs        15:43:40               2471
 ## 
-## ── Variable type:factor ──────────────────────────────────────
+## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────────────────────
 ##             variable missing complete    n n_unique
 ##           chargeType       0     2565 2565        2
 ##  chargeTypeCorrected       0     2565 2565        2
@@ -2514,7 +2540,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  Fri: 416, Thu: 391, Wed: 383, Mon: 378    TRUE
 ##      Sta: 2305, Rap: 260, Not: 0, NA: 0   FALSE
 ## 
-## ── Variable type:numeric ─────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n    mean      sd        p0     p25
 ##  charge_power_kw       0     2565 2565    6.44   11.75      0.5     1.54
 ##            month       0     2565 2565   10.96    0.96      1      10   
@@ -2528,7 +2554,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##     0       0    37626    ▁▁▇▁▁▁▁▁
 ##    49      61       98.1  ▁▃▆▇▇▃▂▂
 ## 
-## ── Variable type:POSIXct ─────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete    n        min        max     median
 ##  r_dateTime       0     2565 2565 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
