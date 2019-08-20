@@ -94,9 +94,6 @@ tidyNum <- function(x){
 ```{r cleanData, include=FALSE}
 # rawDT loaded in makefile to avoid re-loading each time we want to run the report
 
-rawCap <- paste0("Data source: Flip The Fleet (original data)",
-                 "\n Period: ", min(rawDT$date, na.rm = TRUE), " - ", max(rawDT$date, na.rm = TRUE))
-
 # set date & times ----
 rawDT[, r_dateTime := lubridate::force_tz(r_dateTime, tzone = "Pacific/Auckland")] # crucial you set tz otherwise it assumes UTC!
 # if in doubt check it matches timeChr
@@ -104,6 +101,9 @@ rawDT[, date := lubridate::date(r_dateTime)]
 rawDT[, day_of_week := lubridate::wday(r_dateTime, label = TRUE)]
 rawDT[, hms := hms::as.hms(r_dateTime)] 
 rawDT[, qHour := hms::trunc_hms(hms, 15*60)] # truncate to previous 15 min
+
+rawCap <- paste0("Data source: Flip The Fleet (original data)",
+                 "\n Period: ", min(rawDT$date, na.rm = TRUE), " - ", max(rawDT$date, na.rm = TRUE))
 
 # https://www.rdocumentation.org/packages/data.table/versions/1.12.2/topics/copy
 cleanDT <- data.table::copy(rawDT) # need to do this otherwise all the following cleaning acts by reference on rawDT
@@ -362,7 +362,7 @@ There are a number of important limitations to this data:
 
  * observations were only collected when the car was switched on and/or plugged in and charging. As a result no observations exist for periods when the EV is switched off and so there are large non-erroneous 'gaps' in the data which represent 'no charging' but which are not included as '0 power demand' in the analyses since to do so would require imputation of a very large number of missing timestamps for each vehicle. This means we are only able to analyse power demand profiles for vehicles that were known to be charging, _not for all vehicles in all time periods_;
  * data upload relied on mobile 3G data signal and the extent to which gaps in the data are due to data upload errors rather than the vehicle being switched off (as above) is currently unclear;
- * these vehicles are driven by 'early adopters' who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers [@rezvani_advances_2015,@li_review_2017].
+ * these vehicles are driven by 'early adopters' who have opted to install the measuring devices in order to collect their vehicle usage data. As a result the data may not be representative of the usage patterns of current or future EV drivers [@rezvani_advances_2015;@li_review_2017].
 
 Even though the use of an anonymised vehicle identifier should prevent the identification of the vehicles in the sample, the fine-grained temporal nature of the data and the relatively small population of EV owners from whom the sample is drawn (Flip The Fleet members) means that the data cannot be publicly released.
 
@@ -1190,8 +1190,8 @@ plotDT <- dataDT[, .(meanChargePC = mean(SoC_percent),
 
 myCap <- paste0(cleanCap,
                  "\n First charging observation in a sequence, corrected charge type, state of charge < 90%",
-                "\n n observations: ", tidyNum(nrow(plotDT)),
-                 "\n n EVs: ", uniqueN(plotDT$dvID)
+                "\n n observations: ", tidyNum(nrow(dataDT)),
+                 "\n n EVs: ", uniqueN(dataDT$dvID)
 )
 
 p <- ggplot(plotDT, aes(x = qHour, y = meanChargePC, colour = weekdays, alpha = nEVs)) + 
