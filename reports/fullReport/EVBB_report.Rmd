@@ -724,18 +724,23 @@ Figure \@ref(fig:chargeTimeProp) plots the distribution of each charge type over
 ```{r chargeTimeProp, fig.cap="Density plot of charging start times during weekdays"}
 plotDT <- cleanDT[, .(nObs = .N), keyby = .(qHour, chargeType, weekdays)]
 
-p <- ggplot(plotDT, aes(x = qHour, y = nObs, colour = chargeType)) +
+# correct for n days we are aggregating over
+plotDT <- plotDT[, nDaily := ifelse(weekdays == "Weekends",
+                                    nObs/2,
+                                    nObs/5)]
+
+p <- ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeType)) +
   geom_line() +
   facet_grid(weekdays ~ .) +
   guides(colour = guide_legend(title = "Charge type"))
 
-p + labs(x = "Time", y = "Count",
+p + labs(x = "Time", y = "Mean daily count per 15 minutes",
          caption = genCap)
 
 
 ```
 
-Figure \@ref(fig:chargeTimeTypes) extends this analysis by showing charging and non-charging observations at different times of day by weekday vs weekends using a density plot to show releative distributions over time within each type. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for rapid charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
+Figure \@ref(fig:chargeTimeTypes) extends this analysis by showing charging and non-charging observations at different times of day by weekday vs weekends using a density plot to show relative distributions over time within each type. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for rapid charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
 
 ```{r chargeTimeTypes, fig.cap="Density plot of charging start times during weekdays"}
 # plotDT <- cleanDT[, .(nObs = .N), keyby = .(qHour, chargeType, weekdays)]
@@ -753,7 +758,7 @@ p <- ggplot(cleanDT, aes(x = qHour, fill = chargeType)) +
   theme(legend.position = "bottom") +
   facet_grid(weekdays ~ .)
 
-p <- p + labs(x = "Time", y = "Count", 
+p <- p + labs(x = "Time", y = "Density", 
           caption = genCap)
 p
 # can't add peak demand period annotations very easily to a density plot (need ymax/ymin)
@@ -774,6 +779,11 @@ plotDT <- firstCleanDT[SoC_percent < 90,
                        .(nObs = .N),
                        keyby = .(qHour, chargeTypeCorrected, weekdays)] # should be the same
 
+# correct for n days we are aggregating over
+plotDT <- plotDT[, nDaily := ifelse(weekdays == "Weekends",
+                                    nObs/2,
+                                    nObs/5)]
+
 genCap <- paste0("Data source: Flip The Fleet",
                  "\n All charging observations where state of charge < 90%",
                  "\n n EVs: ", uniqueN(firstCleanDT$dvID), ", n observations: ", 
@@ -781,10 +791,10 @@ genCap <- paste0("Data source: Flip The Fleet",
                         "\n Period: ", min(firstCleanDT$date), " - ", max(firstCleanDT$date)
 )
 
-p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = nObs, colour = chargeTypeCorrected)) +
+p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeTypeCorrected)) +
   geom_line() +
   facet_grid(weekdays ~ .) +
-  labs(y = "N observations per quarter hour", x = "Time", colour = "Charge type", caption = genCap)
+  labs(y = "Mean N observations per quarter hour", x = "Time", colour = "Charge type", caption = genCap)
 p
 ```
 
