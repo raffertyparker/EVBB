@@ -47,7 +47,7 @@ loadData <- function(dFile){
   # convert to data.table as much faster
   dt <- data.table::as.data.table(rawDF) # so we can do data.table stuff
   # dt <- data.table::fread(dFile) # this loads data but assumes r_dateTmime is UTC which it isn't
-  # could use lunridate::force_tz() to fix but readr is about as quick
+  # could use lubridate::force_tz() to fix but readr is about as quick
   return(dt)
 }
 
