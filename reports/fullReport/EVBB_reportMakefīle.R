@@ -38,7 +38,20 @@ pmPeakStart <- hms::as.hms("17:00:00") # see https://www.electrickiwi.co.nz/hour
 pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-of-power
 
 rmd <- paste0(here::here(), "/reports/fullReport/EVBB_report.Rmd")
-outF <- paste0(here::here(), "/reports/fullReport/EVBB_report_", dataFile ,'.html')
+outF <- paste0(here::here(), "/docs/EVBB_report_", dataFile ,'.html') # for easier github pages management
+
+loadData <- function(dFile){
+  print(paste0("Using ", dFile)) # <- dFile
+  rawDF <- readr::read_csv(dFile) # creates a tidyverse tibble https://www.tidyverse.org/articles/2018/01/tibble-1-4-1/
+  
+  # convert to data.table as much faster
+  dt <- data.table::as.data.table(rawDF) # so we can do data.table stuff
+  # dt <- data.table::fread(dFile) # this loads data but assumes r_dateTmime is UTC which it isn't
+  # could use lunridate::force_tz() to fix but readr is about as quick
+  return(dt)
+}
+
+rawDT <- loadData(dFile)
 
 message("Running ", rmd, " and saving as ", outF) 
 rmarkdown::render(input = rmd,
