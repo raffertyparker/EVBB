@@ -307,7 +307,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle">Statistical report using Flip The Fleet data</h3>
 <h4 class="author">Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz" class="email">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago; Daniel Myall (Flip The Fleet, <a href="mailto:daniel@zeno.nz" class="email">daniel@zeno.nz</a>)</h4>
-<h4 class="date">Last run at: 2019-08-20 21:17:58</h4>
+<h4 class="date">Last run at: 2019-08-20 21:22:42</h4>
 
 </div>
 
@@ -345,7 +345,7 @@ div.tocify {
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">2</span> Introduction</h1>
 <p>The New Zealand government has set a target of increasing the number of electric vehicles (EVs) in New Zealand to 64,000 by 2021 <span class="citation">(Transpower New Zealand 2017)</span>. High penetration of EVs would cause EV recharging to contribute a substantial portion of total electricity load. A report prepared for lines companies Orion, Powerco and Unison by Concept Consulting Group entitled “Driving change - Issues and options to maximise the opportunities from large-scale electric vehicle uptake in New Zealand” predicts that if all current light private vehicles were electric, annual residential electricity consumption would increase by approximately 30%, whereas if all vehicles including trucks were electric, this would increase the total electricity consumption of New Zealand by approximately 41% <span class="citation">(Concept Consulting 2018)</span>.</p>
-<p>New Zealand’s total electricity demand varies throughout the day, with weekdays in particular having two distinct “peaks”; one in the morning, and one in the evening <span class="citation">(Transpower New Zealand 2015)</span>. Providing the electricity to meet these demand peaks is a costly and inefficient process <span class="citation">(Khan, Jack, and Stephenson 2018)</span>. Concurrent electric vehicle charging, especially in the early evening when many motorists return home <span class="citation">(Speidel and Bräunl 2014,<span class="citation">@langbroek_when_2017</span>)</span>, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads <span class="citation">(Azadfar, Sreeram, and Harries 2015; Langbroek, Franklin, and Susilo 2017)</span>, leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid <span class="citation">(Stephenson et al. 2017)</span>.</p>
+<p>New Zealand’s total electricity demand varies throughout the day, with weekdays in particular having two distinct “peaks”; one in the morning, and one in the evening <span class="citation">(Transpower New Zealand 2015)</span>. Providing the electricity to meet these demand peaks is a costly and inefficient process <span class="citation">(Khan, Jack, and Stephenson 2018)</span>. Concurrent electric vehicle charging, especially in the early evening when many motorists return home <span class="citation">(Speidel and Bräunl 2014; Langbroek, Franklin, and Susilo 2017)</span>, would have the potential to negatively impact the operation of the grid through drastically increasing peak loads <span class="citation">(Azadfar, Sreeram, and Harries 2015; Langbroek, Franklin, and Susilo 2017)</span>, leading to an increased cost of electricity due to the requirement of expensive upgrades to the electricity grid <span class="citation">(Stephenson et al. 2017)</span>.</p>
 <p>The Concept Consulting report considers different methods of EV charging in its models. The assumption that most drivers would begin charging immediately after returning home is referred to as “passive” charging, while charging that is programmed (either by the driver or by an external entity) to occur during off-peak periods is referred to as “smart”. The modelling undertaken in the Concept Consulting report suggests that under a scenario whereby 57% of the current private vehicle fleet were EVs (corresponding to one EV per household), passive charging would cause an increase of peak electricity demand of approximately 3,000MW, whereas if all were charged in a “smart” fashion, there would be no increase in peak demand.</p>
 <p>This report extends the work done by Concept Consulting, but utilises actual data collected from electric vehicles, as opposed to using models based on the current New Zealand transport sector. The intention of the report is to provide further insight into the potential effects on the New Zealand electricity grid that may occur with a dramatic increase in EVs, so that these may be planned for and mitigated. It is also inspired by the <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/764270/electric-chargepoint-analysis-2017-domestics.pdf">UK Department of Transport 2018 statistical report</a> <span class="citation">(Eyers 2018)</span>.</p>
 </div>
@@ -672,7 +672,7 @@ NA
 </tr>
 </tbody>
 </table>
-<p>Figure <a href="#fig:initialDataChecksPlotTile">3.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only 22 out of a possible total of 52. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
+<p>Figure <a href="#fig:initialDataChecksPlotTile">3.1</a> shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only 19 out of a possible total of 52. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.</p>
 <div class="figure"><span id="fig:initialDataChecksPlotTile"></span>
 <img src="EVBB_report_EVBB_processed_all_v2.0_20190604_files/figure-html/initialDataChecksPlotTile-1.png" alt="Number of unique EVs observed by time of day and date" width="672" />
 <p class="caption">
@@ -2375,16 +2375,16 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  n obs: 1882040 
 ##  n variables: 7 
 ## 
-## ── Variable type:character ────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ───────────────────────────────────
 ##  variable missing complete       n min max empty n_unique
 ##      dvID       0  1882040 1882040   9  10     0       52
 ##        id       0  1882040 1882040  32  32     0       52
 ## 
-## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ────────────────────────────────────
 ##  variable missing complete       n    min        max     median n_unique
 ##   timeChr       0  1882040 1882040 0 secs 86399 secs 44877 secs    86400
 ## 
-## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ─────────────────────────────────────
 ##                 variable missing complete       n    mean      sd     p0
 ##          charge_power_kw       0  1882040 1882040    1.59   63.73      0
 ##              odometer_km 1255614   626426 1882040 7789.97 8268.44 -62920
@@ -2394,7 +2394,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  2166.25 5309    11154    73607    ▁▁▁▇▇▁▁▁
 ##    56.31   70.41    83.05  1677.72 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ─────────────────────────────────────
 ##    variable missing complete       n        min        max     median
 ##  r_dateTime       0  1882040 1882040 2018-04-05 2019-03-01 2018-11-25
 ##  n_unique
@@ -2408,7 +2408,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  n obs: 939874 
 ##  n variables: 20 
 ## 
-## ── Variable type:character ────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ───────────────────────────────────
 ##    variable missing complete      n min max empty n_unique
 ##  chargeFlag       2   939872 939874  17  25     0        5
 ##        dvID       0   939874 939874   9  10     0       45
@@ -2416,13 +2416,13 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  peakPeriod       0   939874 939874   8  12     0        3
 ##    weekdays       0   939874 939874   8   8     0        2
 ## 
-## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ────────────────────────────────────────
 ##  variable missing complete      n        min        max     median
 ##      date       0   939874 939874 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
 ##        93
 ## 
-## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ────────────────────────────────────
 ##        variable missing complete      n    min          max     median
 ##             hms       0   939874 939874 0 secs   86399 secs 43882 secs
 ##           qHour       0   939874 939874 0 secs   85500 secs 43200 secs
@@ -2436,7 +2436,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##     86391
 ##     86391
 ## 
-## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ──────────────────────────────────────
 ##     variable missing complete      n n_unique
 ##   chargeType       0   939874 939874        3
 ##  day_of_week       0   939874 939874        7
@@ -2444,7 +2444,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##          Sta: 627490, Not: 306871, Rap: 5513, NA: 0   FALSE
 ##  Fri: 152881, Thu: 146464, Wed: 146461, Tue: 136529    TRUE
 ## 
-## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ─────────────────────────────────────
 ##         variable missing complete      n    mean      sd     p0     p25
 ##  charge_power_kw       0   939874 939874    1.57    2.76      0    0   
 ##            month       0   939874 939874   10.96    0.98      1   10   
@@ -2460,7 +2460,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##    70.28   82.92    98.1  ▁▁▂▃▆▇▇▇
 ##     0       0       70.16 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ─────────────────────────────────────
 ##    variable missing complete      n        min        max     median
 ##  r_dateTime       0   939874 939874 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
@@ -2471,7 +2471,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  n obs: 2565 
 ##  n variables: 24 
 ## 
-## ── Variable type:character ────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ───────────────────────────────────
 ##         variable missing complete    n min max empty n_unique
 ##       chargeFlag       0     2565 2565  25  25     0        1
 ##  chargeTypeError       0     2565 2565  31  37     0        4
@@ -2480,11 +2480,11 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##       peakPeriod       0     2565 2565   8  12     0        3
 ##         weekdays       0     2565 2565   8   8     0        2
 ## 
-## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
 ##      date       0     2565 2565 2018-10-01 2019-01-01 2018-11-16       93
 ## 
-## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ────────────────────────────────────
 ##        variable missing complete    n                   min
 ##         endTime       0     2565 2565 31 secs              
 ##             hms       0     2565 2565 91 secs              
@@ -2502,7 +2502,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##   86246 secs        15:43:40               2471
 ##   86246 secs        15:43:40               2471
 ## 
-## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ──────────────────────────────────────
 ##             variable missing complete    n n_unique
 ##           chargeType       0     2565 2565        2
 ##  chargeTypeCorrected       0     2565 2565        2
@@ -2514,7 +2514,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##  Fri: 416, Thu: 391, Wed: 383, Mon: 378    TRUE
 ##      Sta: 2305, Rap: 260, Not: 0, NA: 0   FALSE
 ## 
-## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ─────────────────────────────────────
 ##         variable missing complete    n    mean      sd        p0     p25
 ##  charge_power_kw       0     2565 2565    6.44   11.75      0.5     1.54
 ##            month       0     2565 2565   10.96    0.96      1      10   
@@ -2528,7 +2528,7 @@ Figure 4.15: Mean state of charge at beginning of charge sequence by time of day
 ##     0       0    37626    ▁▁▇▁▁▁▁▁
 ##    49      61       98.1  ▁▃▆▇▇▃▂▂
 ## 
-## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ─────────────────────────────────────
 ##    variable missing complete    n        min        max     median
 ##  r_dateTime       0     2565 2565 2018-10-01 2019-01-01 2018-11-16
 ##  n_unique
