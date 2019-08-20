@@ -485,7 +485,7 @@ Figure \@ref(fig:obsPower) shows the distribution of observed charging kW demand
 
 plotDT <- cleanDT[!(chargeType %like% "Not charging")]
 
-genCap <- paste0("Data source: Flip The Fleet",
+cleanCap <- paste0("Data source: Flip The Fleet",
                  "\n All charging observations",
                  "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", 
                  prettyNum(nrow(plotDT), big.mark = ","),
@@ -497,7 +497,7 @@ p <- ggplot2::ggplot(plotDT, aes(x = charge_power_kw, fill = chargeType)) +
   facet_wrap(. ~ chargeType, scales = "free")
 p + labs(y = "Charging observations",
        x = "Power (kW)",
-       caption = genCap) +
+       caption = cleanCap) +
   guides(fill = guide_legend(title = "Inferred charge type:")) +
   scale_fill_manual(values=cbgPalette) + # use colour-blind friendly palette
   theme(legend.position = "bottom")
@@ -549,7 +549,7 @@ Figure \@ref(fig:durationHist) shows the overall distribution of all charging se
 plotDT <- firstLastDT[chargeFlag %like% "First"]
 
 nObs <- prettyNum(nrow(plotDT), big.mark = ",")
-genCap <- paste0("Data source: Flip The Fleet",
+myCap <- paste0("Data source: Flip The Fleet",
                  "\n Charge start observation, corrected charge type",
                  "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ",nObs,
                         "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
@@ -560,7 +560,7 @@ ggplot2::ggplot(plotDT,
   geom_histogram(binwidth = 10) +
   facet_wrap(. ~ chargeTypeCorrected, scales = "free") +
     labs(x = "Minutes", 
-       caption = genCap)
+       caption = myCap)
 ```
 
 Table \@ref(tab:durationDescTable) shows the overall distributions and indicates the extent to which the means are skewed by the very small and a few very large values shown in Figure \@ref(fig:durationHist).
@@ -603,9 +603,9 @@ Figure \@ref(fig:shortDuration) shows the distribution of very short charging se
 ```{r shortDuration, fig.cap="Duration of charging sequences < 15 minutes"}
 plotDT <- firstLastDT[chargeFlag %like% "First" & pairDuration < 15]
 
-genCap <- paste0("Data source: Flip The Fleet",
+myCap <- paste0("Data source: Flip The Fleet",
                  "\n 'First charge' observations, corrected charge type",
-                 "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", nrow(plotDT),
+                 "\n n EVs: ", uniqueN(plotDT$dvID), ", n observations: ", prettyNum(nrow(plotDT), big.mark = ","),
                  "\n Period: ", min(plotDT$date), " - ", max(plotDT$date)
                  )
 
@@ -614,7 +614,7 @@ ggplot2::ggplot(plotDT,
   geom_histogram(binwidth = 1) +
   facet_grid(chargeTypeCorrected ~ ., scales = "free") +
   labs(x = "Minutes", 
-       caption = genCap
+       caption = myCap
        )
 ```
 
@@ -664,9 +664,9 @@ Figure \@ref(fig:longDuration) shows the distribution of charging sequences with
 
 ```{r longDuration, fig.cap="Duration of charging sequences with unreasonably long or short values removed"}
 
-genCap <- paste0("Data source: Flip The Fleet",
+firstCap <- paste0("Data source: Flip The Fleet",
                  "\n 'First charge' observations, corrected charge type",
-                 "\n n EVs: ", uniqueN(firstCleanDT$dvID), ", n observations: ", nrow(firstCleanDT),
+                 "\n n EVs: ", uniqueN(firstCleanDT$dvID), ", n observations: ", prettyNum(nrow(firstCleanDT), big.mark = ","),
                  "\n Period: ", min(firstCleanDT$date), " - ", max(firstCleanDT$date)
                  )
 
@@ -674,7 +674,7 @@ ggplot2::ggplot(firstCleanDT,
                 aes(x = pairDuration)) +
   geom_histogram(binwidth = 5) +
   facet_wrap(chargeTypeCorrected ~ ., scales = "free") +
-  labs(x = "Minutes", caption = genCap)
+  labs(x = "Minutes", caption = firstCap)
 #ggsave("plots/charge_duration_histogram_extremes_removed.png")
 
 t <- firstCleanDT[chargeFlag %like% "First", 
@@ -719,9 +719,10 @@ standardDurMean <- mean(dt$pairDuration, na.rm = TRUE)
 
 It has been suggested that EV charging is more likely to occur in the early evening when drivers return from daily commutes or school pick-ups [@langbroek_when_2017]. 
 
-Figure \@ref(fig:chargeTimeProp) plots the distribution of each charge type over time of day and confirms the very low incidence of rapid charging. It also supports the suggestion that standard charging (at home) does not appear to begin until later in the evening.
+Figure \@ref(fig:chargeTimeCount) plots the distribution of each charge type over time of day and confirms the very low incidence of rapid charging. It also supports the suggestion that standard charging (at home) does not appear to begin until later in the evening.
 
-```{r chargeTimeProp, fig.cap="Density plot of charging start times during weekdays"}
+```{r chargeTimeCount, fig.cap="Density plot of charging start times during weekdays"}
+
 plotDT <- cleanDT[, .(nObs = .N), keyby = .(qHour, chargeType, weekdays)]
 
 # correct for n days we are aggregating over
@@ -734,15 +735,16 @@ p <- ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeType)) +
   facet_grid(weekdays ~ .) +
   guides(colour = guide_legend(title = "Charge type"))
 
-p + labs(x = "Time", y = "Mean daily count per 15 minutes",
-         caption = genCap)
+p + labs(x = "Time of day", y = "Count per 15 minutes",
+         caption = paste0(genCap, 
+                          "\n Count divided by n days (2 for weekends, 5 for weekdays"))
 
 
 ```
 
-Figure \@ref(fig:chargeTimeTypes) extends this analysis by showing charging and non-charging observations at different times of day by weekday vs weekends using a density plot to show relative distributions over time within each type. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for rapid charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
+Figure \@ref(fig:chargeTimeDensity) extends this analysis by showing charging and non-charging observations at different times of day by weekday vs weekends using a density plot to show relative distributions over time within each type. The plot clearly shows non-charging during day-time use and also shows a bi-model distribution for rapid charging (non-corrected categorisation). Standard charging also shows a bi-modal distribution with a peak around 22:00 on weekdays and another at 01:00 presumably indicating the use of timed or 'smart' charging or trickle events.
 
-```{r chargeTimeTypes, fig.cap="Density plot of charging start times during weekdays"}
+```{r chargeTimeDensity, fig.cap="Density plot of charging start times during weekdays"}
 # plotDT <- cleanDT[, .(nObs = .N), keyby = .(qHour, chargeType, weekdays)]
 # 
 # p <- ggplot(plotDT, aes(x = qHour, y = nObs, colour = chargeType)) + 
@@ -775,7 +777,8 @@ To make the patterns of 'initial charging' clearer, we use just the 'first' char
 #plotDT <- chargingDT[chargeFlag == "first" & SoC_percent < 90]
 # use the cleaned firstLast dt
 
-plotDT <- firstCleanDT[SoC_percent < 90, 
+dt <- firstCleanDT[SoC_percent < 90]
+plotDT <- dt[, 
                        .(nObs = .N),
                        keyby = .(qHour, chargeTypeCorrected, weekdays)] # should be the same
 
@@ -785,17 +788,20 @@ plotDT <- plotDT[, nDaily := ifelse(weekdays == "Weekends",
                                     nObs/5)]
 
 genCap <- paste0("Data source: Flip The Fleet",
-                 "\n All charging observations where state of charge < 90%",
-                 "\n n EVs: ", uniqueN(firstCleanDT$dvID), ", n observations: ", 
-                 prettyNum(nrow(firstCleanDT), big.mark = ","),
-                        "\n Period: ", min(firstCleanDT$date), " - ", max(firstCleanDT$date)
+                 "\n All first charging observations where state of charge < 90%",
+                 "\n n EVs: ", uniqueN(dt$dvID), ", n observations: ", 
+                 prettyNum(nrow(dt), big.mark = ","),
+                        "\n Period: ", min(dt$date), " - ", max(dt$date)
 )
 
 p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeTypeCorrected)) +
+  scale_color_discrete(name = "Corrected charge type") +
   geom_line() +
-  facet_grid(weekdays ~ .) +
-  labs(y = "Mean N observations per quarter hour", x = "Time", colour = "Charge type", caption = genCap)
-p
+  facet_grid(weekdays ~ .) 
+p + labs(x = "Time of day", y = "Count per 15 minutes",
+         caption = paste0(genCap, 
+                          "\n Count divided by n days (n = 2 for weekends, n = 5 for weekdays)"))
+
 ```
 
 Figure \@ref(fig:chargeBeginsTimeDensity) uses a density plot to represent the proportion of charging sequences that start at different times of the day on weekdays vs weekends for standard and rapid charging (corrected classification).
@@ -1169,7 +1175,7 @@ dataDT <- firstCleanDT[SoC_percent < 90]
 plotDT <- dataDT[, .(meanChargePC = mean(SoC_percent),
                  nEVs = uniqueN(dvID)), keyby = .(qHour, weekdays, chargeTypeCorrected)]
 
-genCap <- paste0("Data source: Flip The Fleet",
+myCap <- paste0("Data source: Flip The Fleet",
                  "First charging observations in a sequence, state of charge < 90%",
                  "\n n EVs: ", uniqueN(dataDT$dvID), "n observations: ", nrow(dataDT),
                  "\n Period: ", min(dataDT$date), " - ", max(dataDT$date),
@@ -1180,7 +1186,7 @@ p <- ggplot(plotDT, aes(x = qHour, y = meanChargePC, colour = weekdays, alpha = 
   geom_point() +
   labs(y = "Mean state of charge when charging begins (%)",
          x = "Time of Day",
-       caption = genCap) +
+       caption = myCap) +
   facet_grid(chargeTypeCorrected ~ ., scales = "free")
 yMin <- min(plotDT$meanChargePC)
 yMax <- max(plotDT$meanChargePC)
