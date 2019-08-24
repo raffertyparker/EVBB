@@ -400,8 +400,6 @@ kableExtra::kable(t[!is.na(Year)], digits = 2, caption = "Descriptive statistics
 ```
 
 
-Figure \@ref(fig:initialDataChecksPlotTile) shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only `r max(plotDT$nEVs)` out of a possible total of `r data.table::uniqueN(rawDT$id)`. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.
-
 ```{r initialDataChecksPlotTile, fig.cap="Number of unique EVs observed by time of day and date"}
 # make a plot of the number of EVs seen per day/hour
 # use rawDT - nowt taken out
@@ -424,6 +422,8 @@ ggplot2::ggplot(plotDT, aes(x = date, y = qHour, alpha = nEVs)) +
        )
 
 ```
+
+Figure \@ref(fig:initialDataChecksPlotTile) shows the number of unique EVs observed by time of day and date. As we can see the early part of the sample is sparse and indeed the maximum number of EVs observed in any 15 minute time period was only `r max(plotDT$nEVs)` out of a possible total of `r data.table::uniqueN(rawDT$id)`. While this will not affect some analyses, it is likely to introduce error and small sample effects to summary analyses (e.g. means) or month by month analyses. In some sections the analysis will therefore be restricted to the data from September to January.
 
 Figure \@ref(fig:initialDataChecksPlotDate) shows the unique number of EVs recorded on each day and reflects the period over which Flip The Fleet installed the data collection boxes.
 
