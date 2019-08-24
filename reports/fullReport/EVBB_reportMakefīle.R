@@ -63,8 +63,6 @@ loadData <- function(dFile){
   return(dt)
 }
 
-rawDT <- loadData(dFile)
-
 # load the EA gen data ----
 genPath <- paste0(here::here(), "/data/")
 getGenFileList <- function(dPath){
@@ -78,31 +76,28 @@ getGenData <- function(files){
   # https://stackoverflow.com/questions/21156271/fast-reading-and-combining-several-files-using-data-table-with-fread
   # this is where we need drake
   # and probably more memory
+  # if this breaks you need to run R/getWholesaleGenData.R
   message("Loading ", nrow(files), " files")
   l <- lapply(files$fullPath, fread)
   dt <- rbindlist(l)
   setkey(dt, rDateTime)
   file.remove("temp.csv") # side effect
+  # fix dates & times ----
+  dt <- dt[!is.na(rTime)] # drop the TP49 & TP50
+  dt[, rDateTime := lubridate::as_datetime(rDateTime)]
+  dt[, rDateTime := lubridate::force_tz(rDateTime, tzone = "Pacific/Auckland")]
+  dt[, date := lubridate::date(rDateTime)]
+  dt[, month := lubridate::month(rDateTime)]
+  dt[, day_of_week := lubridate::wday(rDateTime, label = TRUE)]
+  dt[, hms := hms::as.hms(rDateTime)] # set to middle of half-hour
+  dt[, halfHour := hms::trunc_hms(hms, 30*60)] # truncate to previous half-hour
+  
+  # Create factor for weekdays/weekends ----
+  dt[, weekdays := "Weekdays"]
+  dt[, weekdays := ifelse(day_of_week == "Sat" |
+                                   day_of_week == "Sun", "Weekends", weekdays)]
   return(dt)
 }
-
-genFiles <- getGenFileList(genPath)
-genDataDT <- getGenData(genFiles)
-
-# fix dates & times ----
-genDataDT <- genDataDT[!is.na(rTime)] # drop the TP49 & TP50
-genDataDT[, rDateTime := lubridate::as_datetime(rDateTime)]
-genDataDT[, rDateTime := lubridate::force_tz(rDateTime, tzone = "Pacific/Auckland")]
-genDataDT[, date := lubridate::date(rDateTime)]
-genDataDT[, month := lubridate::month(rDateTime)]
-genDataDT[, day_of_week := lubridate::wday(rDateTime, label = TRUE)]
-genDataDT[, hms := hms::as.hms(rDateTime)] # set to middle of half-hour
-genDataDT[, halfHour := hms::trunc_hms(hms, 30*60)] # truncate to previous half-hour
-
-# Create factor for weekdays/weekends ----
-genDataDT[, weekdays := "Weekdays"]
-genDataDT[, weekdays := ifelse(day_of_week == "Sat" |
-                               day_of_week == "Sun", "Weekends", weekdays)]
 
 # run report
 doReport <- function(){
@@ -111,7 +106,16 @@ doReport <- function(){
                     output_file=outF)
 }
 
-#doReport()
+# code ----
+# EA data
+genFiles <- getGenFileList(genPath)
+genDataDT <- getGenData(genFiles)
+
+# EV data
+rawDT <- loadData(dFile)
+
+# Report
+doReport()
 
 
 
