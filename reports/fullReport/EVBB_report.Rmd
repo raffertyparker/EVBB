@@ -1402,45 +1402,6 @@ Finally, Figure \@ref(fig:SoCplotTiming) shows the mean % charge by time of firs
 
 If we make the heroic assumption that the future EV owners of Aotearoa will charge their vehicles in the same way and with the same temporal patterns as this small sample of early adopters then we can make estimates of the likely consequences for electricity demand under a range of scenarios.
 
-```{r pcCharging, fig.cap="Percent of vehicles reporting data in the day that were charging in a given 15 minute period"}
-#cleanDT[, r_dateTimeMin := lubridate::floor_date(r_dateTime, "1 minute")]
-cleanDT[, r_dateTimeQhour := lubridate::floor_date(r_dateTime, "15 minutes")]
-
-t <- cleanDT[, .(nObs = .N,
-                 nEVs = uniqueN(dvID)),
-                 keyby = .(weekdays, date, r_dateTimeQhour, qHour, peakPeriod, # only needs dateTime but saves re-creating the others
-                           chargeType)]
-tEVs <- cleanDT[, .(totalEVs = uniqueN(dvID)), 
-                keyby = .(date)]
-
-setkey(tEVs, date)
-setkey(t, date)
-t <- t[tEVs]
-t[, pcEVs := nEVs/totalEVs]
-
-evPlotDT <- t[, .(meanPC = mean(pcEVs)), keyby = .(weekdays, qHour, chargeType, peakPeriod)]
-
-p <- ggplot2::ggplot(evPlotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeType)) +
-  geom_point() +
-  scale_color_discrete(name = "Charge Type") +
-  labs(y = "Mean % of EVs per quarter hour", x = "Time of day") +
-  facet_grid(weekdays ~ .)
-
-yMin <- min(evPlotDT$meanPC * 100)
-yMax <- max(evPlotDT$meanPC * 100)
-addPeaks(p)
-
-
-```
-Figure \@ref(fig:pcCharging) shows the mean % of EVs which were charging in each quarter-hour of the day by charge type. This was calculated by:
-
- * counting the number of EVs (nEVs) that were observed to charge for each charge type in each quarter hour of every day;
- * counting the total number of EVs (totalDayEVS) that were recorded charging or not charging (i.e. in use) on that day. Since we would receive no data from EVs that were not in use and not charged on a given day, this is the best estimate we can make of the EV 'live population' on a given day;
- * calculating the % charging for each charge type for each quarter hour of every day = nEVs/totalDayEVS;
- * calculating the mean of this value across all weekdays and weekend days for each charge type.
-
-As we would expect the pattern of charging replicates that found in Figure \@ref(fig:chargeTimeCount).
-
 ```{r setModelAssumptions}
 t <- cleanDT[, .(meankW = mean(charge_power_kw),
                  mediankW = median(charge_power_kw),
@@ -1463,7 +1424,7 @@ car2Households <- nHouseholds * (twoCar)
 car3Households <- nHouseholds * (threeCar)
 ```
 
-Based on Table \@ref(tab:obsPower), let us assume:
+Figure \@ref(fig:pcCharging) showed the mean % of EVs which were charging in each quarter-hour of the day by charge type. Based on Table \@ref(tab:obsPower), let us assume:
 
  * standard charging = `r medianStd` kW (median)
  * rapid charging = `r medianRap` kW (median)
@@ -1474,7 +1435,7 @@ Based on Table \@ref(tab:obsPower), let us assume:
    * `r 100*twoCar`% have 2
    * `r 100*threeCar`% have 3+ (we will treat this as 3)
 
-We can now construct a set of unlikely extreme case scenarios (or anything in between):
+We can now use the results shown in Figure \@ref(fig:pcCharging) to construct a set of scenarios:
 
  * All households with >= 1 car switch one of them (or the one they have) to an EV (scenario 1)
  * All households switch all cars to EVs (scenario 2)
