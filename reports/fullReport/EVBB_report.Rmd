@@ -1075,6 +1075,89 @@ yMax <- max(plotDT[chargeType %like% "Standard"]$mediankW)
 addPeaks(p)
 ```
 
+### Imputing power demand
+
+The lack of data from EVs which are neither charging nor being driven means that it is impossible to directly estimate the 'average' power demand for the sample. Instead we use an estimate of the proportion of EVs which were charging and our derived median 'standard' and 'rapid' kW demand to estimate these values.
+
+```{r pcCharging, fig.cap="Percent of vehicles reporting data in the day that were charging in a given 15 minute period"}
+#cleanDT[, r_dateTimeMin := lubridate::floor_date(r_dateTime, "1 minute")]
+cleanDT[, r_dateTimeQhour := lubridate::floor_date(r_dateTime, "15 minutes")]
+
+t <- cleanDT[, .(nObs = .N,
+                 nEVs = uniqueN(dvID)),
+                 keyby = .(weekdays, date, r_dateTimeQhour, qHour, peakPeriod, # only needs dateTime but saves re-creating the others
+                           chargeType)]
+tEVs <- cleanDT[, .(totalEVs = uniqueN(dvID)), 
+                keyby = .(date)]
+
+setkey(tEVs, date)
+setkey(t, date)
+t <- t[tEVs]
+t[, pcEVs := nEVs/totalEVs]
+
+evPlotDT <- t[, .(meanPC = mean(pcEVs)), keyby = .(weekdays, qHour, chargeType, peakPeriod)]
+
+p <- ggplot2::ggplot(evPlotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Charge Type") +
+  labs(y = "Mean % of EVs per quarter hour", x = "Time of day") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(evPlotDT$meanPC * 100)
+yMax <- max(evPlotDT$meanPC * 100)
+addPeaks(p)
+
+```
+
+Figure \@ref(fig:pcCharging) shows the mean % of EVs which were charging in each quarter-hour of the day by charge type. This was calculated by:
+
+ * counting the number of EVs (nEVs) that were observed to charge for each charge type in each quarter hour of every day;
+ * counting the total number of EVs (totalDayEVS) that were recorded charging or not charging (i.e. in use) on that day. Since we would receive no data from EVs that were not in use and not charged on a given day, this is the best estimate we can make of the EV 'live population' on a given day;
+ * calculating the % charging for each charge type for each quarter hour of every day = nEVs/totalDayEVS;
+ * calculating the mean of this value across all weekdays and weekend days for each charge type.
+
+As we would expect the pattern of charging replicates that found in Figure \@ref(fig:chargeTimeCount).
+
+```{r setModelAssumptions}
+t <- cleanDT[, .(meankW = mean(charge_power_kw),
+                 mediankW = median(charge_power_kw),
+                 minkW = min(charge_power_kw),
+                 maxkW = max(charge_power_kw)), keyby = .(chargeType)]
+
+medianStd <- t[chargeType %like% "Standard", mediankW]
+medianRap <- t[chargeType %like% "Rapid", mediankW]
+```
+
+Based on Table \@ref(tab:obsPower), let us assume:
+
+ * standard charging = `r round(medianStd, 2)` kW (median)
+ * rapid charging = `r round(medianRap, 2)` kW (median)
+
+```{r setPower}
+evPlotDT[, sampleCarkW := ifelse(chargeType == "Standard charging",
+                           meanPC * medianStd,
+                           NA)
+         ]
+evPlotDT[, sampleCarkW := ifelse(chargeType == "Rapid charging",
+                           meanPC * medianRap,
+                           sampleCarkW)
+         ]
+
+p <- ggplot2::ggplot(evPlotDT[!(chargeType %like% "Not")], aes(x = qHour, y = sampleCarkW, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Charge Type") +
+  labs(y = "Mean kW per quarter hour", x = "Time of day") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(evPlotDT$sampleCarkW)
+yMax <- max(evPlotDT$sampleCarkW)
+addPeaks(p)
+
+```
+
+
+### Power demand summary
+
 On face value the results suggest that EVs could be placing additional power demand on local and national networks during well-known periods of peak demand although this appears to vary by month for this small sample of EV owners. 
 
 > Clearly this analysis should be revisited once the potential misclassification of 'rapid' as 'standard' charging observations has been resolved and the 'missing' non-use (zero charging) observations have been imputed. 
