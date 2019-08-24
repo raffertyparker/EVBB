@@ -1149,8 +1149,8 @@ p <- ggplot2::ggplot(evPlotDT[!(chargeType %like% "Not")], aes(x = qHour, y = sa
   labs(y = "Mean kW per quarter hour", x = "Time of day") +
   facet_grid(weekdays ~ .)
 
-yMin <- min(evPlotDT$sampleCarkW)
-yMax <- max(evPlotDT$sampleCarkW)
+yMin <- min(evPlotDT$sampleCarkW, na.rm = TRUE)
+yMax <- max(evPlotDT$sampleCarkW, na.rm = TRUE)
 addPeaks(p)
 
 ```
