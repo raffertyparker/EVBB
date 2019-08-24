@@ -502,6 +502,14 @@ myCap <- paste0(cleanCap,
                 "\n n EVs: ", uniqueN(plotDT$dvID)
 )
 
+t <- cleanDT[, .("Mean kW" = mean(charge_power_kw),
+                 "Median kW" = median(charge_power_kw),
+                 "Min kW" = min(charge_power_kw),
+                 "Max kW" = max(charge_power_kw)), keyby = .(chargeType)]
+
+kableExtra::kable(t, digits = 2, caption = "Descriptive statistics for charging (kW)") %>%
+  kable_styling()
+
 p <- ggplot2::ggplot(plotDT, aes(x = charge_power_kw, fill = chargeType)) +
   geom_histogram(binwidth = 0.1) +
   facet_wrap(. ~ chargeType, scales = "free")
