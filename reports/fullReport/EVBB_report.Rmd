@@ -1524,7 +1524,7 @@ knitr::opts_chunk$set(message = TRUE) # for final tidy run
 Data description for original data supplied (before processing or filtering).
 
 ```{r ftfRawDataSkim}
-skimr::skim(rawDF)
+skimr::skim(rawDT)
 ```
 
 ### Processed and cleaned data{#processedCheck}
