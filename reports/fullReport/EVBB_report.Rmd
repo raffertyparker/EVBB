@@ -1453,6 +1453,7 @@ ggplot2::ggplot(genPlotDT, aes(x = halfHour, y = genkWh/1000, # mean total MW
 ```
 
 ```{r convertEVtoMWh}
+
 evPlotDT <- evPlotDT[, halfHour := hms::trunc_hms(halfHour, 30*60)]
 
 evHalfHourDT <- evPlotDT[, .(meankW = mean(carkW)), keyby = .(chargeType, halfHour, peakPeriod, weekdays)]
