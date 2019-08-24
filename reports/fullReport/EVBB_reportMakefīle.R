@@ -82,6 +82,7 @@ getGenData <- function(files){
   l <- lapply(files$fullPath, fread)
   dt <- rbindlist(l)
   setkey(dt, rDateTime)
+  file.remove("temp.csv") # side effect
   return(dt)
 }
 
