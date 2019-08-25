@@ -866,6 +866,45 @@ Standard charging events were most likely to begin around 10pm during both weekd
 
 Rapid charging events were most likely to begin at 11:30am on weekdays and 1pm during weekends.  
 
+The lack of data from EVs which are neither charging nor being driven means that it is impossible to _directly_ calculate the proportion of the sample who were charging at a given time. Instead we can _estimate_ the proportion of EVs which were charging by:
+
+ * counting the number of EVs (nEVs) that were observed to charge for each charge type in each quarter hour of every day;
+ * counting the total number of EVs (totalDayEVS) that were recorded charging or not charging (i.e. in use) on that day. Since we would receive no data from EVs that were not in use and not charged on a given day, this is the best estimate we can make of the EV 'live population' on a given day;
+ * calculating the % charging for each charge type for each quarter hour of every day = nEVs/totalDayEVS;
+ * calculating the mean of this value across all weekdays and weekend days for each charge type.
+
+```{r pcCharging, fig.cap="Percent of vehicles charging in a given 15 minute period"}
+#cleanDT[, r_dateTimeMin := lubridate::floor_date(r_dateTime, "1 minute")]
+cleanDT[, r_dateTimeQhour := lubridate::floor_date(r_dateTime, "15 minutes")]
+
+t <- cleanDT[, .(nObs = .N,
+                 nEVs = uniqueN(dvID)),
+                 keyby = .(weekdays, date, r_dateTimeQhour, qHour, peakPeriod, # only needs dateTime but saves re-creating the others
+                           chargeType)]
+tEVs <- cleanDT[, .(totalEVs = uniqueN(dvID)), 
+                keyby = .(date)]
+
+setkey(tEVs, date)
+setkey(t, date)
+t <- t[tEVs]
+t[, pcEVs := nEVs/totalEVs]
+
+evPlotDT <- t[, .(meanPC = mean(pcEVs)), keyby = .(weekdays, qHour, chargeType, peakPeriod)]
+
+p <- ggplot2::ggplot(evPlotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Charge Type") +
+  labs(y = "Mean % of EVs per quarter hour", x = "Time of day") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(evPlotDT$meanPC * 100)
+yMax <- max(evPlotDT$meanPC * 100)
+addPeaks(p)
+
+```
+
+These results are reported in Figure \@ref(fig:pcCharging) which shows the estimated mean % of EVs which were charging in each quarter-hour of the day by charge type. As we would expect the pattern of charging replicates that found in Figure \@ref(fig:chargeTimeCount) and indicates the relative rarity of rapid charging.
+
 ## Patterns of power demand
 
 Given this distribution of charging events, it is important to understand their magnitude to understand the potential effect on the electricity network. Although we are hampered by the lack of observations when the EV is inactive, this section analyses the patterns of power demand for the observations we have.
@@ -1079,46 +1118,7 @@ addPeaks(p)
 
 The lack of data from EVs which are neither charging nor being driven means that it is impossible to directly estimate the 'average' power demand for the sample. Instead we use an estimate of the proportion of EVs which were charging and our derived median 'standard' and 'rapid' kW demand to estimate these values.
 
-```{r pcCharging, fig.cap="Percent of vehicles reporting data in the day that were charging in a given 15 minute period"}
-#cleanDT[, r_dateTimeMin := lubridate::floor_date(r_dateTime, "1 minute")]
-cleanDT[, r_dateTimeQhour := lubridate::floor_date(r_dateTime, "15 minutes")]
-
-t <- cleanDT[, .(nObs = .N,
-                 nEVs = uniqueN(dvID)),
-                 keyby = .(weekdays, date, r_dateTimeQhour, qHour, peakPeriod, # only needs dateTime but saves re-creating the others
-                           chargeType)]
-tEVs <- cleanDT[, .(totalEVs = uniqueN(dvID)), 
-                keyby = .(date)]
-
-setkey(tEVs, date)
-setkey(t, date)
-t <- t[tEVs]
-t[, pcEVs := nEVs/totalEVs]
-
-evPlotDT <- t[, .(meanPC = mean(pcEVs)), keyby = .(weekdays, qHour, chargeType, peakPeriod)]
-
-p <- ggplot2::ggplot(evPlotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeType)) +
-  geom_point() +
-  scale_color_discrete(name = "Charge Type") +
-  labs(y = "Mean % of EVs per quarter hour", x = "Time of day") +
-  facet_grid(weekdays ~ .)
-
-yMin <- min(evPlotDT$meanPC * 100)
-yMax <- max(evPlotDT$meanPC * 100)
-addPeaks(p)
-
-```
-
-Figure \@ref(fig:pcCharging) shows the mean % of EVs which were charging in each quarter-hour of the day by charge type. This was calculated by:
-
- * counting the number of EVs (nEVs) that were observed to charge for each charge type in each quarter hour of every day;
- * counting the total number of EVs (totalDayEVS) that were recorded charging or not charging (i.e. in use) on that day. Since we would receive no data from EVs that were not in use and not charged on a given day, this is the best estimate we can make of the EV 'live population' on a given day;
- * calculating the % charging for each charge type for each quarter hour of every day = nEVs/totalDayEVS;
- * calculating the mean of this value across all weekdays and weekend days for each charge type.
-
-As we would expect the pattern of charging replicates that found in Figure \@ref(fig:chargeTimeCount).
-
-```{r setModelAssumptions}
+```{r setkw}
 t <- cleanDT[, .(meankW = mean(charge_power_kw),
                  mediankW = median(charge_power_kw),
                  minkW = min(charge_power_kw),
@@ -1133,6 +1133,8 @@ Based on Table \@ref(tab:obsPower), let us assume:
  * standard charging = `r round(medianStd, 2)` kW (median)
  * rapid charging = `r round(medianRap, 2)` kW (median)
 
+We can now calculate the mean kW demand per EV per time period by multiplying these values by the appropriate % of EVs who were charging by charge type. The results of doing so are shown in \@ref(fig:setPower). We can now see that despite the relative rarity of rapid charging, their much higher power demand produces... XX finish XX
+
 ```{r setPower}
 evPlotDT[, sampleCarkW := ifelse(chargeType == "Standard charging",
                            meanPC * medianStd,
@@ -1146,7 +1148,7 @@ evPlotDT[, sampleCarkW := ifelse(chargeType == "Rapid charging",
 p <- ggplot2::ggplot(evPlotDT[!(chargeType %like% "Not")], aes(x = qHour, y = sampleCarkW, colour = chargeType)) +
   geom_point() +
   scale_color_discrete(name = "Charge Type") +
-  labs(y = "Mean kW per quarter hour", x = "Time of day") +
+  labs(y = "Mean kW per EV per quarter hour", x = "Time of day") +
   facet_grid(weekdays ~ .)
 
 yMin <- min(evPlotDT$sampleCarkW, na.rm = TRUE)
@@ -1400,7 +1402,7 @@ Finally, Figure \@ref(fig:SoCplotTiming) shows the mean % charge by time of firs
 
 # Modelling the national electricity grid impact
 
-If we make the heroic assumption that the future EV owners of Aotearoa will charge their vehicles in the same way and with the same temporal patterns as this small sample of early adopters then we can make estimates of the likely consequences for electricity demand under a range of scenarios.
+If we make the heroic assumption that the future EV owners of Aotearoa will charge their vehicles in the same way and with the same temporal patterns as this small sample of early adopters then we can make estimates of the likely consequences for electricity demand under a range of scenarios using the data reported in Figure \@ref(fig:pcCharging). This showed the mean % of EVs which were charging in each quarter-hour of the day by charge type.
 
 ```{r setModelAssumptions}
 t <- cleanDT[, .(meankW = mean(charge_power_kw),
@@ -1424,7 +1426,7 @@ car2Households <- nHouseholds * (twoCar)
 car3Households <- nHouseholds * (threeCar)
 ```
 
-Figure \@ref(fig:pcCharging) showed the mean % of EVs which were charging in each quarter-hour of the day by charge type. Based on Table \@ref(tab:obsPower), let us assume:
+Based on Table \@ref(tab:obsPower), let us assume:
 
  * standard charging = `r medianStd` kW (median)
  * rapid charging = `r medianRap` kW (median)
@@ -1447,6 +1449,8 @@ Using the very out of date Census 2013 data we can estimate that:
    * `r tidyNum(car3Households)` have 3+ cars
 
 We now apply the % charge rates calculated above to these values to estimate the additional power demand.
+
+## Scenario 1: All households with >= 1 car switch one of them (or the one they have) to an EV
 
 Under scenario 1 (Figure \@ref(fig:scaledCharging1)) we can see demand increases by ~ 500 MW during the late evening and overnight due to standard charging which tebnds to avoid peak periods. On the other hand rapid charging, although less frequent (see Figure \@ref(fig:pcCharging)) has a bigger effect due to it's larger power draw.
 
@@ -1515,6 +1519,11 @@ ggplot2::ggplot(dt, aes(x = halfHour, y = kWh/1000, colour = chargeType)) +
   facet_grid(weekdays ~ .)
   
 ```
+
+
+XX need to do a % add plot * calculations XX
+
+Overall...
 
 # Summary {#summary}
 Based on a relatively small and probably non-representative sample of `r data.table::uniqueN(cleanDT$dvID)` domestic electric vehicles provided by our research partner [FlipTheFleet](https://flipthefleet.org/) and which were monitored from `r format(min(rawDT$date), format = "%B %Y")` to `r format(max(rawDT$date), format = "%B %Y")` we have found that:
