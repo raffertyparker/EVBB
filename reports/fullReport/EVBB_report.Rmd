@@ -1158,7 +1158,7 @@ evPlotDT[, sampleCarkW := ifelse(chargeType == "Rapid charging",
 p <- ggplot2::ggplot(evPlotDT[!(chargeType %like% "Not")], aes(x = qHour, y = sampleCarkW, colour = chargeType)) +
   geom_point() +
   scale_color_discrete(name = "Charge Type") +
-  labs(y = "Mean kW per EV per quarter hour", x = "Time of day") +
+  labs(y = "Estimated mean kW per EV per quarter hour", x = "Time of day") +
   facet_grid(weekdays ~ .)
 
 yMin <- min(evPlotDT$sampleCarkW, na.rm = TRUE)
@@ -1509,7 +1509,7 @@ kableExtra::kable(t, digits = 2,
 
 ```
 
-To determine whether this is a significant proportion of New Zealand national demand we convert the mean the MW values to MWh per half-hour for comparison with mean MWh per half-hour national generation values for the same period sourced from the EA's XXX.
+To determine whether this is a significant proportion of New Zealand national demand we convert the mean the MW values to MWh per half-hour for comparison with mean MWh per half-hour national generation values for the same period sourced from the EA's EMI XX reference XXX.
 
 ```{r genDataPrep}
 genDataDT <- genDataDT[date >= as.Date("2018-10-01") & date <= as.Date("2019-02-28")]
@@ -1519,14 +1519,17 @@ genPlotDT <- genDataDT[, .(nHalfHours = uniqueN(rDateTime),
                  keyby = .(weekdays, halfHour)]
 genPlotDT[, genkWh := sumkWh/nHalfHours]
 
-ggplot2::ggplot(genPlotDT, aes(x = halfHour, y = genkWh/1000, # mean total MW
-                               colour = weekdays)) +
-  geom_point() +
-  labs(x = "Time of day",
-       y = "Mean total MWh")
+# ggplot2::ggplot(genPlotDT, aes(x = halfHour, y = genkWh/1000, # mean total MW
+#                                colour = weekdays)) +
+#   geom_point() +
+#   labs(x = "Time of day",
+#        y = "Mean total MWh")
 ```
 
-```{r convertEVtoMWh}
+#### Summer
+Figure \@ref(fig:convertEVtoMWh) shows the result of this calculation for the study period. Note that this was during the summer so evneing peaks are lower.
+
+```{r convertEVtoMWh, fig.cap("Actual wholesale generation and estimated energy consumption under Scenario 1 for the study period.")}
 
 evPlotDT <- evPlotDT[, halfHour := hms::trunc_hms(qHour, 30*60)]
 
@@ -1540,16 +1543,23 @@ genPlotDT[, chargeType := "Wholesale generation"]
 
 dt <- rbind(genPlotDT[,.(weekdays, halfHour, kWh, chargeType)], evHalfHourDT[,.(weekdays, halfHour, kWh, chargeType)])
 
-ggplot2::ggplot(dt, aes(x = halfHour, y = kWh/1000, colour = chargeType)) +
+p <- ggplot2::ggplot(dt[!(chargeType %like% "Not")], aes(x = halfHour, y = kWh/1000, colour = chargeType)) +
   geom_point() +
+  scale_color_discrete(name = "Key") +
+  labs(x = "Time of Day", y = "MWh per half hour") +
   facet_grid(weekdays ~ .)
-  
+
+yMin <- min(dt$kWh/1000, na.rm = TRUE)
+yMax <- max(dt$kWh/1000, na.rm = TRUE)
+addPeaks(p)
+
 ```
 
 
-XX need to do a % add plot * calculations XX
+XX need to do a % add plot & check calculations XX
 
-Overall...
+### Winter
+
 
 # Summary {#summary}
 Based on a relatively small and probably non-representative sample of `r data.table::uniqueN(cleanDT$dvID)` domestic electric vehicles provided by our research partner [FlipTheFleet](https://flipthefleet.org/) and which were monitored from `r format(min(rawDT$date), format = "%B %Y")` to `r format(max(rawDT$date), format = "%B %Y")` we have found that:
