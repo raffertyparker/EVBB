@@ -264,7 +264,7 @@ div.tocify {
 <h1 class="title toc-ignore">Analysis of electric vehicle usage patterns in New Zealand</h1>
 <h3 class="subtitle">Statistical report using Flip The Fleet data</h3>
 <h4 class="author">Rafferty Parker and Ben Anderson (<a href="mailto:ben.anderson@otago.ac.nz">ben.anderson@otago.ac.nz</a>), <a href="https://www.otago.ac.nz/centre-sustainability/">Centre for Sustainability</a>, University of Otago; Daniel Myall (Flip The Fleet, <a href="mailto:daniel@zeno.nz">daniel@zeno.nz</a>)</h4>
-<h4 class="date">Last run at: 2019-08-25 12:05:10</h4>
+<h4 class="date">Last run at: 2019-08-26 10:05:00</h4>
 
 </div>
 
@@ -351,6 +351,9 @@ r_dateTime
 <th style="text-align:left;">
 timeChr
 </th>
+<th style="text-align:left;">
+odometerFlag
+</th>
 </tr>
 </thead>
 <tbody>
@@ -371,6 +374,9 @@ Min. :-62920
 </td>
 <td style="text-align:left;">
 Min. :2018-04-05 10:34:41
+</td>
+<td style="text-align:left;">
+Length:1882040
 </td>
 <td style="text-align:left;">
 Length:1882040
@@ -403,6 +409,9 @@ Class :character
 <td style="text-align:left;">
 Class1:hms
 </td>
+<td style="text-align:left;">
+Class :character
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -427,6 +436,9 @@ Mode :character
 </td>
 <td style="text-align:left;">
 Class2:difftime
+</td>
+<td style="text-align:left;">
+Mode :character
 </td>
 </tr>
 <tr>
@@ -453,6 +465,9 @@ NA
 <td style="text-align:left;">
 Mode :numeric
 </td>
+<td style="text-align:left;">
+NA
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -471,6 +486,9 @@ NA
 </td>
 <td style="text-align:left;">
 3rd Qu.:2019-01-13 22:10:02
+</td>
+<td style="text-align:left;">
+NA
 </td>
 <td style="text-align:left;">
 NA
@@ -503,6 +521,9 @@ NA
 <td style="text-align:left;">
 NA
 </td>
+<td style="text-align:left;">
+NA
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -521,6 +542,9 @@ NA’s :1255614
 </td>
 <td style="text-align:left;">
 NA’s :137
+</td>
+<td style="text-align:left;">
+NA
 </td>
 <td style="text-align:left;">
 NA
@@ -2732,10 +2756,10 @@ Rapid charging
 Figure 4.14: Value of state of charge when charging begins (values &gt; 90% removed)
 </p>
 </div>
-<p>Figure <a href="#fig:SoCplotBegin">4.15</a> repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure <a href="#fig:SoCplot3"><strong>??</strong></a> shows very similar distributions to the previous ‘all-observations’ plot (Figure <a href="#fig:SoCplot2">4.14</a>) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%.</p>
+<p>Figure <a href="#fig:SoCplotBegin"><strong>??</strong></a> repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure <a href="#fig:SoCplot3"><strong>??</strong></a> shows very similar distributions to the previous ‘all-observations’ plot (Figure <a href="#fig:SoCplot2corrected">4.15</a>) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:SoCplotBegin">Table 4.4: </span>Summary statistics for % state of charge on first charge in a sequence, values &gt; 90% removed
+<span id="tab:SoCplot2corrected">Table 4.4: </span>Summary statistics for % state of charge on first charge in a sequence, values &gt; 90% removed
 </caption>
 <thead>
 <tr>
@@ -2793,8 +2817,8 @@ Rapid charging
 </tr>
 </tbody>
 </table>
-<div class="figure"><span id="fig:SoCplotBegin"></span>
-<img src="EVBB_report_EVBB_processed_all_v2.0_20190604_files/figure-html/SoCplotBegin-1.png" alt="Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)" width="672" />
+<div class="figure"><span id="fig:SoCplot2corrected"></span>
+<img src="EVBB_report_EVBB_processed_all_v2.0_20190604_files/figure-html/SoCplot2corrected-1.png" alt="Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)" width="672" />
 <p class="caption">
 Figure 4.15: Value of state of charge at beginning of charging sequence (chargeType corrected, values &gt; 90% removed)
 </p>
@@ -2956,7 +2980,7 @@ Figure 4.18: Mean state of charge at beginning of charge sequence by time of day
 <li>38% have 2</li>
 <li>16% have 3+ (we will treat this as 3)</li>
 </ul>
-<p>We can now use the results shown in Figure <a href="#fig:pcCharging">4.5</a> to construct a set of scenarios:</p>
+<p>We can now use the results shown in Figure <a href="#fig:pcCharging">4.5</a> to construct a any number of scenarios such as:</p>
 <ul>
 <li>All households with &gt;= 1 car switch one of them (or the one they have) to an EV (scenario 1)</li>
 <li>All households switch all cars to EVs (scenario 2)</li>
@@ -3092,18 +3116,19 @@ Rapid charging
 <pre class="r"><code>skimr::skim(rawDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1882040 
-##  n variables: 7 
+##  n variables: 8 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-##  variable missing complete       n min max empty n_unique
-##      dvID       0  1882040 1882040   9  10     0       52
-##        id       0  1882040 1882040  32  32     0       52
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────
+##      variable missing complete       n min max empty n_unique
+##          dvID       0  1882040 1882040   9  10     0       52
+##            id       0  1882040 1882040  32  32     0       52
+##  odometerFlag 1255614   626426 1882040   1   3     0        3
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n    min        max     median n_unique
 ##   timeChr       0  1882040 1882040 0 secs 86399 secs 44877 secs    86400
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────
 ##                 variable missing complete       n    mean      sd     p0
 ##          charge_power_kw       0  1882040 1882040    1.59   63.73      0
 ##              odometer_km 1255614   626426 1882040 7789.97 8268.44 -62920
@@ -3113,7 +3138,7 @@ Rapid charging
 ##  2166.25 5309    11154    73607    ▁▁▁▇▇▁▁▁
 ##    56.31   70.41    83.05  1677.72 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete       n        min        max     median
 ##  r_dateTime     137  1881903 1882040 2018-04-05 2019-03-01 2018-11-25
 ##  n_unique
@@ -3125,23 +3150,24 @@ Rapid charging
 <pre class="r"><code>skimr::skim(cleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 1518009 
-##  n variables: 21 
+##  n variables: 22 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-##    variable missing complete       n min max empty n_unique
-##  chargeFlag       4  1518005 1518009   2  25     0        5
-##        dvID       0  1518009 1518009   9  10     0       48
-##          id       0  1518009 1518009  32  32     0       48
-##  peakPeriod       0  1518009 1518009   8  12     0        3
-##    weekdays       0  1518009 1518009   8   8     0        2
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────
+##      variable missing complete       n min max empty n_unique
+##    chargeFlag       4  1518005 1518009   2  25     0        5
+##          dvID       0  1518009 1518009   9  10     0       48
+##            id       0  1518009 1518009  32  32     0       48
+##  odometerFlag 1058083   459926 1518009   1   3     0        3
+##    peakPeriod       0  1518009 1518009   8  12     0        3
+##      weekdays       0  1518009 1518009   8   8     0        2
 ## 
-## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete       n        min        max     median
 ##      date       0  1518009 1518009 2018-10-01 2019-03-01 2018-12-12
 ##  n_unique
 ##       152
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────
 ##        variable missing complete       n    min          max   median
 ##             hms       0  1518009 1518009 0 secs   86399 secs 12:13:06
 ##           qHour       0  1518009 1518009 0 secs   85500 secs 12:00:00
@@ -3155,7 +3181,7 @@ Rapid charging
 ##     86400
 ##     86400
 ## 
-## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────────────────
 ##     variable missing complete       n n_unique
 ##   chargeType       0  1518009 1518009        3
 ##  day_of_week       0  1518009 1518009        7
@@ -3163,7 +3189,7 @@ Rapid charging
 ##          Sta: 880031, Not: 629664, Rap: 8314, NA: 0   FALSE
 ##  Thu: 244939, Wed: 240497, Fri: 236907, Tue: 219544    TRUE
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete       n    mean      sd     p0     p25
 ##  charge_power_kw       0  1518009 1518009    1.38    2.68      0    0   
 ##            month       0  1518009 1518009    7.36    4.67      1    2   
@@ -3179,7 +3205,7 @@ Rapid charging
 ##    70.17    82.82    98.1  ▁▁▂▃▆▇▇▇
 ##     0        0       70.16 ▇▁▁▁▁▁▁▁
 ## 
-## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete       n        min        max     median
 ##       r_dateTime       0  1518009 1518009 2018-10-01 2019-03-01 2018-12-12
 ##  r_dateTimeQhour       0  1518009 1518009 2018-10-01 2019-03-01 2018-12-12
@@ -3190,22 +3216,23 @@ Rapid charging
 <pre class="r"><code>skimr::skim(firstCleanDT)</code></pre>
 <pre><code>## Skim summary statistics
 ##  n obs: 3685 
-##  n variables: 24 
+##  n variables: 25 
 ## 
-## ── Variable type:character ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:character ────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n min max empty n_unique
 ##       chargeFlag       0     3685 3685  25  25     0        1
 ##  chargeTypeError       0     3685 3685  31  37     0        4
 ##             dvID       0     3685 3685   9  10     0       48
 ##               id       0     3685 3685  32  32     0       48
+##     odometerFlag    2909      776 3685   2   3     0        2
 ##       peakPeriod       0     3685 3685   8  12     0        3
 ##         weekdays       0     3685 3685   8   8     0        2
 ## 
-## ── Variable type:Date ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:Date ─────────────────────────────────────────────────────────────────────────────────────────────
 ##  variable missing complete    n        min        max     median n_unique
 ##      date       0     3685 3685 2018-10-01 2019-03-01 2018-12-05      143
 ## 
-## ── Variable type:difftime ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:difftime ─────────────────────────────────────────────────────────────────────────────────────────
 ##        variable missing complete    n                   min
 ##         endTime       0     3685 3685 31 secs              
 ##             hms       0     3685 3685 40 secs              
@@ -3223,7 +3250,7 @@ Rapid charging
 ##   86246 secs          15:29:15               3514
 ##   86246 secs          15:29:15               3514
 ## 
-## ── Variable type:factor ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:factor ───────────────────────────────────────────────────────────────────────────────────────────
 ##             variable missing complete    n n_unique
 ##           chargeType       0     3685 3685        2
 ##  chargeTypeCorrected       0     3685 3685        2
@@ -3235,7 +3262,7 @@ Rapid charging
 ##  Thu: 570, Wed: 568, Fri: 567, Mon: 524    TRUE
 ##      Sta: 3296, Rap: 389, Not: 0, NA: 0   FALSE
 ## 
-## ── Variable type:numeric ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:numeric ──────────────────────────────────────────────────────────────────────────────────────────
 ##         variable missing complete    n    mean      sd        p0     p25
 ##  charge_power_kw       0     3685 3685    6.61   11.99      0.5     1.56
 ##            month       0     3685 3685    8.11    4.39      1       2   
@@ -3249,7 +3276,7 @@ Rapid charging
 ##  5127.5  10559    54443    ▁▁▁▁▇▂▁▁
 ##    49.13    61.28    98.1  ▁▃▆▇▇▅▂▂
 ## 
-## ── Variable type:POSIXct ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Variable type:POSIXct ──────────────────────────────────────────────────────────────────────────────────────────
 ##    variable missing complete    n        min        max     median
 ##  r_dateTime       0     3685 3685 2018-10-01 2019-03-01 2018-12-05
 ##  n_unique
