@@ -56,7 +56,7 @@ cbgPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # > where to save plots
-pPath <- paste0(here::here(), "docs/plots/")
+pPath <- paste0(here::here(), "/docs/plots")
 
 # > define peak periods ----
 # see https://www.electrickiwi.co.nz/hour-of-power
@@ -772,6 +772,13 @@ p <- ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeType)) +
   geom_line() +
   facet_grid(weekdays ~ .) +
   guides(colour = guide_legend(title = "Charge type"))
+p <- p + labs(x = "Time of day", y = "Count per 15 minutes")
+
+yMin <- min(evPlotDT$nDaily, na.rm = TRUE)
+yMax <- max(evPlotDT$nDaily, na.rm = TRUE)
+p <- addPeaks(p)
+
+ggplot2::ggsave(paste0(pPath,"/chargeTimeCount.png"), p ) # for PCE report
 
 p + labs(x = "Time of day", y = "Count per 15 minutes",
          caption = paste0(myCap,
@@ -899,8 +906,11 @@ p <- ggplot2::ggplot(evPlotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeT
 
 yMin <- min(evPlotDT$meanPC * 100)
 yMax <- max(evPlotDT$meanPC * 100)
-addPeaks(p)
+p <- addPeaks(p)
 
+ggplot2::ggsave(paste0(pPath,"/pcCharging.png"), p ) # for PCE report
+
+p
 ```
 
 These results are reported in Figure \@ref(fig:pcCharging) which shows the estimated mean % of EVs which were charging in each quarter-hour of the day by charge type. As we would expect the pattern of charging replicates that found in Figure \@ref(fig:chargeTimeCount) and indicates the relative rarity of rapid charging.
@@ -1274,16 +1284,21 @@ myCap <- paste0(cleanCap,
                 "\n n EVs: ", uniqueN(plotDT$dvID)
 )
 
-p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging begins (%)", 
-         caption = myCap) +
+p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20) +
   facet_grid(chargeType ~ ., scales = "free")
 
+p <- p + labs(x = "State of charge when charging begins (%)")
+
+ggplot2::ggsave(paste0(pPath,"/SoCplot2.png"), p ) # for PCE report
+
+p <- p + labs(x = "State of charge when charging begins (%)", 
+         caption = myCap)
+p
 ```
 
-Figure \@ref(fig:SoCplotBegin) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
+Figure \@ref(fig:SoCplotBegin) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2corrected)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
 
-```{r SoCplotBegin, fig.cap= "Value of state of charge at beginning of charging sequence (chargeType corrected, values > 90% removed)"}
+```{r SoCplot2corrected, fig.cap= "Value of state of charge at beginning of charging sequence (chargeType corrected, values > 90% removed)"}
 plotDT <- firstCleanDT[SoC_percent < 90]
 
 t <- firstCleanDT[SoC_percent < 90, .("Mean SoC %" = mean(SoC_percent),
@@ -1302,10 +1317,16 @@ myCap <- paste0(cleanCap,
                  "\n n EVs: ", uniqueN(plotDT$dvID)
 )
 
-p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging begins (%)", 
-         caption = myCap) +
+p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20) +
   facet_grid(chargeTypeCorrected ~ ., scales = "free")
+
+p <- p + labs(x = "State of charge when charging begins (%)")
+
+ggplot2::ggsave(paste0(pPath,"/SoCplot2corrected.png"), p ) # for PCE report
+
+p <- p + labs(x = "State of charge when charging begins (%)", 
+         caption = myCap)
+p
 
 ```
 
@@ -1330,11 +1351,16 @@ myCap <- paste0(cleanCap,
                  "\n n EVs: ", uniqueN(plotDT$dvID)
 )
 
-p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20)
-p + labs(x = "State of charge when charging ends (%)", 
-         caption = myCap) +
+p <- ggplot(plotDT, aes(x = SoC_percent)) + geom_histogram(bins = 20) +
   facet_grid(chargeTypeCorrected ~ ., scales = "free")
 
+p <- p + labs(x = "State of charge when charging ends (%)")
+
+ggplot2::ggsave(paste0(pPath,"/SoCplotEnd.png"), p ) # for PCE report
+
+p <- p + labs(x = "State of charge when charging ends (%)", 
+         caption = myCap)
+p
 ```
 
 Figure \@ref(fig:SoCplotDiff) shows the difference in charge gain for all charge sequences where the starting charge was less than 90% (as above).
@@ -1437,7 +1463,7 @@ Based on Table \@ref(tab:obsPower), let us assume:
    * `r 100*twoCar`% have 2
    * `r 100*threeCar`% have 3+ (we will treat this as 3)
 
-We can now use the results shown in Figure \@ref(fig:pcCharging) to construct a set of scenarios:
+We can now use the results shown in Figure \@ref(fig:pcCharging) to construct a any number of scenarios such as:
 
  * All households with >= 1 car switch one of them (or the one they have) to an EV (scenario 1)
  * All households switch all cars to EVs (scenario 2)

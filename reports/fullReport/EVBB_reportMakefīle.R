@@ -101,7 +101,8 @@ getGenData <- function(files){
 
 # run report
 doReport <- function(){
-  message("Running ", rmd, " and saving as ", outF) 
+  message("Running ", rmd)
+  message("Saving as ", outF) 
   rmarkdown::render(input = rmd,
                     output_file=outF)
 }
