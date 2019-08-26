@@ -1163,8 +1163,9 @@ p <- ggplot2::ggplot(evPlotDT[!(chargeType %like% "Not")], aes(x = qHour, y = sa
 
 yMin <- min(evPlotDT$sampleCarkW, na.rm = TRUE)
 yMax <- max(evPlotDT$sampleCarkW, na.rm = TRUE)
-addPeaks(p)
+p <- addPeaks(p)
 
+ggplot2::ggsave(paste0(pPath,"/imputedkWperEV.png"), p ) # for PCE report
 ```
 
 
@@ -1294,6 +1295,10 @@ ggplot2::ggsave(paste0(pPath,"/SoCplot2.png"), p ) # for PCE report
 p <- p + labs(x = "State of charge when charging begins (%)", 
          caption = myCap)
 p
+
+# % of rapid starting at 5% or less
+plotDT[, cut := ifelse(SoC_percent <= 5, "<= 5%", "Other")]
+t <- plotDT[, .(nObs = .N), keyby = .(cut, chargeType)]
 ```
 
 Figure \@ref(fig:SoCplotBegin) repeats this analysis but uses the cleaned and corrected inferred start/end of charging sequence data instead of all charging observations. Figure \@ref(fig:SoCplot3) shows very similar distributions to the previous 'all-observations' plot (Figure \@ref(fig:SoCplot2corrected)) and confirms that sequences of standard charging in particular most frequently start with battery state of charge over 50%. 
