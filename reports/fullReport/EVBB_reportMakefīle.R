@@ -51,6 +51,23 @@ pmPeakEnd <- hms::as.hms("21:00:00") # see https://www.electrickiwi.co.nz/hour-o
 rmd <- paste0(here::here(), "/reports/fullReport/EVBB_report.Rmd")
 outF <- paste0(here::here(), "/docs/EVBB_report_", dataFile ,'.html') # for easier github pages management
 
+setPeakPeriod <- function(dt){
+  # assumes hms exists
+  dt[, peakPeriod := NA]
+  dt[, peakPeriod := ifelse(hms < amPeakStart, "Early morning", peakPeriod)]
+  dt[, peakPeriod := ifelse(hms >= amPeakStart & hms < amPeakEnd, "Morning peak", peakPeriod)]
+  dt[, peakPeriod := ifelse(hms >= amPeakEnd & hms < pmPeakStart, "Day time", peakPeriod)]
+  dt[, peakPeriod := ifelse(hms >= pmPeakStart & hms < pmPeakEnd, "Evening peak", peakPeriod)]
+  dt[, peakPeriod := ifelse(hms >= pmPeakEnd, "Late evening", peakPeriod)]
+  dt[, peakPeriod := forcats::fct_relevel(peakPeriod, 
+                                          "Early morning",
+                                          "Morning peak",
+                                          "Day time",
+                                          "Evening peak",
+                                          "Late evening")]
+  return(dt)
+}
+
 # load the EV data ----
 loadData <- function(dFile){
   print(paste0("Using ", dFile)) # <- dFile
@@ -96,6 +113,9 @@ getGenData <- function(files){
   dt[, weekdays := "Weekdays"]
   dt[, weekdays := ifelse(day_of_week == "Sat" |
                                    day_of_week == "Sun", "Weekends", weekdays)]
+  # locate in peak/not peak ----
+  dt <- setPeakPeriod(dt)
+  
   return(dt)
 }
 

@@ -65,8 +65,8 @@ setEAGenTimePeriod <- function(dt){
   return(dt)
 }
 
-# NZ Electricity Authority generation data for June 2018. Well, why not?
-months <- c("201806", "201807","201808","201809","201810","201811","201812", "201901", "201902", "201903")
+# NZ Electricity Authority generation data
+months <- c("201801", "201802","201803","201804","201805", "201806", "201807","201808","201809","201810","201811","201812")
 #months <- c("201806","201807")
 rDataLoc <- "https://www.emi.ea.govt.nz/Wholesale/Datasets/Generation/Generation_MD/"
 
