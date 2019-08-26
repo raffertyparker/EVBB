@@ -1,6 +1,6 @@
 ---
 params:
-  authors: 'Rafferty Parker and Ben Anderson (ben.anderson@otago.ac.nz), [Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago; Daniel Myall (Flip The Fleet, daniel@zeno.nz)'
+  authors: 'Rafferty Parker and Ben Anderson ([Centre for Sustainability](https://www.otago.ac.nz/centre-sustainability/), University of Otago, ben.anderson@otago.ac.nz); Daniel Myall (Flip The Fleet, daniel@zeno.nz)'
   title: 'Analysis of electric vehicle usage patterns in New Zealand'
   subtitle: 'Statistical report using Flip The Fleet data'
 title: '`r paste0(params$title)`'
@@ -130,8 +130,6 @@ cleanDT[, chargeType := forcats::lvls_reorder(chargeType, 3:1)]
 # fix state of charge name ----
 setnames(cleanDT, c("state_of_charge_percent"), c("SoC_percent"))
 
-
-
 # removal of odd state of charge percentage values ----
 #df$SoC_percent[df$SoC_percent > 100] <- NA
 cleanDT[SoC_percent > 100, SoC_percent := NA]
@@ -162,31 +160,10 @@ cleanDT[, r_dateTimeDiff := r_dateTime - shift(r_dateTime), by = id]
 cleanDT[, odometerDiff := odometer_km - shift(odometer_km), by = id]
 
 # locate in peak/not peak ----
-cleanDT[, peakPeriod := "Day time"]
-cleanDT[, startTime := hms::as.hms(r_dateTime)]
-cleanDT[, peakPeriod := ifelse(startTime < amPeakStart,
-                                "Early morning",
-                                peakPeriod)]
-cleanDT[, peakPeriod := ifelse(startTime >= amPeakStart & 
-                                  startTime <= amPeakEnd,
-                                "Morning peak",
-                                peakPeriod)]
-cleanDT[, peakPeriod := ifelse(startTime >= pmPeakStart & 
-                                  startTime <= pmPeakEnd,
-                                "Evening peak",
-                                peakPeriod)]
-cleanDT[, peakPeriod := ifelse(startTime > pmPeakEnd,
-                                "Late evening",
-                                peakPeriod)]
-# re-order factor so Standard plots to the left (makes more sense)
-cleanDT[, peakPeriod := forcats::fct_relevel(peakPeriod, 
-                                             "Early morning",
-                                             "Morning peak",
-                                             "Day time",
-                                             "Evening peak",
-                                             "Late evening")]
+cleanDT <- setPeakPeriod(cleanDT)
 
-cleanDT[, .(nObs = .N), keyby = .(hour = lubridate::hour(r_dateTime), peakPeriod)]
+# set for sequence extraction
+cleanDT[, startTime := r_dateTime]
 ```
 
 ```{r createChargeSequenceFlag, include=FALSE}
@@ -325,7 +302,7 @@ firstLastDT <- firstLastDT[chargeFlag %like% "Last", pairDuration := NA] # remov
 
 # Heath warning
 
-> The analysis reported below is work in progress. Please check with the authors before quoting or re-using (with attribution) results/plots. Reporting interim results can seriously damage your health. #YMMV.
+> The analysis reported below is work in progress. Please check with the authors before quoting or re-using (with attribution) results/plots. Reporting interim results without checking can __seriously__ damage your health. #YMMV.
 
 # About
 
@@ -1168,9 +1145,9 @@ Based on Table \@ref(tab:obsPower), let us assume:
  * standard charging = `r round(medianStd, 2)` kW (median)
  * rapid charging = `r round(medianRap, 2)` kW (median)
 
-We can now calculate the mean kW demand per EV per time period by multiplying these values by the appropriate % of EVs who were charging by charge type. The results of doing so are shown in \@ref(fig:setPower). 
+We can now calculate the mean kW demand per EV per time period by multiplying these values by the appropriate % of EVs who were charging by charge type (the data used to construct \@ref(fig:pcCharging)). The results of doing so are shown in \@ref(fig:setPower). 
 
-```{r setPower}
+```{r setPower, fig.caption = "Estimated mean kW"}
 evPcChargingPlotDT[, sampleCarkW := ifelse(chargeType == "Standard charging",
                            meanPC * medianStd,
                            NA)
@@ -1202,7 +1179,7 @@ We can now see that:
  * despite the relative rarity of rapid charging, their much higher power demand produces a much higher mean kW load on the network, especially during the day. Note that the level of rapid charging between 00:00 and 08:00 on weekdays seems unexpected although it is reflected in Figure \@ref(fig:pcCharging) which shows that it is based on `r uniqueN(cleanDT[chargeType %like% "Rapid" & peakPeriod %like% "Early", dvID])` different EVs. Given the relatively low number of EVs reporting rapooid charging in this time period, this result should be treated with caution. 
 
 
-## Estimating energy consumption
+## Estimating energy consumption {#estimatekWh}
 
 In addition to electricity demand (power in kW) we are also interested in overall energy consumption (kWh). To do this we take the mean kW per quarter hour per EV values reported in \@ref(fig:setPower) and divide them by 4 to give mean kWh per quarter hour per EV.
 
@@ -1246,7 +1223,8 @@ t[weekdays == "Weekends", totalMeanKWh_pc := 100*(totalMeanKWh/totalWekWh)]
 kableExtra::kable(t[, .("Day" = weekdays, "Charge type" = chargeType,
                         "Total mean kWh" = totalMeanKWh,
                         "% total mean kWh (within day)" = totalMeanKWh_pc)], digits = 2,
-                  caption = "Estimated mean daily kWh by charge type (all observations)")
+                  caption = "Estimated mean daily kWh by charge type (all observations)") %>%
+  kable_styling()
 ```
 
 Overall we estimate that `r round(100*t[chargeType %like% "Standard", sum(totalMeanKWh)]/sum(t$totalMeanKWh),2)`% of electricty consumption for EVs is via standard charging. Table \@ref(tab:estimatekWh) reports the estimated mean daily kWh consumed during charging on weekdays and weekends and the % within weekdays and weekends. The results indicate little difference between weekdays and weekends in terms of the % of kWh consumption which is standard vs rapid charging. 
@@ -1272,7 +1250,8 @@ kableExtra::kable(tt[, .("Day" = weekdays,
                          "Charge type" = chargeType,
                         "Total mean kWh" = totalMeanKWh,
                         "% total mean kWh (within day)" = totalMeanKWh_pc)], digits = 2,
-                  caption = "Estimate mean kW and kWh by charge type and peak period (all observations)")
+                  caption = "Estimate mean kW and kWh by charge type and peak period (all observations)") %>%
+  kable_styling()
 
 p <- ggplot2::ggplot(tt, aes(x = peakPeriod, y = totalMeanKWh_pc, fill = chargeType)) +
   geom_col() +
@@ -1285,9 +1264,7 @@ ggplot2::ggsave(paste0(pPath,"/estimatekWhByPeak.png"), p ) # for PCE report
 p
 ```
 
-Table \@ref(tab:estimatekWhByPeak) and Figure \@ref(tab:estimatekWhByPeak) repeats this analysis but shows the results by peak period.
-
-
+Table \@ref(tab:estimatekWhByPeak) and Figure \@ref(tab:estimatekWhByPeak) repeats this analysis but shows the results by peak period. Clearly rapid charging during the day dominates energy (kWh) consumption with standard charging during the evening peak being responsible for a mere 3-4% of the energy consumed by EV charging.
 
 ## Charging duration {#duration}
 
@@ -1463,8 +1440,8 @@ ci_l <- p - 1.96*sqrt((p*(1-p)/n))
 Statistics:
 
  * `r t[cut == "<= 5%" & chargeType %like% "Rapid", nObs]` of the `r t[chargeType %like% "Rapid", sum(nObs)]` rapid charging sequences with intial SoC < 90% started with less than 5% charge;
- * `r t[cut == "> 50%" & chargeType %like% "Rapid", nObs]` of `r t[chargeType %like% "Rapid", sum(nObs)]` (`r round(100*(t[cut == "> 50%" & chargeType %like% "Rapid", nObs]/t[chargeType %like% "Rapid", sum(nObs)]),2)`%)) rapid charging sequences with intial SoC < 90% started with greater than 50% charge;
-  * `r t[cut == "> 50%" & chargeType %like% "Standard", nObs]` of `r t[chargeType %like% "Standard", sum(nObs)]` (`r round(100*(t[cut == "> 50%" & chargeType %like% "Standard", nObs]/t[chargeType %like% "Standard", sum(nObs)]),2)`%)) standard charging sequences with intial SoC < 90% started with greater than 50% charge;
+ * `r t[cut == "> 50%" & chargeType %like% "Rapid", nObs]` of `r t[chargeType %like% "Rapid", sum(nObs)]` (`r round(100*(t[cut == "> 50%" & chargeType %like% "Rapid", nObs]/t[chargeType %like% "Rapid", sum(nObs)]),2)`%) rapid charging sequences with intial SoC < 90% started with greater than 50% charge;
+  * `r t[cut == "> 50%" & chargeType %like% "Standard", nObs]` of `r t[chargeType %like% "Standard", sum(nObs)]` (`r round(100*(t[cut == "> 50%" & chargeType %like% "Standard", nObs]/t[chargeType %like% "Standard", sum(nObs)]),2)`%) standard charging sequences with intial SoC < 90% started with greater than 50% charge;
  
 
 Figure \@ref(fig:SoCplotEnd) shows the state of charge at the end of a charging sequence using the cleaned and corrected inferred start/end of charging sequence data, We can now see that the majority of standard charge sequences end with close to 100% charge but most rapid charge sequences end with around 75-80% charge.
@@ -1589,33 +1566,36 @@ car2Households <- nHouseholds * (twoCar)
 car3Households <- nHouseholds * (threeCar)
 ```
 
-Based on Table \@ref(tab:obsPower), let us assume:
+Based on Table \@ref(tab:obsPower), we can repeat the process used in Section \@ref(estimatekWh) by estimating:
 
- * standard charging = `r medianStd` kW (median)
- * rapid charging = `r medianRap` kW (median)
+ * standard charging = `r round(medianStd, 2)` kW (median)
+ * rapid charging = `r round(medianRap,2)` kW (median)
+ 
+And that:
+ 
  * there are 1,771,300 households in New Zealand (https://www.stats.govt.nz/information-releases/dwelling-and-household-estimates-june-2019-quarter)
  * Car ownership 2013 (http://archive.stats.govt.nz/Census/2013-census/profile-and-summary-reports/quickstats-transport-comms/number-motor-vehicles.aspx):
-   * `r 100*noCar`% have no car
-   * `r 100*oneCar`% have 1
-   * `r 100*twoCar`% have 2
-   * `r 100*threeCar`% have 3+ (we will treat this as 3)
+    * `r 100*noCar`% have no car
+    * `r 100*oneCar`% have 1
+    * `r 100*twoCar`% have 2
+    * `r 100*threeCar`% have 3+ (we can treat this as 3)
 
-We can now use the results shown in Figure \@ref(fig:pcCharging) to construct a any number of scenarios such as:
+We can now use the results shown in Figure \@ref(fig:pcCharging) to construct a number of EV uptake scenarios such as:
 
- * All households with >= 1 car switch one of them (or the one they have) to an EV (scenario 1)
- * All households switch all cars to EVs (scenario 2)
+ * All households with >= 1 car switch one of them (or the one they have) to an EV (scenario 1) and their charging behaviour is exactly as reported in Figure \@ref(fig:pcCharging)
  
 Using the very out of date Census 2013 data we can estimate that:
+
  * we have `r tidyNum(carHouseholds)` car owning households of which
-   * `r tidyNum(car1Households)` have 1 car
-   * `r tidyNum(car2Households)` have 2 cars
-   * `r tidyNum(car3Households)` have 3+ cars
+    * `r tidyNum(car1Households)` have 1 car
+    * `r tidyNum(car2Households)` have 2 cars
+    * `r tidyNum(car3Households)` have 3+ cars
 
 We now apply the % charge rates calculated above to these values to estimate the additional power demand.
 
 ## Scenario 1: All households with >= 1 car switch one of them (or the one they have) to an EV
 
-Under scenario 1 (Figure \@ref(fig:scaledCharging1)) we can see demand increases by ~ 500 MW during the late evening and overnight due to standard charging which tebnds to avoid peak periods. On the other hand rapid charging, although less frequent (see Figure \@ref(fig:pcCharging)) has a bigger effect due to it's larger power draw.
+Under this scenario (Figure \@ref(fig:scaledCharging1)) we can see demand increases by ~ 500 MW during the late evening and overnight due to standard charging which tends to avoid peak periods. On the other hand rapid charging, although less frequent (see Figure \@ref(fig:pcCharging)) has a bigger effect due to it's larger power draw.
 
 ```{r scaledCharging1, fig.cap = "Estimated MW demand under scenario 1 (1 ICE <-> EV substitute for all households with cars)"}
 evPcChargingPlotDT[, carkW := ifelse(chargeType %like% "Standard", 
@@ -1646,14 +1626,21 @@ kableExtra::kable(t, digits = 2,
 
 ```
 
-To determine whether this is a significant proportion of New Zealand national demand we convert the mean the MW values to MWh per half-hour for comparison with mean MWh per half-hour national generation values for the same period sourced from the EA's EMI XX reference XXX.
+As we would expect this plot shows exactly the same distribution as Figure \@ref(fig:setPower).
+
+To determine whether this is a significant proportion of New Zealand national demand we convert the mean the MW values to MWh per half-hour for comparison with mean MWh per half-hour national generation values sourced from the EA's EMI XX reference XXX.
 
 ```{r genDataPrep}
-genDataDT <- genDataDT[date >= as.Date("2018-10-01") & date <= as.Date("2019-02-28")]
+genDataDT <- genDataDT[, season := ifelse(month > 2 & month < 6, "Autumn", "Summer")]
+genDataDT <- genDataDT[, season := ifelse(month > 5 & month < 9, "Winter", season)]
+genDataDT <- genDataDT[, season := ifelse(month > 8 & month < 12, "Spring", season)]
+
+#table(genDataDT$month, genDataDT$season)
 
 genPlotDT <- genDataDT[, .(nHalfHours = uniqueN(rDateTime),
-                 sumkWh = sum(kWh)),
-                 keyby = .(weekdays, halfHour)]
+                 sumkWh = sum(kWh)), # sum over all gen types
+                 keyby = .(season, weekdays, halfHour, peakPeriod)]
+
 genPlotDT[, genkWh := sumkWh/nHalfHours]
 
 # ggplot2::ggplot(genPlotDT, aes(x = halfHour, y = genkWh/1000, # mean total MW
@@ -1663,10 +1650,11 @@ genPlotDT[, genkWh := sumkWh/nHalfHours]
 #        y = "Mean total MWh")
 ```
 
-#### Summer
-Figure \@ref(fig:convertEVtoMWh) shows the result of this calculation for the study period. Note that this was during the summer so evneing peaks are lower.
+### Summer
 
-```{r convertEVtoMWh, fig.cap("Actual wholesale generation and estimated energy consumption under Scenario 1 for the study period.")}
+Figure \@ref(fig:convertEVtoMWhSum) shows the result of this calculation for the summer period. This uses wholesale generation data from January, February and December 2018 and the EV charging data for the study period as reported above. We assume that the EV charging behaviour is not seasonally affected although this may not necessarily be true in practice. Note that the rarity of rpaid charging causes some zero values for this charge type.
+
+```{r convertEVtoMWhSum, fig.cap = "Actual wholesale generation and estimated energy consumption under Scenario 1 for the study period during the summer."}
 
 evPcChargingPlotDT <- evPcChargingPlotDT[, halfHour := hms::trunc_hms(qHour, 30*60)]
 
@@ -1678,24 +1666,74 @@ setkey(genPlotDT, halfHour, weekdays)
 genPlotDT[, kWh := genkWh]
 genPlotDT[, chargeType := "Wholesale generation"]
 
-dt <- rbind(genPlotDT[,.(weekdays, halfHour, kWh, chargeType)], evHalfHourDT[,.(weekdays, halfHour, kWh, chargeType)])
+dt <- rbind(genPlotDT[season == "Summer",.(weekdays, halfHour, kWh, chargeType, peakPeriod)], evHalfHourDT[,.(weekdays, halfHour, kWh, chargeType, peakPeriod)])
 
 p <- ggplot2::ggplot(dt[!(chargeType %like% "Not")], aes(x = halfHour, y = kWh/1000, colour = chargeType)) +
   geom_point() +
   scale_color_discrete(name = "Key") +
-  labs(x = "Time of Day", y = "MWh per half hour") +
+  labs(x = "Time of Day", y = "Mean MWh per half hour") +
   facet_grid(weekdays ~ .)
 
 yMin <- min(dt$kWh/1000, na.rm = TRUE)
 yMax <- max(dt$kWh/1000, na.rm = TRUE)
 addPeaks(p)
 
+t <- dcast(dt[!(chargeType %like% "Not")], weekdays + halfHour + peakPeriod ~ chargeType, value.var = "kWh", fun=sum)
+#head(t)
+
+t[, rapid_pc := 100*(`Rapid charging`/`Wholesale generation`)]
+t[, std_pc := 100*(`Standard charging`/`Wholesale generation`)]
+
+pct <- t[, .(meanRapidPC = mean(rapid_pc, na.rm = TRUE),
+      meanStdPC = mean(std_pc, na.rm = TRUE)), keyby = .(weekdays, peakPeriod)]
+kableExtra::kable(pct, digits = 2, caption = "Mean % of observed wholesale generation by peak period (summer)") %>% 
+  kable_styling()
+
+dt[, chargeType := forcats::lvls_reorder(chargeType, 4:1)] # 4 levels (includes Not)
+ggplot2::ggplot(dt[!(chargeType %like% "Not")], aes(x = halfHour, y = kWh/1000, fill = chargeType)) +
+  geom_col() +
+  scale_fill_discrete(name = "Key") +
+  labs(x = "Time of Day", y = "Mean MWh per half hour") +
+  facet_grid(weekdays ~ .)
 ```
 
 
-XX need to do a % add plot & check calculations XX
-
 ### Winter
+
+Figure \@ref(fig:convertEVtoMWhWin) shows the result of this calculation for the summer period. This uses wholesale generation data from June, July and August 2018 and the EV charging data for the study period as reported above. as we do not have EV charing data for a winter period, we assume that the EV charging behaviour is not seasonally affected although this may not necessarily be true in practice. Note that the rarity of rpaid charging causes some zero values for this charge type.
+
+```{r convertEVtoMWhWin, fig.cap = "Actual wholesale generation and estimated energy consumption under Scenario 1 during the winter."}
+
+dt <- rbind(genPlotDT[season == "Winter",.(weekdays, halfHour, kWh, chargeType, peakPeriod)], evHalfHourDT[,.(weekdays, halfHour, kWh, chargeType, peakPeriod)])
+
+p <- ggplot2::ggplot(dt[!(chargeType %like% "Not")], aes(x = halfHour, y = kWh/1000, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Key") +
+  labs(x = "Time of Day", y = "Mean MWh per half hour") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(dt$kWh/1000, na.rm = TRUE)
+yMax <- max(dt$kWh/1000, na.rm = TRUE)
+addPeaks(p)
+
+t <- dcast(dt[!(chargeType %like% "Not")], weekdays + halfHour + peakPeriod ~ chargeType, value.var = "kWh", fun=sum)
+#head(t)
+
+t[, rapid_pc := 100*(`Rapid charging`/`Wholesale generation`)]
+t[, std_pc := 100*(`Standard charging`/`Wholesale generation`)]
+
+pct <- t[, .(meanRapidPC = mean(rapid_pc, na.rm = TRUE),
+      meanStdPC = mean(std_pc, na.rm = TRUE)), keyby = .(weekdays, peakPeriod)]
+kableExtra::kable(pct, digits = 2, caption = "Mean % of observed wholesale generation by peak period (winter)") %>% 
+  kable_styling()
+
+dt[, chargeType := forcats::lvls_reorder(chargeType, 4:1)] # 4 levels (includes Not)
+ggplot2::ggplot(dt[!(chargeType %like% "Not")], aes(x = halfHour, y = kWh/1000, fill = chargeType)) +
+  geom_col() +
+  scale_fill_discrete(name = "Key") +
+  labs(x = "Time of Day", y = "Mean MWh per half hour") +
+  facet_grid(weekdays ~ .)
+```
 
 
 # Summary {#summary}
