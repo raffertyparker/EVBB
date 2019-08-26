@@ -234,9 +234,13 @@ cleanAllDT <- clean2DT # use no threshold data
 
 # keep observations between 1st October and 1st March only ----
 # - see Data: Initial Cleaning
-# no more processing of cleanDT after this ----
-cleanDT <- cleanAllDT[as.Date(r_dateTime) >= as.Date("2018-10-01") & as.Date(r_dateTime) <= as.Date("2019-02-28")]
 
+sampleStart <- "2018-10-01"
+sampleEnd <- "2019-02-28"
+
+# no more processing of cleanDT after this ----
+cleanDT <- cleanAllDT[as.Date(r_dateTime) >= as.Date(sampleStart) & as.Date(r_dateTime) < as.Date(sampleEnd)]
+ 
 cleanCap <- paste0("Data source: Flip The Fleet (cleaned data)",
                  "\n Period: ", min(cleanDT$date), " - ", max(cleanDT$date))
 ```
@@ -300,9 +304,9 @@ firstLastDT <- firstLastDT[chargeFlag %like% "Last", pairDuration := NA] # remov
 
 ```
 
-# Heath warning
+# Health warning
 
-> The analysis reported below is work in progress. Please check with the authors before quoting or re-using (with attribution) results/plots. Reporting interim results without checking can __seriously__ damage your health. #YMMV.
+> __The analysis reported below is work in progress. Please check with the authors before quoting or re-using (with attribution) results/plots. Reporting interim results without checking can seriously damage your health (and career :-)__. [#YMMV](https://www.urbandictionary.com/define.php?term=ymmv).
 
 # About
 
@@ -469,7 +473,7 @@ Taking all of the above into account we have therefore discarded:
  * the `r nrow(summaryDT) - nrow(includeDT)` vehicles that had no recorded _charging_ observations (this also discarded those with very few observations - see Table \@ref(tab:noObsEVs));
  * `r nrow(rawDT[ charge_power_kw > 120])` instances of charging power greater than 120kW. These were considered anomalies and as these exceed the capacity of the highest charging stations currently available in New Zealand [@ConceptConsulting2018];
  * `r nrow(rawDT[state_of_charge_percent > 100])` instances of battery state of charge observations of greater than 100%;
- * all observations collected before 1st October and after 1st January in order to focus analysis on the periods with most EVs present in the data. It is hoped that this will reduce the extent to which the charging behaviour of a small number of EV owners will skew the aggregated results.
+ * all observations collected before `r sampleStart` and after `r sampleEnd` in order to focus analysis on the periods with most EVs present in the data. It is hoped that this will reduce the extent to which the charging behaviour of a small number of EV owners will skew the aggregated results.
 
 This left `r data.table::uniqueN(cleanDT$dvID)` remaining vehicles, and `r tidyNum(nrow(cleanDT))` observations as shown in Table \@ref(tab:chargeCleanDT).
 
