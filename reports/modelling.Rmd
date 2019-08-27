@@ -1,0 +1,113 @@
+---
+title: "modelling EV impact: notebook"
+author: '@dataknut'
+date: "24/08/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Modelling the national impact
+If we make the truly heroic assumption that the future EV owners of Aotearoa will charge their vehicles in the same way and with the same temporal patterns as this small sample of early adopters then we can make some guestimates of the likely consequences for electricity demand.
+
+```{r pcCharging, fig.cap="Percent of vehicles reporting data that were charging in a given 15 minute period"}
+#cleanDT[, r_dateTimeMin := lubridate::floor_date(r_dateTime, "1 minute")]
+cleanDT[, r_dateTimeQhour := lubridate::floor_date(r_dateTime, "15 minutes")]
+
+t <- cleanDT[, .(nObs = .N,
+                 nEVs = uniqueN(dvID)),
+                 keyby = .(weekdays, r_dateTimeHalfHour, qHour, # only needs dateTime but saves re-creating the others
+                           chargeType)]
+tEVs <- cleanDT[, .(totalEVs = uniqueN(dvID)), 
+                keyby = .(r_dateTimeHalfHour)]
+
+setkey(tEVs, r_dateTimeHalfHour)
+setkey(t, r_dateTimeHalfHour)
+t <- t[tEVs]
+t[, pcEVs := nEVs/totalEVs]
+
+plotDT <- t[, .(meanPC = mean(pcEVs)), keyby = .(weekdays, qHour, chargeType)]
+
+p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = 100 * meanPC, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Charge Type") +
+  labs(y = "Mean %", x = "Time of day") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(plotDT$meanPC)
+yMax <- max(plotDT$meanPC)
+addPeaks(p)
+
+
+```
+
+Based on Table \@ref(tab:obsPower), let us assume:
+
+```{r setModelAssumptions}
+t <- cleanDT[, .(meankW = mean(charge_power_kw),
+                 mediankW = median(charge_power_kw),
+                 minkW = min(charge_power_kw),
+                 maxkW = max(charge_power_kw)), keyby = .(chargeType)]
+
+medianStd <- t[chargeType %like% "Standard", mediankW]
+medianRap <- t[chargeType %like% "Rapid", mediankW]
+
+nHouseholds  <- 1771300
+
+noCar <- 0.08
+oneCar <- 0.37
+twoCar <- 0.38
+threeCar <- 0.16
+
+carHouseholds <- nHouseholds * (1 - noCar)
+car1Households <- nHouseholds * (oneCar)
+car2Households <- nHouseholds * (twoCar)
+car3Households <- nHouseholds * (threeCar)
+```
+
+ * standard charging = `r medianStd` kW (median)
+ * rapid charging = `r medianRap` kW (median)
+ * there are 1,771,300 households in New Zealand (https://www.stats.govt.nz/information-releases/dwelling-and-household-estimates-june-2019-quarter)
+ * Car ownership 2013 (http://archive.stats.govt.nz/Census/2013-census/profile-and-summary-reports/quickstats-transport-comms/number-motor-vehicles.aspx):
+   * `r 100*noCar`% have no car
+   * `r 100*oneCar`% have 1
+   * `r 100*twoCar`% have 2
+   * `r 100*threeCar`% have 3+ (we will treat this as 3)
+
+We can now construct a set of unlikely extreme case scenarios (or anything in between):
+
+ * All households with >= 1 car switch one of them (or the one they have) to an EV
+ * All households switch all cars to EVs
+ 
+Using the very out of date Census 2013 data we can estimate that:
+ * we have `r tidyNum(carHouseholds)` car owning households of which
+   * `r tidyNum(car1Households)` have 1 car
+   * `r tidyNum(car2Households)` have 2 cars
+   * `r tidyNum(car3Households)` have 3+ cars
+
+We now apply the % charge rates calculated above to these values.
+
+```{r scaledCharging1}
+plotDT[, carkW := ifelse(chargeType %like% "Standard", 
+                          carHouseholds * meanPC * medianStd,
+                          NA)]
+plotDT[, carkW := ifelse(chargeType %like% "Rapid", 
+                          carHouseholds * meanPC * medianRap,
+                          carkW)]
+
+nStd <- cleanDT[chargeType %like% "Standard", uniqueN(dvID)]
+nRapid <- cleanDT[chargeType %like% "Rapid", uniqueN(dvID)]
+
+p <- ggplot2::ggplot(plotDT, aes(x = qHour, y = carkW/1000000, colour = chargeType)) +
+  geom_point() +
+  scale_color_discrete(name = "Charge Type") +
+  labs(y = "Estimated GW demand", x = "Time of day") +
+  facet_grid(weekdays ~ .)
+
+yMin <- min(plotDT$carkW)
+yMax <- max(plotDT$carkW)
+addPeaks(p)
+
+```
