@@ -1323,7 +1323,7 @@ halfHourDT[, meankW := sumkWObs/nMins] # as we would expect 30 obs in a half hou
 
 halfHourDT[, kWh := meankW/2] # as they are half-hours
 
-halfHourDT[, hms := hms::as_hms(r_dateTime30Min)]
+halfHourDT[, hms := hms::as.hms(r_dateTime30Min)]
 
 # plot for sense
 p <- ggplot(halfHourDT, aes(x = hms, y = kWh, colour = chargeType)) +
