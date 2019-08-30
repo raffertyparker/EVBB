@@ -767,7 +767,7 @@ myCap <- paste0(cleanCap,
                 "\n n EVs: ", uniqueN(cleanDT$dvID)
 )
 
-p <- ggplot(plotDT, aes(x = qHour, y = nDaily, colour = chargeType)) +
+p <- ggplot(plotDT[!(chargeType %like% "Not")], aes(x = qHour, y = nDaily, colour = chargeType)) +
   geom_line() +
   facet_grid(weekdays ~ .) +
   guides(colour = guide_legend(title = "Charge type"))
@@ -1137,7 +1137,9 @@ The lack of data from EVs which are neither charging nor being driven means that
  * an estimate of the proportion of EVs which were charging and our derived median 'standard' and 'rapid' kW demand to estimate these values;
  * an estimate based on aggregating demand to half-hours.
  
- ### Method 1: Imptation based on sample charging proportions
+### Method 1: Imptation based on sample charging proportions
+
+> Warning: we think this method is incorrect. Do not use results in this section. Jump to Section \@ref(kw2)
 
 ```{r setkw}
 t <- cleanDT[, .(meankW = mean(charge_power_kw),
@@ -1187,7 +1189,7 @@ We can now see that:
  * standard charging places a relatively low additional mean kW load on the electricity network which is generall highest outside peak demand periods. However there is some evidence of an upward trend from ~ 16:00 through to 21:00.
  * despite the relative rarity of rapid charging, their much higher power demand produces a much higher mean kW load on the network, especially during the day. Note that the level of rapid charging between 00:00 and 08:00 on weekdays seems unexpected although it is reflected in Figure \@ref(fig:pcCharging) which shows that it is based on `r uniqueN(cleanDT[chargeType %like% "Rapid" & peakPeriod %like% "Early", dvID])` different EVs. Given the relatively low number of EVs reporting rapooid charging in this time period, this result should be treated with caution. 
 
-### Method 2: Half-hourly aggregation
+### Method 2: Half-hourly aggregation {#kw2}
 
 In this method we:
 
@@ -1212,12 +1214,42 @@ ggplot2::ggplot(minDT, aes(x = nObs)) +
   geom_histogram()
 ```
 
+Next we:
+
+ * sum the mean kW per date-half-hour by chargeType and divide by 30 to give mean kW for the half-hour
+ 
+```{r chargingKwProfile}
+
+minDT[, r_dateTime30MinFl := lubridate::floor_date(r_dateTime1MinFl, "30 mins")]
+
+halfHourDT <- minDT[, .(sumkWObs = sum(meankW), 
+                  nObs = .N, 
+                  nMins = 30), 
+              keyby = .(dvID, r_dateTime30MinFl, chargeType, peakPeriod, weekdays)]
+
+halfHourDT[, meankW := sumkWObs/nMins] # as we would expect 30 obs in a half hour
+halfHourDT[, hms := hms::as.hms(r_dateTime30MinFl)]
+plotDT <- halfHourDT[, .(meankW = mean(meankW),
+                         sumkW = sum(meankW)), 
+                     keyby = .(chargeType, peakPeriod, weekdays, hms)]
+
+ggplot2::ggplot(plotDT, aes(x = hms, y = meankW, colour = chargeType)) +
+  geom_point() +
+  facet_grid(weekdays ~ .) +
+  labs(x = "Time of Day", y = "Mean kw in the half hour",
+       caption = "Test plot: all 'half-hour' observations for all EVs")
+```
+NB: calculating a mean across these half-hourly observations requires knowing how many half-hours are missing and so can be set to 0.
+
+> tbc
 
 ## Estimating energy consumption {#estimatekWh}
 
 In addition to electricity demand (power in kW) we are also interested in overall energy consumption (kWh). To do this we use two methods based on the two approaches to estimating kW above.
 
 ### Method 1: proportions charging
+
+> Warning: we think this method is incorrect. Do not use results in this section. Jump to Section \@ref(kwh2)
 
 In the first method, we take the mean kW per quarter hour per EV values reported in \@ref(fig:setPower) and divide them by 4 to give mean kWh per quarter hour per EV.
 
@@ -1304,41 +1336,77 @@ p
 
 Table \@ref(tab:estimatekWhByPeak) and Figure \@ref(tab:estimatekWhByPeak) repeats this analysis but shows the results by peak period. Clearly rapid charging during the day dominates energy (kWh) consumption with standard charging during the evening peak being responsible for a mere 3-4% of the energy consumed by EV charging.
 
-### Method 2: Aggregation
+### Method 2: Aggregation {#kwh2}
 
-Here we take the floor(1 min) data described in XX and:
+Here we take the floor(1 min) data described in Section \@ref(kw2) and:
 
- * sum the mean kW per date-half-hour by chargeType and divide by 30 to give mean kW for the half-hour;
  * divide this by 2 to give the mean kWh per date-half-hour
  
 ```{r makeHalfHourlyKWh}
-minDT[, r_dateTime30Min := lubridate::floor_date(r_dateTime1MinFl, "30 mins")]
-
-halfHourDT <- minDT[, .(sumkWObs = sum(meankW), 
-                  nObs = .N, 
-                  nMins = 30), 
-              keyby = .(dvID, r_dateTime30Min, chargeType, peakPeriod, weekdays)]
-
-halfHourDT[, meankW := sumkWObs/nMins] # as we would expect 30 obs in a half hour
 
 halfHourDT[, kWh := meankW/2] # as they are half-hours
-
-halfHourDT[, hms := hms::as.hms(r_dateTime30Min)]
 
 # plot for sense
 p <- ggplot(halfHourDT, aes(x = hms, y = kWh, colour = chargeType)) +
   geom_point() +
-  labs(y = "kWh per half hour", x = "Time of day") + 
+  labs(y = "kWh per half hour", x = "Time of day",
+       caption = "Sense plot: all kWh per half hour observations for all EVs") + 
   facet_grid(weekdays ~ .)
 p
-
-# sum kwH per day per EV within categories we care about
-t <- halfHourDT[!(chargeType %like% "Not"), .(sumkWh = sum(kWh)), keyby = .(chargeType, peakPeriod)]
-
-ggplot(t, aes( x = peakPeriod, y = sumkWh, fill = chargeType)) + 
-  geom_col() 
 ```
 
+Next we simply sum these kWh values across all observations for different categories to get some idea of the relative proportions of energy being drawn in different contexts and charging situations
+
+Figure \@ref(fig:plotKWhWeekdays) shows the results of doing this for weekends and weekdays. Note that the totals have been 'normalised' to allow for the different numbers of weekdays vs weekend days but we make no checks as to whether the 'right' number of weekdays and weekend days are represented in the data (e.g. where we received no data due to inactivity - see above). This shows that the patterns of weekday vs weekend energy consumption are  similar with overnight standard charging dominating. Consumption during morning peak periods is low but slightly higher in the evening peaks as the charging timing results above would imply. Rapid charging plays a larger role in day-time energy consumption but it's rarity means that despite higher power demand (kW) it's energy impact (kWh) is relatively low in this sample.
+
+```{r plotKWhWeekdays, fig.cap = "Total normalised kWh by weekday and charge type"}
+# sum kwH within categories we care about
+tWD <- halfHourDT[!(chargeType %like% "Not"), .(sumkWh = sum(kWh)), keyby = .(chargeType, peakPeriod, weekdays)]
+
+# normalise to ndays
+tWD[, nDays := ifelse(weekdays == "Weekdays", 5, 2)]
+
+tWD[, sumkWhNdays := sumkWh/nDays]
+
+ggplot(tWD, aes( x = peakPeriod, y = sumkWhNdays, fill = chargeType)) + 
+  geom_col() +
+  facet_grid(weekdays ~ .) +
+  scale_fill_discrete(name = "Charge Type")+
+  labs(y = "Total kWh (normalised)", x = "Peak period")
+```
+
+Table \@ref(tab:plotKWh) and Figure \@ref(tab:plotKWh) summarise the energy consumption across peak periods without weekday disaggregation. This shows that overall (38.6 + 15.2) = 54% of the energy drawn was overnight off-peak standard charging. Day time standard charging was 19% of the total and day-time rapid only 8%. Evenng peak standard charging was 12% of total energy.
+
+```{r plotKWh, fig.cap="% total kWh by charge type and peak period"}
+t <- halfHourDT[!(chargeType %like% "Not"), .(sumkWh = sum(kWh)), keyby = .(chargeType, peakPeriod)]
+
+totkWh <- sum(t$sumkWh)
+
+t[, pckWh := 100 * (sumkWh/totkWh)]
+
+ggplot(t, aes( x = peakPeriod, y = pckWh, fill = chargeType)) + 
+  geom_col() +
+  scale_fill_discrete(name = "Charge Type")+
+  labs(y = "% total kWh drawn", x = "Peak period")
+
+kableExtra::kable(t[, .("Peak period" = peakPeriod,
+                        "Charge Type" = chargeType, 
+                        "Total kWh" = sumkWh,
+                        "% of total kWh" = pckWh)][order(`Peak period`)], digits = 2, caption = "Total kWh per period by charge type") %>%
+  kable_styling()
+
+message("Summary % total kWh for PCE paper")
+t[, .("% of total kWh" = sum(pckWh)), keyby = .(chargeType)]
+
+dailykWhDT <- halfHourDT[, .(sumkWh = sum(kWh)), keyby = .(date = lubridate::date(r_dateTime30MinFl), dvID, chargeType)]
+
+dailykWhDT[sumkWh > 0, .("Mean daily kWh where any charging" = mean(sumkWh),
+                         median = median(sumkWh),
+                         min = min(sumkWh),
+                         max = max(sumkWh)), keyby = .(chargeType)]
+
+```
+Overall, the EVs in this sample drew relatively little energy during the potentially problematic evening peak period.
 
 ## Charging duration {#duration}
 
@@ -1615,6 +1683,8 @@ addPeaks(p)
 Finally, Figure \@ref(fig:SoCplotTiming) shows the mean % charge by time of first charging observation in a sequence using the cleaned and corrected inferred start/end of charging sequence data. The plot suggests that this capacity may be relatively stable throughout the day albiet with slightly higher mean capacity around the morning peak as we would expect given over-night charging. It is unlikely that this early morning capacity would be willingly made available for V2G since the EV may be used in the near future although this may not always be the case. However it is interesting to note that mean capacity at start of charge in the evening peak period is still roughly 50% indicating relatively substantial power availability.
 
 # Modelling the national electricity grid impact
+
+> Warning: we think this method is incorrect. Do not use results in this section. Yet.
 
 If we make the heroic assumption that the future EV owners of Aotearoa will charge their vehicles in the same way and with the same temporal patterns as this small sample of early adopters then we can make estimates of the likely consequences for electricity demand under a range of scenarios using the data reported in Figure \@ref(fig:pcCharging). This showed the mean % of EVs which were charging in each quarter-hour of the day by charge type.
 
