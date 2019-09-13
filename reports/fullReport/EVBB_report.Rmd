@@ -615,7 +615,8 @@ kableExtra::kable(addmargins(t),
   kable_styling()
 ```
 
-Table \@ref(tab:seqCodeTable) shows the results of this coding for all clean observations within the selected dates (`r min(cleanDT$date)` - `r max(cleanDT$date)`). As we can see most observations were coded using this scheme and we obtained `r tidyNum(nChBegins)` instances of charging starting, and `r tidyNum(nChEnds)` instances of charge ending. The additional `r nChEnds - nChBegins` instances of charge ending than there are of the charge beginning may be due to the first (or last) instance of data collection occurring during mid-charge for some vehicles. 
+Table \@ref(tab:seqCodeTable) shows the results of this coding for all clean observations within the selected dates (`r min(cleanDT$date)` - `r max(cleanDT$date)`). As we can see most observations were coded using this scheme and we obtained `r tidyNum(nChBegins)` instances of charging starting, and `r tidyNum(nChEnds)` instances of charge ending. 
+The additional `r abs(nChEnds - nChBegins)` instances of charge `r if(nChBegins < nChEnds){"ending"} else {"beginning"}` than there are of the charge `r if(nChBegins < nChEnds){"beginning"} else {"ending"}` may be due to the first (or last) instance of data collection occurring during mid-charge for some vehicles. 
 
 An alternative classification method, tested in Section \@ref(chargeFlagTest), added a 120 second maximim threshold to sequences of observations but was not used as it failed to identify sparse sequences of charging events.
 
