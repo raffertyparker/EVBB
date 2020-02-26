@@ -1,6 +1,8 @@
 # This shows differences in charging patterns between the weekend and weekdays.
 # Currently not accurate because charge_power_kw = 0 are not included
 # thus data doesn't include times where the car is not charging
+# Still informative, but needs to be thought of as "average charge when car
+# is charging", not average over all times
 
 p <- ggplot2::ggplot(df, aes(x = time, y = charge_power_kw, group = halfHour)) +
   density(alpha = 0.5) # <- make the plot in an object first
